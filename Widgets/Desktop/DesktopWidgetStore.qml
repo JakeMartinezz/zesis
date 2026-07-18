@@ -54,6 +54,30 @@ Singleton {
         _save();
     }
 
+    // 0 means "auto" (use the content's own implicit size) for that axis independently
+    function getSize(key) {
+        var s = _positions[key]?.size;
+        return {
+            w: s?.w ?? 0,
+            h: s?.h ?? 0
+        };
+    }
+
+    function setSize(key, w, h) {
+        var copy = Object.assign({}, _positions);
+        copy[key] = Object.assign({}, copy[key] || {
+            nx: 0.5,
+            ny: 0.5
+        }, {
+            size: {
+                w: Math.max(0, Math.round(w || 0)),
+                h: Math.max(0, Math.round(h || 0))
+            }
+        });
+        _positions = copy;
+        _save();
+    }
+
     function _defaultBgConfig() {
         return {
             enabled: false,

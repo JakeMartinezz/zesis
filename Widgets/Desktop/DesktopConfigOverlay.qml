@@ -197,8 +197,17 @@ PanelWindow {
             readonly property real _bgPad: _hasBg ? Math.round(10 * UIScale.value) : 0
             readonly property real _dpr: Screen.devicePixelRatio
 
-            width: proxyContent.implicitWidth + _bgPad * 2
-            height: proxyContent.implicitHeight + _bgPad * 2
+            // Mirrors DesktopWidget.qml's override logic so the proxy you drag around
+            // here matches what actually renders once you hit Done.
+            readonly property var _size: {
+                var _ = DesktopWidgetStore._positions;
+                return DesktopWidgetStore.getSize(proxy.wKey);
+            }
+            readonly property bool _overrideW: _size.w > 0
+            readonly property bool _overrideH: _size.h > 0
+
+            width: (proxy._overrideW ? proxy._size.w : proxyContent.implicitWidth) + _bgPad * 2
+            height: (proxy._overrideH ? proxy._size.h : proxyContent.implicitHeight) + _bgPad * 2
 
             x: _nx * Math.max(1, root.width - width)
             y: _ny * Math.max(1, root.height - height)
@@ -277,10 +286,13 @@ PanelWindow {
                 bgConfig: proxy._bgConfig
             }
 
+            // width/height stay bound always, see docs/qml-patterns.md #2 for why
             Loader {
                 id: proxyContent
                 anchors.centerIn: parent
                 sourceComponent: proxy.modelData.component
+                width: proxy._overrideW ? proxy._size.w : (item?.implicitWidth ?? 0)
+                height: proxy._overrideH ? proxy._size.h : (item?.implicitHeight ?? 0)
             }
 
             DragHandler {
@@ -383,6 +395,120 @@ PanelWindow {
                         id: cardContent
                         anchors.centerIn: parent
                         spacing: Math.round(UIScale.spacingSm)
+
+                        // Row 0: Fixed size, independent per axis. Empty/0 means "auto",
+                        // falls back to the content's own natural size.
+                        Row {
+                            spacing: Math.round(UIScale.spacingSm)
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Size"
+                                color: Colors.textDim
+                                font.pixelSize: UIScale.fontSmall
+                            }
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitWidth: Math.round(52 * UIScale.value)
+                                implicitHeight: widthInput.implicitHeight + Math.round(UIScale.spacingXs * 2)
+                                color: Colors.withAlpha(Colors.outline, 0.2)
+                                radius: UIScale.radiusSm
+                                clip: true
+
+                                TextInput {
+                                    id: widthInput
+                                    anchors {
+                                        fill: parent
+                                        margins: Math.round(UIScale.spacingXs)
+                                    }
+                                    text: {
+                                        var w = DesktopWidgetStore.getSize(proxy.wKey).w;
+                                        return w > 0 ? String(w) : "";
+                                    }
+                                    color: Colors.text
+                                    font.pixelSize: UIScale.fontSmall
+                                    selectByMouse: true
+                                    validator: IntValidator {
+                                        bottom: 0
+                                    }
+                                    onEditingFinished: {
+                                        var s = DesktopWidgetStore.getSize(proxy.wKey);
+                                        DesktopWidgetStore.setSize(proxy.wKey, parseInt(widthInput.text) || 0, s.h);
+                                    }
+                                }
+                            }
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                // I am also conflicted on the usage of × because VSCodium
+                                // keeps warning me about it, which is annoying.
+                                // I could use X or x, but those don't look as good.
+                                // Am I rambling? Yes. Is this the place to do it? No.
+                                text: "×"
+                                color: Colors.muted
+                                font.pixelSize: UIScale.fontSmall
+                            }
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitWidth: Math.round(52 * UIScale.value)
+                                implicitHeight: heightInput.implicitHeight + Math.round(UIScale.spacingXs * 2)
+                                color: Colors.withAlpha(Colors.outline, 0.2)
+                                radius: UIScale.radiusSm
+                                clip: true
+
+                                TextInput {
+                                    id: heightInput
+                                    anchors {
+                                        fill: parent
+                                        margins: Math.round(UIScale.spacingXs)
+                                    }
+                                    text: {
+                                        var h = DesktopWidgetStore.getSize(proxy.wKey).h;
+                                        return h > 0 ? String(h) : "";
+                                    }
+                                    color: Colors.text
+                                    font.pixelSize: UIScale.fontSmall
+                                    selectByMouse: true
+                                    validator: IntValidator {
+                                        bottom: 0
+                                    }
+                                    onEditingFinished: {
+                                        var s = DesktopWidgetStore.getSize(proxy.wKey);
+                                        DesktopWidgetStore.setSize(proxy.wKey, s.w, parseInt(heightInput.text) || 0);
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: proxy._overrideW || proxy._overrideH
+                                implicitWidth: sizeAutoLabel.implicitWidth + Math.round(UIScale.spacingMd * 2)
+                                implicitHeight: sizeAutoLabel.implicitHeight + Math.round(UIScale.spacingXs * 2)
+                                radius: UIScale.radiusSm
+                                color: sizeAutoHover.hovered ? Colors.withAlpha(Colors.outline, 0.4) : Colors.withAlpha(Colors.outline, 0.2)
+
+                                Text {
+                                    id: sizeAutoLabel
+                                    anchors.centerIn: parent
+                                    text: "Auto"
+                                    color: Colors.muted
+                                    font.pixelSize: UIScale.fontSmall
+                                }
+
+                                HoverHandler {
+                                    id: sizeAutoHover
+                                }
+                                TapHandler {
+                                    onTapped: {
+                                        DesktopWidgetStore.setSize(proxy.wKey, 0, 0);
+                                        widthInput.text = "";
+                                        heightInput.text = "";
+                                    }
+                                }
+                            }
+                        }
 
                         // Row 1: Background enable toggle
                         Row {

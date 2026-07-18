@@ -26,6 +26,16 @@ PanelWindow {
     property bool _hasBg: _bgConfig.enabled
     readonly property real _bgPad: _hasBg ? Math.round(10 * UIScale.value) : 0
 
+    // User-set fixed size, independent per axis. 0 = auto (content's own implicit size).
+    // Forcing a size here is what lets a container-aware component (e.g. WeatherDisplay)
+    // actually reflow instead of just being centered at its natural size in a bigger window.
+    property var _size: {
+        var _ = DesktopWidgetStore._positions;
+        return DesktopWidgetStore.getSize(root.storeKey);
+    }
+    readonly property bool _overrideW: _size.w > 0
+    readonly property bool _overrideH: _size.h > 0
+
     property real _marginLeft: _nx * Math.max(0, screen.width - implicitWidth)
     property real _marginTop: _ny * Math.max(0, screen.height - implicitHeight)
 
@@ -41,8 +51,8 @@ PanelWindow {
         left: Math.round(root._marginLeft)
     }
 
-    implicitWidth: contentLoader.implicitWidth + root._bgPad * 2
-    implicitHeight: contentLoader.implicitHeight + root._bgPad * 2
+    implicitWidth: (root._overrideW ? root._size.w : contentLoader.implicitWidth) + root._bgPad * 2
+    implicitHeight: (root._overrideH ? root._size.h : contentLoader.implicitHeight) + root._bgPad * 2
 
     exclusiveZone: -1
     color: "transparent"
@@ -59,10 +69,13 @@ PanelWindow {
         bgConfig: root._bgConfig
     }
 
+    // width/height stay bound always, see docs/qml-patterns.md #2 for why
     Loader {
         id: contentLoader
         anchors.centerIn: parent
         sourceComponent: root.content
+        width: root._overrideW ? root._size.w : (item?.implicitWidth ?? 0)
+        height: root._overrideH ? root._size.h : (item?.implicitHeight ?? 0)
     }
 
     // Re-read position from store when config mode exits (overlay may have moved us).

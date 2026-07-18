@@ -8,7 +8,35 @@ Item {
     property string title: ""
     property Component rightActions: null
 
-    implicitHeight: Math.round(72 * UIScale.value)
+    TextMetrics {
+        id: titleMetrics
+        font.pixelSize: UIScale.fontHero
+        font.weight: Font.ExtraBold
+        text: root.title
+    }
+    TextMetrics {
+        id: titleCompactMetrics
+        font.pixelSize: UIScale.fontTitle
+        font.weight: Font.ExtraBold
+        text: root.title
+    }
+    TextMetrics {
+        id: breadcrumbMetrics
+        font.pixelSize: UIScale.fontCaption
+        font.weight: Font.Bold
+        font.letterSpacing: 2
+        font.family: "monospace"
+        text: root.breadcrumb
+    }
+
+    // Container-query breakpoint: react to our own laid-out width, not the screen. Compares
+    // against the actual space available to the title (width minus the RowLayout's own
+    // left/right margins), not root.width directly.
+    readonly property bool compact: width > 0 && (width - UIScale.panelPad * 2) < titleMetrics.width
+
+    // Must match the Column's own spacing below and the RowLayout's top/bottom margins
+    readonly property real _colSpacing: Math.round(5 * UIScale.value)
+    implicitHeight: breadcrumbMetrics.height + _colSpacing + (root.compact ? titleCompactMetrics.height : titleMetrics.height) + UIScale.spacingMd * 2
 
     RowLayout {
         anchors.fill: parent
@@ -22,18 +50,22 @@ Item {
             Layout.fillWidth: true
 
             Text {
+                width: parent.width
                 text: root.breadcrumb
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
                 font.weight: Font.Bold
                 font.letterSpacing: 2
                 font.family: "monospace"
+                elide: Text.ElideRight
             }
             Text {
+                width: parent.width
                 text: root.title
                 color: Colors.text
-                font.pixelSize: UIScale.fontHero
+                font.pixelSize: root.compact ? UIScale.fontTitle : UIScale.fontHero
                 font.weight: Font.ExtraBold
+                elide: Text.ElideRight
             }
         }
 
