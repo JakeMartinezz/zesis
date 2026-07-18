@@ -2,8 +2,9 @@ import QtQuick
 import "../../"
 
 Item {
-    implicitWidth: visible ? Math.round(30 * UIScale.value) : 0
-    implicitHeight: visible ? Math.round(30 * UIScale.value) : 0
+    // Unconditional, never gate on visible here. See docs/qml-patterns.md #1
+    implicitWidth: Math.round(30 * UIScale.value)
+    implicitHeight: Math.round(30 * UIScale.value)
 
     property string icon: ""
     property bool active: false

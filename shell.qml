@@ -64,50 +64,22 @@ Scope {
 
             color: "transparent"
 
+            readonly property bool _hasMusic: Mpris.players.values.length > 0
+            property bool wantsMusic: false
+
+            // Gap kept between the taskbar/music island and the systray pill before the
+            // tray starts collapsing
+            readonly property real _islandGap: Math.round(16 * UIScale.value)
+
             SysTray {
                 id: trayWidget
                 x: BarConfig.isVertical ? 0 : (parent.width - width - BarConfig.endGap)
                 y: BarConfig.isVertical ? (parent.height - height - BarConfig.endGap) : 0
+                // Budget = space from the island's right edge to the tray's own right
+                // boundary. Depends only on islandRow's geometry, never trayWidget's own
+                // width/x, so it can't be circular.
+                maxWidth: BarConfig.isVertical ? -1 : Math.max(0, (root.width - BarConfig.endGap) - (islandRow.x + islandRow.width) - root._islandGap)
             }
-
-            Connections {
-                target: LockService
-                function onLockRequested() {
-                    lockScreen.triggerLock();
-                }
-            }
-        }
-    }
-
-    Variants {
-        model: Quickshell.screens
-        delegate: PanelWindow {
-            id: centerIsland
-            required property ShellScreen modelData
-            screen: modelData
-
-            WlrLayershell.layer: WlrLayer.Top
-            WlrLayershell.namespace: "zesis:taskbar"
-            WlrLayershell.margins {
-                top: BarConfig.side === "top" ? BarConfig.edgeGap : 0
-                bottom: BarConfig.side === "bottom" ? BarConfig.edgeGap : 0
-                left: BarConfig.side === "left" ? BarConfig.edgeGap : 0
-                right: BarConfig.side === "right" ? BarConfig.edgeGap : 0
-            }
-            anchors {
-                top: BarConfig.side === "top"
-                bottom: BarConfig.side === "bottom"
-                left: BarConfig.side === "left"
-                right: BarConfig.side === "right"
-            }
-            exclusiveZone: -1
-            color: "transparent"
-
-            readonly property bool _hasMusic: Mpris.players.values.length > 0
-            property bool wantsMusic: false
-
-            implicitWidth: BarConfig.isVertical ? Math.round(50 * UIScale.value) : islandRow.implicitWidth
-            implicitHeight: BarConfig.isVertical ? islandRow.implicitHeight : Math.round(50 * UIScale.value)
 
             Row {
                 id: islandRow
@@ -116,10 +88,10 @@ Scope {
 
                 MusicChip {
                     id: musicChip
-                    visible: centerIsland._hasMusic && !BarConfig.isVertical
+                    visible: root._hasMusic && !BarConfig.isVertical
                     onIsHoveredChanged: {
                         if (isHovered) {
-                            centerIsland.wantsMusic = true;
+                            root.wantsMusic = true;
                             musicHideTimer.stop();
                         } else if (!popupHover.hovered) {
                             musicHideTimer.restart();
@@ -135,32 +107,32 @@ Scope {
             Timer {
                 id: musicHideTimer
                 interval: 300
-                onTriggered: centerIsland.wantsMusic = false
+                onTriggered: root.wantsMusic = false
             }
 
             PopupWindow {
                 id: musicPopup
-                visible: centerIsland.wantsMusic && centerIsland._hasMusic
+                visible: root.wantsMusic && root._hasMusic
                 grabFocus: false
                 color: "transparent"
                 implicitWidth: 400
                 implicitHeight: 260
 
                 anchor {
-                    window: centerIsland
+                    window: root
                     rect.x: {
                         if (BarConfig.side === "left")
-                            return centerIsland.width;
+                            return root.width;
                         if (BarConfig.side === "right")
                             return -musicPopup.implicitWidth;
-                        return musicChip.implicitWidth / 2 - musicPopup.implicitWidth / 2;
+                        return islandRow.x + musicChip.implicitWidth / 2 - musicPopup.implicitWidth / 2;
                     }
                     rect.y: {
                         if (BarConfig.side === "bottom")
                             return -musicPopup.implicitHeight;
                         if (BarConfig.isVertical)
-                            return centerIsland.height / 2 - musicPopup.implicitHeight / 2;
-                        return centerIsland.height;
+                            return islandRow.y + musicChip.implicitHeight / 2 - musicPopup.implicitHeight / 2;
+                        return islandRow.y + islandRow.height;
                     }
                 }
 
@@ -169,7 +141,7 @@ Scope {
                     onHoveredChanged: {
                         if (hovered) {
                             musicHideTimer.stop();
-                            centerIsland.wantsMusic = true;
+                            root.wantsMusic = true;
                         } else if (!musicChip.isHovered) {
                             musicHideTimer.restart();
                         }
@@ -178,10 +150,17 @@ Scope {
 
                 Loader {
                     anchors.fill: parent
-                    active: centerIsland._hasMusic
+                    active: root._hasMusic
                     sourceComponent: MusicController {
                         popupVisible: musicPopup.visible
                     }
+                }
+            }
+
+            Connections {
+                target: LockService
+                function onLockRequested() {
+                    lockScreen.triggerLock();
                 }
             }
         }
