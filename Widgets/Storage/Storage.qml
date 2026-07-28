@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 import "../../"
 import "../Shared"
-import "../SysMon"
 
 Item {
     id: root

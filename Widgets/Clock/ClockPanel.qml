@@ -740,43 +740,4 @@ Item {
             }
         }
     }
-
-    // Small accent-colored action button
-    component ActionButton: Item {
-        id: ab
-        signal activated
-
-        property string label: ""
-
-        implicitWidth: Math.round(58 * UIScale.value)
-        implicitHeight: Math.round(32 * UIScale.value)
-
-        Rectangle {
-            anchors.fill: parent
-            radius: UIScale.radiusSm
-            color: abHov.hovered ? Colors.withAlpha(Colors.accent, 0.28) : Colors.withAlpha(Colors.accent, 0.14)
-            Behavior on color {
-                ColorAnimation {
-                    duration: Anim.fast
-                }
-            }
-
-            Text {
-                anchors.centerIn: parent
-                text: ab.label
-                color: Colors.accent
-                font.pixelSize: UIScale.fontSmall
-                font.weight: Font.DemiBold
-            }
-        }
-
-        HoverHandler {
-            id: abHov
-        }
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: ab.activated()
-        }
-    }
 }
