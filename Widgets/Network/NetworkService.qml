@@ -63,6 +63,7 @@ Singleton {
         findMountCifsProc.running = true;
         findUmountProc.running = true;
         readAuthFileProc.running = true;
+        ensureSmbClientConfProc.running = true;
         scan();
         refreshMounts();
         if (root.keychainAvailable && root.useKeyring) {
@@ -99,7 +100,7 @@ Singleton {
         smbListProc._host = host;
         smbListProc._pending = [];
         smbListProc._stderr = "";
-        smbListProc.command = ["smbclient", "-L", "//" + host, "-U", user + "%" + pass, "-g"];
+        smbListProc.command = ["smbclient", "-L", "//" + host, "-U", user + "%" + pass, "-g", "-s", root._smbHome + "/smb.conf"];
         smbListProc.running = false;
         smbListProc.running = true;
     }
@@ -516,6 +517,13 @@ Singleton {
             root.smbnetfsSavedHosts = Object.keys(sh);
             root.connectSmbnetfs(host, secretLookupProc._user, secretLookupProc._pass.trim());
         }
+    }
+
+    // smbclient refuses to run at all without a loadable config file, give it a
+    // minimal client-only one instead of depending on /etc/samba/smb.conf existing.
+    Process {
+        id: ensureSmbClientConfProc
+        command: ["sh", "-c", "mkdir -p \"" + root._smbHome + "\" && printf '%s\\n' '[global]' > \"" + root._smbHome + "/smb.conf\""]
     }
 
     Process {
