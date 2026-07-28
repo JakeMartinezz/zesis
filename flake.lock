@@ -7,26 +7,46 @@
         ]
       },
       "locked": {
-        "lastModified": 1780872866,
-        "narHash": "sha256-wnmNMSbJeIHKbNEh9C9k/HfkV7k9Adw0ek5OqAtkuxE=",
-        "owner": "SquirrelModeller",
+        "lastModified": 1781776760,
+        "narHash": "sha256-6wGTtOOZV/DKubE/gAkJ+8u38dgBgnEFRZIneIs/oyk=",
+        "owner": "zesis-shell",
         "repo": "athroisma",
-        "rev": "1fea764f319a31a728ebbb886afdd7cb205e8ede",
+        "rev": "a9cd110cf6c70ab029ff7f92d556e35b17aea38c",
         "type": "github"
       },
       "original": {
-        "owner": "SquirrelModeller",
+        "owner": "zesis-shell",
         "repo": "athroisma",
+        "type": "github"
+      }
+    },
+    "congeries": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785246343,
+        "narHash": "sha256-03tvxWSUZ82LEZ3tDSrBHPxlNFGYlGHRrGeKXTq0340=",
+        "owner": "zesis-shell",
+        "repo": "congeries",
+        "rev": "afdcfe3254fb2bdb8b86c21c52514f546234e656",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zesis-shell",
+        "repo": "congeries",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1780243769,
-        "narHash": "sha256-x5UQuRsH3MqI0U9afaXSNqzTPSeZlRLvFAav2Ux1pNw=",
+        "lastModified": 1784497964,
+        "narHash": "sha256-vlHUuqAcbcH2RKmHbPiuQzbv1pnzzavXnI62RD0bqCU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "331800de5053fcebacf6813adb5db9c9dca22a0c",
+        "rev": "241313f4e8e508cb9b13278c2b0fa25b9ca27163",
         "type": "github"
       },
       "original": {
@@ -39,6 +59,7 @@
     "root": {
       "inputs": {
         "athroisma": "athroisma",
+        "congeries": "congeries",
         "nixpkgs": "nixpkgs"
       }
     }

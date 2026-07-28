@@ -6,6 +6,7 @@ import "../Calendar"
 import "../User"
 import "../../"
 import "../Weather"
+import "../Diaspora"
 
 Item {
     id: root
@@ -151,6 +152,12 @@ Item {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                clip: true
+
+                BackgroundGlobe {
+                    anchors.fill: parent
+                    opacity: 0.16
+                }
 
                 ColumnLayout {
                     anchors.fill: parent

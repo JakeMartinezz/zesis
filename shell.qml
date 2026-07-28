@@ -17,6 +17,7 @@ import "Widgets/WidgetHome"
 import "Widgets/Polkit"
 import "Widgets/Display"
 import "Widgets/Calendar"
+import "Widgets/Diaspora"
 import "Widgets/Home"
 import "Widgets/Sound"
 import "Widgets/PumpPanel"
@@ -33,6 +34,7 @@ Scope {
     // Singletons instantiated at startup for startup-apply logic
     property string _displayInit: DisplayService.monitorName
     property var _calInit: CalendarService.events
+    property bool _locationSharingInit: LocationSharingService.ready
 
     Variants {
         model: Quickshell.screens
@@ -233,8 +235,8 @@ Scope {
     PanelWindow {
         id: homeOverlay
 
-        readonly property int panelWidth: Math.round(1200 * UIScale.value)
-        readonly property int panelHeight: Math.round(760 * UIScale.value)
+        readonly property int panelWidth: Math.round(1360 * UIScale.value)
+        readonly property int panelHeight: Math.round(860 * UIScale.value)
 
         WlrLayershell.namespace: "zesis:homePanel"
         WlrLayershell.layer: WlrLayer.Overlay

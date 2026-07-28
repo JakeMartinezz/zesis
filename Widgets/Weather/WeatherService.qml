@@ -16,6 +16,8 @@ Singleton {
     property string error: ""
 
     property string locationName: ""
+    property real latitude: 0
+    property real longitude: 0
 
     property real temperature: 0
     property int weatherCode: 0
@@ -129,6 +131,8 @@ Singleton {
 
     function _fetchWeather(lat, lon, name) {
         root.locationName = name;
+        root.latitude = lat;
+        root.longitude = lon;
         var url = "https://api.open-meteo.com/v1/forecast" + "?latitude=" + lat.toFixed(4) + "&longitude=" + lon.toFixed(4) + "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day" + "&hourly=temperature_2m,precipitation_probability,weathercode" + "&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max" + "&forecast_days=7&timezone=auto";
         weatherProc._buf = "";
         weatherProc.command = ["sh", "-c", "curl -sf --max-time 10 '" + url + "'"];

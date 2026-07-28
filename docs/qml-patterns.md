@@ -2,8 +2,7 @@
 
 Cross-cutting gotchas and conventions that would otherwise get restated as comments in
 every file that runs into them. If you're about to write a comment explaining one of
-these patterns, link here instead (`# see _refs/qml-notes.md`) and keep the in-code note
-to one line.
+these patterns.
 
 ---
 

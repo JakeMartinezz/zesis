@@ -2,12 +2,15 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Io
 import "../About"
 import "../AppSwitcher"
 import "../Bluetooth"
 import "../Calendar"
 import "../Clock"
+import "../Community"
+import "../Globe3D"
 import "../WorkspaceIndicator"
 import "../Display"
 import "../Network"
@@ -38,6 +41,7 @@ Item {
     }
     property string searchText: ""
     property string _hostname: ""
+    readonly property bool _devMode: !!Quickshell.env("ZESIS_DEV")
 
     Process {
         command: ["hostname"]
@@ -435,9 +439,17 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["bar", "clock", "calendar", "sound", "app switcher", "workspace", "notifications"].some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.searchText === "" || ["bar", "clock", "calendar", "sound", "app switcher", "workspace", "notifications", "community"].some(s => s.includes(root.searchText.toLowerCase()))
                         }
-
+                        NavItem {
+                            navId: "community"
+                            navLabel: "Community"
+                            navIcon: ""
+                            isNavSelected: root.section === "community"
+                            visible: root.searchText === "" || "community".includes(root.searchText.toLowerCase())
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
                         NavItem {
                             navId: "bar"
                             navLabel: "Bar"
@@ -587,7 +599,7 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || "responsive test".includes(root.searchText.toLowerCase())
+                            visible: root._devMode && (root.searchText === "" || ["responsive test", "assembly test"].some(s => s.includes(root.searchText.toLowerCase())))
                         }
 
                         NavItem {
@@ -595,7 +607,16 @@ Item {
                             navLabel: "Responsive Test"
                             navIcon: "󰙨"
                             isNavSelected: root.section === "responsivetest"
-                            visible: root.searchText === "" || "responsive test".includes(root.searchText.toLowerCase())
+                            visible: root._devMode && (root.searchText === "" || "responsive test".includes(root.searchText.toLowerCase()))
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
+                        NavItem {
+                            navId: "assemblytest"
+                            navLabel: "Assembly Test"
+                            navIcon: "󰙨"
+                            isNavSelected: root.section === "assemblytest"
+                            visible: root._devMode && (root.searchText === "" || "assembly test".includes(root.searchText.toLowerCase()))
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
@@ -655,6 +676,7 @@ Item {
 
             Loader {
                 anchors.fill: parent
+                active: HomePanelService.open
                 sourceComponent: {
                     if (root.section === "home")
                         return dashboardComp;
@@ -694,6 +716,10 @@ Item {
                         return calendarPanelComp;
                     if (root.section === "responsivetest")
                         return responsiveTestComp;
+                    if (root.section === "assemblytest")
+                        return assemblyTestComp;
+                    if (root.section === "community")
+                        return communityPanelComp;
                     return placeholderComp;
                 }
             }
@@ -776,6 +802,16 @@ Item {
             Component {
                 id: responsiveTestComp
                 ResponsiveTestPanel {}
+            }
+            Component {
+                id: assemblyTestComp
+                Globe3DGate {
+                    panelSource: "AssemblyTest.qml"
+                }
+            }
+            Component {
+                id: communityPanelComp
+                CommunityPanel {}
             }
 
             Component {
