@@ -11,6 +11,7 @@ Item {
     property real handleSize: Math.round(18 * UIScale.value)
     signal moved(real val)
     signal wheeled(real angleDelta)
+    signal released
 
     implicitHeight: Math.round(24 * UIScale.value)
     readonly property real _t: mouseArea.pressed ? _dragT : Math.max(0, Math.min(1, (value - from) / Math.max(0.0001, to - from)))
@@ -74,6 +75,9 @@ Item {
         onPositionChanged: function (m) {
             if (pressed)
                 setFromX(m.x);
+        }
+        onReleased: function (m) {
+            root.released();
         }
         onWheel: function (w) {
             root.wheeled(w.angleDelta.y);
