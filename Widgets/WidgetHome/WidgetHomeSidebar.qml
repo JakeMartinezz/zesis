@@ -40,7 +40,7 @@ PanelWindow {
         to: 0
         duration: Anim.slow
         easing.type: Easing.BezierSpline
-        easing.bezierCurve: [0.05, 0.7, 0.1, 1, 1, 1]
+        easing.bezierCurve: Anim.emphasizedDecel
     }
 
     NumberAnimation {
@@ -50,7 +50,7 @@ PanelWindow {
         to: 1
         duration: Anim.medium
         easing.type: Easing.BezierSpline
-        easing.bezierCurve: [0.3, 0, 0.8, 0.15, 1, 1]
+        easing.bezierCurve: Anim.emphasizedAccel
         onFinished: root.visible = false
     }
 
@@ -66,7 +66,7 @@ PanelWindow {
             NumberAnimation {
                 duration: Anim.morph
                 easing.type: Easing.BezierSpline
-                easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                easing.bezierCurve: Anim.spatial
             }
         }
         topLeftRadius: Math.round(12 * UIScale.value)

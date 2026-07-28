@@ -85,7 +85,7 @@ Item {
                     to: 0
                     duration: Anim.medium
                     easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.05, 0.7, 0.1, 1, 1, 1]
+                    easing.bezierCurve: Anim.emphasizedDecel
                 }
                 NumberAnimation {
                     property: "opacity"
@@ -104,7 +104,7 @@ Item {
                     to: -40
                     duration: Anim.medium
                     easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.3, 0, 0.8, 0.15, 1, 1]
+                    easing.bezierCurve: Anim.emphasizedAccel
                 }
                 NumberAnimation {
                     property: "opacity"
@@ -123,7 +123,7 @@ Item {
                     to: 0
                     duration: Anim.medium
                     easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.05, 0.7, 0.1, 1, 1, 1]
+                    easing.bezierCurve: Anim.emphasizedDecel
                 }
                 NumberAnimation {
                     property: "opacity"
@@ -142,7 +142,7 @@ Item {
                     to: 40
                     duration: Anim.medium
                     easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.3, 0, 0.8, 0.15, 1, 1]
+                    easing.bezierCurve: Anim.emphasizedAccel
                 }
                 NumberAnimation {
                     property: "opacity"

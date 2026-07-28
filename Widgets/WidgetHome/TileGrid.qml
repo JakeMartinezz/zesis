@@ -196,7 +196,7 @@ Item {
                 NumberAnimation {
                     duration: Anim.morph
                     easing.type: Easing.BezierSpline
-                    easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                    easing.bezierCurve: Anim.spatial
                 }
             }
 
@@ -222,7 +222,7 @@ Item {
                         NumberAnimation {
                             duration: Anim.morph
                             easing.type: Easing.BezierSpline
-                            easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                            easing.bezierCurve: Anim.spatial
                         }
                     }
                     Behavior on opacity {
@@ -239,7 +239,7 @@ Item {
                             NumberAnimation {
                                 duration: Anim.morph
                                 easing.type: Easing.BezierSpline
-                                easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                                easing.bezierCurve: Anim.spatial
                             }
                         }
 
@@ -293,7 +293,7 @@ Item {
                                             to: 0.0
                                             duration: Anim.slow
                                             easing.type: Easing.BezierSpline
-                                            easing.bezierCurve: [0.05, 0.7, 0.1, 1.0, 1, 1]
+                                            easing.bezierCurve: Anim.emphasizedDecel
                                         }
                                     }
                                 }
@@ -311,14 +311,14 @@ Item {
                                     NumberAnimation {
                                         duration: Anim.morph
                                         easing.type: Easing.BezierSpline
-                                        easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                                        easing.bezierCurve: Anim.spatial
                                     }
                                 }
                                 Behavior on height {
                                     NumberAnimation {
                                         duration: Anim.morph
                                         easing.type: Easing.BezierSpline
-                                        easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                                        easing.bezierCurve: Anim.spatial
                                     }
                                 }
                                 Rectangle {
@@ -345,35 +345,35 @@ Item {
                                         NumberAnimation {
                                             duration: Anim.morph
                                             easing.type: Easing.BezierSpline
-                                            easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                                            easing.bezierCurve: Anim.spatial
                                         }
                                     }
                                     Behavior on height {
                                         NumberAnimation {
                                             duration: Anim.morph
                                             easing.type: Easing.BezierSpline
-                                            easing.bezierCurve: [0.38, 1.21, 0.22, 1.00, 1, 1]
+                                            easing.bezierCurve: Anim.spatial
                                         }
                                     }
                                     Behavior on radius {
                                         NumberAnimation {
                                             duration: Anim.morph
                                             easing.type: Easing.BezierSpline
-                                            easing.bezierCurve: [0.42, 1.67, 0.21, 0.90, 1, 1]
+                                            easing.bezierCurve: Anim.spatialFast
                                         }
                                     }
                                     Behavior on topLeftRadius {
                                         NumberAnimation {
                                             duration: Anim.morph
                                             easing.type: Easing.BezierSpline
-                                            easing.bezierCurve: [0.42, 1.67, 0.21, 0.90, 1, 1]
+                                            easing.bezierCurve: Anim.spatialFast
                                         }
                                     }
                                     Behavior on topRightRadius {
                                         NumberAnimation {
                                             duration: Anim.morph
                                             easing.type: Easing.BezierSpline
-                                            easing.bezierCurve: [0.42, 1.67, 0.21, 0.90, 1, 1]
+                                            easing.bezierCurve: Anim.spatialFast
                                         }
                                     }
                                     Behavior on border.color {

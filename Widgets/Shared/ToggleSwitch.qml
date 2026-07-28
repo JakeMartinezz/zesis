@@ -20,6 +20,8 @@ Item {
         Behavior on color {
             ColorAnimation {
                 duration: Anim.fast
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Anim.standard
             }
         }
     }
@@ -30,15 +32,26 @@ Item {
         radius: width / 2
         anchors.verticalCenter: parent.verticalCenter
         x: root.checked ? root.width - width - root._margin : root._margin
+        scale: toggleMa.pressed ? 0.85 : 1.0
         color: root.knobColor
         Behavior on x {
             NumberAnimation {
                 duration: Anim.fast
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: root.checked ? Anim.emphasizedDecel : Anim.emphasizedAccel
+            }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: Anim.micro
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: Anim.standard
             }
         }
     }
 
     MouseArea {
+        id: toggleMa
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: root.toggled()
