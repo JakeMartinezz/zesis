@@ -6,9 +6,11 @@ import Quickshell
 import Quickshell.Io
 import "../../"
 import "../Bar"
+import "../Shared"
 
 Item {
     id: root
+    focus: true
 
     Component.onCompleted: scanner.running = true
 
@@ -44,9 +46,9 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: UIScale.radiusLg
-        topLeftRadius:     (BarConfig.side === "top"    || BarConfig.side === "left")  ? 0 : UIScale.radiusLg
-        topRightRadius:    (BarConfig.side === "top"    || BarConfig.side === "right") ? 0 : UIScale.radiusLg
-        bottomLeftRadius:  (BarConfig.side === "bottom" || BarConfig.side === "left")  ? 0 : UIScale.radiusLg
+        topLeftRadius: (BarConfig.side === "top" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
+        topRightRadius: (BarConfig.side === "top" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
+        bottomLeftRadius: (BarConfig.side === "bottom" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
         bottomRightRadius: (BarConfig.side === "bottom" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
         color: Colors.bg
         border.color: Colors.outline
@@ -138,42 +140,11 @@ Item {
         }
 
         // Search bar
-        Rectangle {
+        StyledTextInput {
+            id: searchField
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.round(36 * UIScale.value)
-            radius: UIScale.radiusSm
-            color: Colors.surface
-            border.color: searchField.activeFocus ? Colors.accent : Colors.outline
-            border.width: 1
-            Behavior on border.color {
-                ColorAnimation {
-                    duration: Anim.fast
-                }
-            }
-
-            TextInput {
-                id: searchField
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    verticalCenter: parent.verticalCenter
-                    leftMargin: Math.round(12 * UIScale.value)
-                    rightMargin: Math.round(12 * UIScale.value)
-                }
-                color: Colors.text
-                font.pixelSize: UIScale.fontSmall
-                clip: true
-                selectionColor: Qt.rgba(Colors.accent.r, Colors.accent.g, Colors.accent.b, 0.35)
-
-                Text {
-                    anchors.fill: parent
-                    verticalAlignment: Text.AlignVCenter
-                    text: "Search wallpapers..."
-                    color: Colors.textDim
-                    font.pixelSize: UIScale.fontSmall
-                    visible: searchField.text === ""
-                }
-            }
+            showClearButton: true
+            placeholder: "Search wallpapers..."
         }
 
         // Wallpaper list
@@ -211,6 +182,16 @@ Item {
                 font.pixelSize: UIScale.fontSmall
                 horizontalAlignment: Text.AlignHCenter
             }
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        z: 9999
+        propagateComposedEvents: true
+        onPressed: mouse => {
+            root.forceActiveFocus();
+            mouse.accepted = false;
         }
     }
 }
