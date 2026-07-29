@@ -369,6 +369,28 @@ Item {
 
         Row {
             spacing: 8
+            CheckBox {
+                text: "stars"
+                checked: engine.starsEnabled
+                onToggled: engine.starsEnabled = checked
+            }
+            Text {
+                color: "white"
+                font.pixelSize: 14
+                anchors.verticalCenter: parent.verticalCenter
+                text: "count " + engine.starCount
+            }
+            Slider {
+                width: 120
+                from: 0
+                to: 20000
+                value: engine.starCount
+                onMoved: engine.starCount = Math.round(value)
+            }
+        }
+
+        Row {
+            spacing: 8
             visible: root.stressTestEnabled && engine.glowEnabled
             Text {
                 color: "white"

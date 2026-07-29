@@ -92,6 +92,31 @@ Item {
 
     property bool dotsFollowRodHeight: true
 
+    property bool starsEnabled: true
+    property int starCount: 12000
+    property real starFieldRadius: 6000.0
+    property real starSize: 30.0
+    property real starIntensity: 0.75
+
+    function _buildStarField() {
+        var n = root.starCount;
+        var r = root.starFieldRadius;
+        var flat = new Array(n * 3);
+        for (var i = 0; i < n; i++) {
+            // Uniform point on a sphere. Z picked uniformly in [-1,1], angle
+            // uniformly around it
+            var z = Math.random() * 2 - 1;
+            var theta = Math.random() * Math.PI * 2;
+            var s = Math.sqrt(1 - z * z);
+            flat[i * 3] = s * Math.cos(theta) * r;
+            flat[i * 3 + 1] = z * r;
+            flat[i * 3 + 2] = s * Math.sin(theta) * r;
+        }
+        starScatter.positions = flat;
+    }
+    onStarCountChanged: root._buildStarField()
+    onStarFieldRadiusChanged: root._buildStarField()
+
     property bool glowEnabled: true
     property real glowStrength: 1.0
     property real glowIntensity: 0.01
@@ -687,6 +712,7 @@ Item {
         var startOrientation = root.defaultViewOrientation();
         root.orientation = Qt.quaternion(startOrientation.w, startOrientation.x, startOrientation.y, startOrientation.z);
         buildTargets();
+        root._buildStarField();
         root.ready();
     }
 
@@ -832,6 +858,7 @@ Item {
                 property real dotIntensity: root.dotIntensity
                 property color dotColor: root.dotColor
                 property real dotFade: root.dotFade
+                property real colorVariety: 0.0
 
                 property real followRodHeight: root.dotsFollowRodHeight ? 1.0 : 0.0
                 property real radius: root.meshRadius
@@ -872,6 +899,30 @@ Item {
                     }
                 }
                 vertexShader: "DotMaterial.vert"
+                fragmentShader: "DotMaterial.frag"
+            }
+        }
+
+        // Background star field
+        Model {
+            source: "#Rectangle"
+            visible: root.starsEnabled
+            instancing: ScatterInstancing {
+                id: starScatter
+            }
+            materials: CustomMaterial {
+                sourceBlend: CustomMaterial.One
+                destinationBlend: CustomMaterial.One
+                depthDrawMode: Material.NeverDepthDraw
+                cullMode: Material.NoCulling
+                property vector3d camRight: root.camRight
+                property vector3d camUp: root.camUp
+                property real dotSize: root.starSize
+                property real dotIntensity: root.starIntensity
+                property color dotColor: "#ffffff"
+                property real dotFade: 1.0
+                property real colorVariety: 1.0
+                vertexShader: "StarMaterial.vert"
                 fragmentShader: "DotMaterial.frag"
             }
         }

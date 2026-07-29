@@ -67,10 +67,12 @@ float rodHeightFrac(vec3 dir, float time, float effectMode, float waveSpeed, flo
 }
 
 VARYING vec2 vUV;
+VARYING float vSeed;
 
 void MAIN()
 {
     vUV = UV0;
+    vSeed = float(INSTANCE_INDEX);
     vec3 billboard = (camRight * VERTEX.x + camUp * VERTEX.y) * (dotSize / 100.0);
 
     vec3 radialLift = vec3(0.0);
