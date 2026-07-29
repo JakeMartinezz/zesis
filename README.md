@@ -15,7 +15,7 @@ Contributions and adaptations are welcome - the config is written to be portable
 - [Matugen](https://github.com/InioX/matugen)
 - A Wayland compositor that implements `wlr-layer-shell`
 - A [Nerd Font](https://www.nerdfonts.com/) or the `nerd-fonts.symbols-only` package for icons
-- aww (SHOULD HANDLE SINKS INSTEAD, FIX ME SQUIRREL YOU GODDAMN IDIOT)
+- One wallpaper-setting backend: [awww](https://codeberg.org/LGFae/awww) (default), [swww](https://codeberg.org/LGFae/awww), `hyprpaper`, `feh`, or a custom command, configurable in the Wallpaper settings panel
 
 ### Optional
 - Hyprland - workspace/window management, keybind cheatsheet, display picker (only backend currently implemented)
