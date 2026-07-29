@@ -380,6 +380,123 @@ PanelWindow {
                 }
             }
 
+            // Resize handles: 4 corner grabs (width + height) + 4 edge grabs
+            // (single axis).
+            Repeater {
+                model: proxy._selected ? ["nw", "n", "ne", "w", "e", "sw", "s", "se"] : []
+
+                delegate: Rectangle {
+                    id: handle
+                    required property string modelData
+
+                    readonly property bool _left: modelData.indexOf("w") >= 0
+                    readonly property bool _right: modelData.indexOf("e") >= 0
+                    readonly property bool _top: modelData.indexOf("n") >= 0
+                    readonly property bool _bottom: modelData.indexOf("s") >= 0
+
+                    width: Math.round(9 * UIScale.value)
+                    height: width
+                    radius: width / 2
+                    color: Colors.bg
+                    border.color: Colors.accent
+                    border.width: Math.max(1, Math.round(1.5 * UIScale.value))
+                    z: 20
+
+                    x: (handle._left ? 0 : handle._right ? proxy.width : proxy.width / 2) - handle.width / 2
+                    y: (handle._top ? 0 : handle._bottom ? proxy.height : proxy.height / 2) - handle.height / 2
+
+                    property real _startX
+                    property real _startY
+                    property real _startW
+                    property real _startH
+                    property point _startScene
+
+                    HoverHandler {
+                        cursorShape: {
+                            switch (handle.modelData) {
+                            case "n":
+                            case "s":
+                                return Qt.SizeVerCursor;
+                            case "e":
+                            case "w":
+                                return Qt.SizeHorCursor;
+                            case "nw":
+                            case "se":
+                                return Qt.SizeFDiagCursor;
+                            default:
+                                // ne, sw
+                                return Qt.SizeBDiagCursor;
+                            }
+                        }
+                    }
+
+                    DragHandler {
+                        id: resizeDrag
+                        target: null
+                        grabPermissions: PointerHandler.CanTakeOverFromAnything
+
+                        onActiveChanged: {
+                            if (resizeDrag.active) {
+                                handle._startScene = resizeDrag.centroid.scenePosition;
+                                handle._startX = proxy.x;
+                                handle._startY = proxy.y;
+                                handle._startW = proxy.width;
+                                handle._startH = proxy.height;
+                            } else {
+                                var w = Math.max(1, Math.round(proxy.width - proxy._bgPad * 2));
+                                var h = Math.max(1, Math.round(proxy.height - proxy._bgPad * 2));
+                                DesktopWidgetStore.setSize(proxy.wKey, w, h);
+
+                                var rW = Math.max(1, root.width - proxy.width);
+                                var rH = Math.max(1, root.height - proxy.height);
+                                proxy._nx = Math.max(0.0, Math.min(1.0, proxy.x / rW));
+                                proxy._ny = Math.max(0.0, Math.min(1.0, proxy.y / rH));
+                                DesktopWidgetStore.setPos(proxy.wKey, proxy._nx, proxy._ny);
+
+                                proxy.x = Qt.binding(() => proxy._nx * Math.max(1, root.width - proxy.width));
+                                proxy.y = Qt.binding(() => proxy._ny * Math.max(1, root.height - proxy.height));
+                                proxy.width = Qt.binding(() => (proxy._overrideW ? proxy._size.w : proxyContent.implicitWidth) + proxy._bgPad * 2);
+                                proxy.height = Qt.binding(() => (proxy._overrideH ? proxy._size.h : proxyContent.implicitHeight) + proxy._bgPad * 2);
+                            }
+                        }
+
+                        onCentroidChanged: {
+                            if (!resizeDrag.active)
+                                return;
+
+                            var dx = resizeDrag.centroid.scenePosition.x - handle._startScene.x;
+                            var dy = resizeDrag.centroid.scenePosition.y - handle._startScene.y;
+                            var minW = Math.round(40 * UIScale.value) + proxy._bgPad * 2;
+                            var minH = Math.round(24 * UIScale.value) + proxy._bgPad * 2;
+
+                            var newW = handle._startW;
+                            var newH = handle._startH;
+                            var newX = handle._startX;
+                            var newY = handle._startY;
+
+                            if (handle._right) {
+                                newW = Math.max(minW, handle._startW + dx);
+                            } else if (handle._left) {
+                                newW = Math.max(minW, handle._startW - dx);
+                                newX = handle._startX + (handle._startW - newW);
+                            }
+
+                            if (handle._bottom) {
+                                newH = Math.max(minH, handle._startH + dy);
+                            } else if (handle._top) {
+                                newH = Math.max(minH, handle._startH - dy);
+                                newY = handle._startY + (handle._startH - newH);
+                            }
+
+                            proxy.width = newW;
+                            proxy.height = newH;
+                            proxy.x = newX;
+                            proxy.y = newY;
+                        }
+                    }
+                }
+            }
+
             // Per-widget settings card, appears below the proxy when selected.
             Loader {
                 active: proxy._selected
