@@ -19,18 +19,12 @@ Item {
     // Simulated container height for the live-widget section below
     property real testWidgetHeight: 400
 
-    // Captured once on load so we can put UIScale back the way we found it.
-    // Note: this is a plain value, not a re-established binding, if uiscale.json
-    // changes on disk while this page is open, that change won't stick until reload.
-    property real _origUIScaleValue: 1.0
-
     function _restoreUIScale() {
-        UIScale.value = root._origUIScaleValue;
+        UIScale.resetLivePreview();
     }
 
     Component.onCompleted: {
         testWidth = width - UIScale.panelPad * 2;
-        _origUIScaleValue = UIScale.value;
     }
     Component.onDestruction: root._restoreUIScale()
 

@@ -37,6 +37,12 @@ Singleton {
     readonly property real radiusLg: 14 * value * radiusScale     // large panel containers, notification cards
     readonly property real radiusXl: 16 * value * radiusScale     // large cards / hero
 
+    function resetLivePreview() {
+        value = Qt.binding(function () {
+            return scaleData.value;
+        });
+    }
+
     function write(scaleV, fontV, spacingV, radiusV) {
         writeProc.command = ["sh", "-c", "mkdir -p '" + root._configDir + "' && echo '{" + "\"value\":" + scaleV.toFixed(2) + "," + "\"fontScale\":" + fontV.toFixed(2) + "," + "\"spacingScale\":" + spacingV.toFixed(2) + "," + "\"radiusScale\":" + radiusV.toFixed(2) + "}' > '" + root._configPath + "'"];
         writeProc.running = true;
