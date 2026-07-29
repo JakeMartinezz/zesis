@@ -3,13 +3,9 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 Singleton {
     id: root
-
-    readonly property string _configDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/zesis"
-    readonly property string _configPath: _configDir + "/display.json"
 
     property string monitorName: _backend.monitorName
     property string monitorModel: _backend.monitorModel
@@ -92,42 +88,11 @@ Singleton {
 
     function apply(modeStr) {
         _backend.apply(modeStr);
-        saveProc.command = ["sh", "-c", "mkdir -p '" + root._configDir + "' && echo '" + JSON.stringify({
-                monitor: root.monitorName,
-                mode: modeStr
-            }) + "' > '" + root._configPath + "'"];
-        saveProc.running = true;
     }
 
     Component.onCompleted: {
         _refresh();
-        startupTimer.start();
-    }
-
-    Timer {
-        id: startupTimer
-        interval: 400
-        onTriggered: {
-            if (savedAdapter.monitor && savedAdapter.mode)
-                root.apply(savedAdapter.mode);
-        }
     }
 
     property QtObject _backend: DisplayHyprlandBackend {}
-
-    Process {
-        id: saveProc
-        running: false
-    }
-
-    JsonAdapter {
-        id: savedAdapter
-        property string monitor: ""
-        property string mode: ""
-    }
-
-    FileView {
-        path: root._configPath
-        adapter: savedAdapter // qmllint disable missing-type
-    }
 }
