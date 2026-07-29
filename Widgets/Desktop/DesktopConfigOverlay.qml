@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Wayland
 import "./"
 import "../../"
+import "../Globe2D"
 
 PanelWindow {
     id: root
@@ -897,6 +898,68 @@ PanelWindow {
                                         c.maskPath = "";
                                         DesktopWidgetStore.setBgConfig(proxy.wKey, c);
                                     }
+                                }
+                            }
+                        }
+
+                        // Row 7: Globe-only rotation mode (auto-spin vs a
+                        // single static frame)
+                        Row {
+                            visible: proxy.wKey === "globe2d"
+                            spacing: Math.round(UIScale.spacingSm)
+
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "Rotation"
+                                color: Colors.textDim
+                                font.pixelSize: UIScale.fontSmall
+                            }
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                property bool _active: Globe2DSettings.rotateMode === "auto"
+                                implicitWidth: autoModeLabel.implicitWidth + Math.round(UIScale.spacingMd * 2)
+                                implicitHeight: autoModeLabel.implicitHeight + Math.round(UIScale.spacingXs * 2)
+                                radius: height / 2
+                                color: _active ? Colors.withAlpha(Colors.accent, 0.2) : Colors.withAlpha(Colors.outline, 0.15)
+                                border.color: _active ? Colors.accent : "transparent"
+                                border.width: 1
+
+                                Text {
+                                    id: autoModeLabel
+                                    anchors.centerIn: parent
+                                    text: "Auto"
+                                    color: parent._active ? Colors.accent : Colors.textDim
+                                    font.pixelSize: UIScale.fontSmall
+                                }
+
+                                HoverHandler {}
+                                TapHandler {
+                                    onTapped: Globe2DSettings.setRotateMode("auto")
+                                }
+                            }
+
+                            Rectangle {
+                                anchors.verticalCenter: parent.verticalCenter
+                                property bool _active: Globe2DSettings.rotateMode === "manual"
+                                implicitWidth: manualModeLabel.implicitWidth + Math.round(UIScale.spacingMd * 2)
+                                implicitHeight: manualModeLabel.implicitHeight + Math.round(UIScale.spacingXs * 2)
+                                radius: height / 2
+                                color: _active ? Colors.withAlpha(Colors.accent, 0.2) : Colors.withAlpha(Colors.outline, 0.15)
+                                border.color: _active ? Colors.accent : "transparent"
+                                border.width: 1
+
+                                Text {
+                                    id: manualModeLabel
+                                    anchors.centerIn: parent
+                                    text: "Manual"
+                                    color: parent._active ? Colors.accent : Colors.textDim
+                                    font.pixelSize: UIScale.fontSmall
+                                }
+
+                                HoverHandler {}
+                                TapHandler {
+                                    onTapped: Globe2DSettings.setRotateMode("manual")
                                 }
                             }
                         }

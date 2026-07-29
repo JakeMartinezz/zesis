@@ -4,11 +4,15 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "./"
+import "../Globe2D"
 import "../../"
 
-// Small WlrLayer.Bottom surface positioned anywhere on screen, fully click-through.
-// In config mode this surface hides, DesktopConfigOverlay renders a draggable proxy
-// instead, then writes the new position back to DesktopWidgetStore on drag end.
+// Small WlrLayer.Bottom surface positioned anywhere on screen. Click-through
+// by default, a widget that needs pointer input (currently only the Globe in
+// manual-rotate mode, see _wantsInput below) gets a full-size input region
+// instead. In config mode this surface hides, DesktopConfigOverlay renders a
+// draggable proxy instead, then writes the new position back to
+// DesktopWidgetStore on drag end.
 PanelWindow {
     id: root
 
@@ -57,10 +61,22 @@ PanelWindow {
     exclusiveZone: -1
     color: "transparent"
 
+    // Widget-specific opt-in for pointer input, gated on storeKey like the
+    // per-widget settings rows in DesktopConfigOverlay. Only the Globe in
+    // manual-rotate mode wants this for now.
+    readonly property bool _wantsInput: root.storeKey === "globe2d" && Globe2DSettings.rotateMode === "manual"
+
     Region {
         id: clickThrough
     }
-    mask: clickThrough
+    Region {
+        id: fullInput
+        x: 0
+        y: 0
+        width: root.width
+        height: root.height
+    }
+    mask: root._wantsInput ? fullInput : clickThrough
 
     visible: !DesktopWidgetStore.configMode
 

@@ -6,6 +6,7 @@ import Quickshell
 import "../Clock"
 import "../Weather"
 import "../SysMon"
+import "../Globe2D"
 
 Singleton {
     id: root
@@ -34,6 +35,12 @@ Singleton {
             label: "System Stats",
             description: "CPU, RAM, GPU, net & disk at a glance",
             component: _sysmonComp
+        },
+        {
+            key: "globe2d",
+            label: "Globe",
+            description: "Spinning 2D shader globe with community locations",
+            component: _globe2dComp
         }
     ]
 
@@ -60,5 +67,9 @@ Singleton {
     Component {
         id: _sysmonComp
         SysMonDesktopWidget {}
+    }
+    Component {
+        id: _globe2dComp
+        Globe2DDesktopWidget {}
     }
 }
