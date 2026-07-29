@@ -111,6 +111,25 @@ Singleton {
         return s;
     }
 
+    property var order: []
+
+    // items reordered per the persisted order Any id missing from order
+    // (not yet merged, example before first load) falls back to catalog
+    // position, so this is always safe to read.
+    readonly property var orderedItems: {
+        const byId = {};
+        for (const item of items)
+            byId[item.id] = item;
+        const result = [];
+        for (const id of order)
+            if (byId[id])
+                result.push(byId[id]);
+        for (const item of items)
+            if (order.indexOf(item.id) < 0)
+                result.push(item);
+        return result;
+    }
+
     readonly property bool anyEnabled: {
         const s = _state;
         return items.some(item => s[item.id] !== false);
@@ -125,6 +144,21 @@ Singleton {
         s[id] = !isEnabled(id);
         _state = s;
         BarConfig.writeItemStates(s);
+    }
+
+    // Inserts id immediately before beforeId in the persisted order, or at the
+    // end when beforeId is "". Works against the full order, so disabled/
+    // overflowed ids keep their relative position untouched.
+    function moveItemBefore(id, beforeId) {
+        const cur = root.order.length ? root.order.slice() : items.map(i => i.id);
+        const from = cur.indexOf(id);
+        if (from < 0)
+            return;
+        cur.splice(from, 1);
+        const toIdx = beforeId ? cur.indexOf(beforeId) : -1;
+        cur.splice(toIdx < 0 ? cur.length : toIdx, 0, id);
+        root.order = cur;
+        BarConfig.writeItemOrder(cur);
     }
 
     function _merge() {
@@ -149,10 +183,30 @@ Singleton {
             BarConfig.writeItemStates(s);
     }
 
+    function _mergeOrder() {
+        const known = new Set(items.map(x => x.id));
+        const raw = BarConfig.itemOrder || [];
+        const result = raw.filter(id => known.has(id));
+        let dirty = result.length !== raw.length;
+        const present = new Set(result);
+        for (const item of items) {
+            if (!present.has(item.id)) {
+                result.push(item.id);
+                dirty = true;
+            }
+        }
+        root.order = result;
+        if (dirty)
+            BarConfig.writeItemOrder(result);
+    }
+
     Connections {
         target: BarConfig
         function onItemStatesChanged() {
             root._merge();
+        }
+        function onItemOrderChanged() {
+            root._mergeOrder();
         }
     }
 }

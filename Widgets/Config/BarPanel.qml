@@ -25,7 +25,9 @@ Item {
             contentWidth: width
             contentHeight: content.implicitHeight + UIScale.spacingLg * 2
             clip: true
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             ColumnLayout {
                 id: content
@@ -70,7 +72,9 @@ Item {
                     }
                 }
 
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
+                Divider {
+                    color: Colors.withAlpha(Colors.accent, 0.1)
+                }
 
                 // Edge gap
                 RowLayout {
@@ -91,12 +95,18 @@ Item {
                 }
                 SettingSlider {
                     Layout.fillWidth: true
-                    from: 0; to: 40; step: 1
+                    from: 0
+                    to: 40
+                    step: 1
                     value: BarConfig.edgeGap
-                    onMoved: function(v) { BarConfig.writeEdgeGap(Math.round(v)); }
+                    onMoved: function (v) {
+                        BarConfig.writeEdgeGap(Math.round(v));
+                    }
                 }
 
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
+                Divider {
+                    color: Colors.withAlpha(Colors.accent, 0.1)
+                }
 
                 // End gap
                 RowLayout {
@@ -117,12 +127,18 @@ Item {
                 }
                 SettingSlider {
                     Layout.fillWidth: true
-                    from: 0; to: 60; step: 1
+                    from: 0
+                    to: 60
+                    step: 1
                     value: BarConfig.endGap
-                    onMoved: function(v) { BarConfig.writeEndGap(Math.round(v)); }
+                    onMoved: function (v) {
+                        BarConfig.writeEndGap(Math.round(v));
+                    }
                 }
 
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
+                Divider {
+                    color: Colors.withAlpha(Colors.accent, 0.1)
+                }
 
                 // Bar items
                 Text {
@@ -133,7 +149,7 @@ Item {
                 }
 
                 Repeater {
-                    model: BarItemsService.items
+                    model: BarItemsService.orderedItems
                     delegate: RowLayout {
                         id: itemRow
                         required property var modelData
