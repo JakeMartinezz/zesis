@@ -88,6 +88,11 @@ Singleton {
             icon: ""
         },
         {
+            id: "settings",
+            label: "Settings",
+            icon: "󰘮"
+        },
+        {
             id: "lock",
             label: "Lock",
             icon: "󰌾"

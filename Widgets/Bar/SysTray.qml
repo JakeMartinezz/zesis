@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import "../../"
 import "../Home"
+import "../Settings"
 import "../LockScreen"
 import "../Shared"
 
@@ -163,6 +164,11 @@ Rectangle {
                         content.item.active = Qt.binding(() => HomePanelService.open);
                         content.item.clicked.connect(() => {
                             HomePanelService.open = !HomePanelService.open;
+                        });
+                    } else if (slot.itemData.id === "settings") {
+                        content.item.active = Qt.binding(() => SettingsPanelService.open);
+                        content.item.clicked.connect(() => {
+                            SettingsPanelService.open = !SettingsPanelService.open;
                         });
                     } else if (slot.itemData.id === "lock") {
                         content.item.clicked.connect(() => {

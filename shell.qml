@@ -19,6 +19,7 @@ import "Widgets/Display"
 import "Widgets/Calendar"
 import "Widgets/Diaspora"
 import "Widgets/Home"
+import "Widgets/Settings"
 import "Widgets/Sound"
 import "Widgets/PumpPanel"
 import "Widgets/Clock"
@@ -275,6 +276,32 @@ Scope {
         target: "home"
         function toggle() {
             HomePanelService.open = !HomePanelService.open;
+        }
+    }
+
+    PanelWindow {
+        id: settingsWindow
+
+        width: Math.round(1360 * UIScale.value)
+        height: Math.round(860 * UIScale.value)
+
+        WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        color: "transparent"
+
+        visible: SettingsPanelService.open
+        onVisibleChanged: if (visible)
+            settingsPanel.forceActiveFocus()
+
+        SettingsPanel {
+            id: settingsPanel
+            anchors.fill: parent
+        }
+    }
+
+    IpcHandler {
+        target: "settings"
+        function toggle() {
+            SettingsPanelService.open = !SettingsPanelService.open;
         }
     }
 

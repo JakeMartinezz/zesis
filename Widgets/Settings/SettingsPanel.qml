@@ -2,16 +2,17 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
-import "../Calendar"
-import "../Community"
-import "../Globe3D"
-import "../Network"
-import "../Notifications"
-import "../SysMon"
-import "../NixPurity"
+import "../Config"
+import "../ThemeSwitcher"
+import "../Clock"
+import "../AppSwitcher"
+import "../WorkspaceIndicator"
+import "../Display"
+import "../Bluetooth"
+import "../Wifi"
+import "../Sound"
 import "../User"
+import "../About"
 import "../Shared"
 import "../../"
 
@@ -19,40 +20,22 @@ Item {
     id: root
     focus: true
 
-    Keys.onEscapePressed: HomePanelService.open = false
+    Keys.onEscapePressed: SettingsPanelService.open = false
 
-    property string section: "home"
+    property string section: "appearance"
 
-    property bool _panelOpen: HomePanelService.open
+    property bool _panelOpen: SettingsPanelService.open
     on_PanelOpenChanged: {
-        if (_panelOpen && HomePanelService.requestedSection !== "") {
-            root.section = HomePanelService.requestedSection;
-            HomePanelService.requestedSection = "";
+        if (_panelOpen && SettingsPanelService.requestedSection !== "") {
+            root.section = SettingsPanelService.requestedSection;
+            SettingsPanelService.requestedSection = "";
         }
     }
     property string searchText: ""
-    property string _hostname: ""
-    readonly property bool _devMode: !!Quickshell.env("ZESIS_DEV")
 
-    Process {
-        command: ["hostname"]
-        running: true
-        stdout: SplitParser {
-            onRead: data => root._hostname = data.trim()
-        }
-    }
-
-    readonly property bool panelOpen: HomePanelService.open
+    readonly property bool panelOpen: SettingsPanelService.open
     onPanelOpenChanged: if (!panelOpen)
         searchField.text = ""
-
-    property string _reqSec: HomePanelService.requestedSection
-    on_ReqSecChanged: {
-        if (_reqSec !== "") {
-            root.section = _reqSec;
-            HomePanelService.requestedSection = "";
-        }
-    }
 
     component NavItem: Rectangle {
         id: navItem
@@ -128,12 +111,6 @@ Item {
         anchors.fill: parent
         radius: Math.round(16 * UIScale.value)
         color: Colors.bg
-        border.color: Colors.withAlpha(Colors.outline, 0.6)
-        border.width: 1
-
-        MouseArea {
-            anchors.fill: parent
-        }
     }
 
     RowLayout {
@@ -209,10 +186,16 @@ Item {
                         spacing: 1
 
                         Text {
-                            text: "zesis"
+                            text: "Settings"
                             color: Colors.text
                             font.pixelSize: UIScale.fontSubhead
                             font.weight: Font.ExtraBold
+                        }
+                        Text {
+                            text: "zesis"
+                            color: Colors.textDim
+                            font.pixelSize: UIScale.fontCaption
+                            font.family: "monospace"
                         }
                     }
 
@@ -245,7 +228,7 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: HomePanelService.open = false
+                            onClicked: SettingsPanelService.open = false
                         }
                     }
                 }
@@ -259,7 +242,7 @@ Item {
                     showClearButton: true
                     placeholder: "Search settings"
                     onTextChanged: root.searchText = text
-                    onEscapePressed: HomePanelService.open = false
+                    onEscapePressed: SettingsPanelService.open = false
                 }
 
                 // Scrollable nav list
@@ -277,18 +260,38 @@ Item {
                         width: parent.width
                         spacing: 0
 
+                        Text {
+                            text: "APPEARANCE"
+                            color: Colors.muted
+                            font.pixelSize: UIScale.fontTiny
+                            font.weight: Font.Bold
+                            font.letterSpacing: 1.5
+                            leftPadding: UIScale.spacingSm
+                            Layout.bottomMargin: UIScale.spacingXs
+                            visible: root.searchText === "" || ["appearance", "wallpaper"].some(s => s.includes(root.searchText.toLowerCase()))
+                        }
+
                         NavItem {
-                            navId: "home"
-                            navLabel: "Home"
-                            navIcon: ""
-                            isNavSelected: root.section === "home"
-                            visible: root.searchText === "" || "home".includes(root.searchText.toLowerCase())
+                            navId: "appearance"
+                            navLabel: "Appearance"
+                            navIcon: "󰘮"
+                            isNavSelected: root.section === "appearance"
+                            visible: root.searchText === "" || "appearance".includes(root.searchText.toLowerCase())
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
+                        NavItem {
+                            navId: "wallpaper"
+                            navLabel: "Wallpaper"
+                            navIcon: ""
+                            isNavSelected: root.section === "wallpaper"
+                            visible: root.searchText === "" || "wallpaper".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "APPS"
+                            text: "BAR & WIDGETS"
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -296,65 +299,47 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["community", "network shares", "system monitor", "notifications", "calendar"].concat(NixPurityService.isNixOS ? ["nix purity"] : []).some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.searchText === "" || ["bar", "clock", "app switcher", "workspace"].some(s => s.includes(root.searchText.toLowerCase()))
                         }
                         NavItem {
-                            navId: "community"
-                            navLabel: "Community"
-                            navIcon: ""
-                            isNavSelected: root.section === "community"
-                            visible: root.searchText === "" || "community".includes(root.searchText.toLowerCase())
+                            navId: "bar"
+                            navLabel: "Bar"
+                            navIcon: "󰕪"
+                            isNavSelected: root.section === "bar"
+                            visible: root.searchText === "" || "bar".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
-                            navId: "network"
-                            navLabel: "Network Shares"
-                            navIcon: ""
-                            isNavSelected: root.section === "network"
-                            visible: root.searchText === "" || "network shares".includes(root.searchText.toLowerCase())
+                            navId: "clock"
+                            navLabel: "Clock"
+                            navIcon: ""
+                            isNavSelected: root.section === "clock"
+                            visible: root.searchText === "" || "clock".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
-                            navId: "sysmon"
-                            navLabel: "System Monitor"
-                            navIcon: ""
-                            isNavSelected: root.section === "sysmon"
-                            visible: root.searchText === "" || "system monitor".includes(root.searchText.toLowerCase())
+                            navId: "appswitcher"
+                            navLabel: "App Switcher"
+                            navIcon: ""
+                            isNavSelected: root.section === "appswitcher"
+                            visible: root.searchText === "" || "app switcher".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
-                            navId: "nixpurity"
-                            navLabel: "Nix Purity"
-                            navIcon: "󱄅"
-                            isNavSelected: root.section === "nixpurity"
-                            visible: NixPurityService.isNixOS && (root.searchText === "" || "nix purity".includes(root.searchText.toLowerCase()))
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
-                        }
-                        NavItem {
-                            navId: "notifs"
-                            navLabel: "Notifications"
-                            navIcon: ""
-                            isNavSelected: root.section === "notifs"
-                            visible: root.searchText === "" || "notifications".includes(root.searchText.toLowerCase())
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
-                        }
-                        NavItem {
-                            navId: "calendar"
-                            navLabel: "Calendar"
-                            navIcon: "󰺻"
-                            isNavSelected: root.section === "calendar"
-                            visible: root.searchText === "" || "calendar".includes(root.searchText.toLowerCase())
+                            navId: "workspace"
+                            navLabel: "Workspace"
+                            navIcon: ""
+                            isNavSelected: root.section === "workspace"
+                            visible: root.searchText === "" || "workspace".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "DEV"
+                            text: "DEVICES"
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -362,73 +347,88 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root._devMode && (root.searchText === "" || ["responsive test", "assembly test"].some(s => s.includes(root.searchText.toLowerCase())))
+                            visible: root.searchText === "" || ["display & scale", "bluetooth", "wi-fi", "sound"].some(s => s.includes(root.searchText.toLowerCase()))
                         }
-
                         NavItem {
-                            navId: "responsivetest"
-                            navLabel: "Responsive Test"
-                            navIcon: "󰙨"
-                            isNavSelected: root.section === "responsivetest"
-                            visible: root._devMode && (root.searchText === "" || "responsive test".includes(root.searchText.toLowerCase()))
+                            navId: "display"
+                            navLabel: "Display & Scale"
+                            navIcon: ""
+                            isNavSelected: root.section === "display"
+                            visible: root.searchText === "" || "display & scale".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
-                            navId: "assemblytest"
-                            navLabel: "Assembly Test"
-                            navIcon: "󰙨"
-                            isNavSelected: root.section === "assemblytest"
-                            visible: root._devMode && (root.searchText === "" || "assembly test".includes(root.searchText.toLowerCase()))
+                            navId: "bluetooth"
+                            navLabel: "Bluetooth"
+                            navIcon: "󰂯"
+                            isNavSelected: root.section === "bluetooth"
+                            visible: BluetoothService.available && (root.searchText === "" || "bluetooth".includes(root.searchText.toLowerCase()))
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
+                        NavItem {
+                            navId: "wifi"
+                            navLabel: "Wi-Fi"
+                            navIcon: "󰤨"
+                            isNavSelected: root.section === "wifi"
+                            visible: WifiService.available && (root.searchText === "" || "wi-fi".includes(root.searchText.toLowerCase()))
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
+                        NavItem {
+                            navId: "sound"
+                            navLabel: "Sound"
+                            navIcon: ""
+                            isNavSelected: root.section === "sound"
+                            visible: root.searchText === "" || "sound".includes(root.searchText.toLowerCase())
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
+
+                        Text {
+                            text: "ACCOUNT"
+                            color: Colors.muted
+                            font.pixelSize: UIScale.fontTiny
+                            font.weight: Font.Bold
+                            font.letterSpacing: 1.5
+                            leftPadding: UIScale.spacingSm
+                            Layout.topMargin: UIScale.radiusMd
+                            Layout.bottomMargin: UIScale.spacingXs
+                            visible: root.searchText === "" || "user".includes(root.searchText.toLowerCase())
+                        }
+                        NavItem {
+                            navId: "user"
+                            navLabel: "User"
+                            navIcon: ""
+                            isNavSelected: root.section === "user"
+                            visible: root.searchText === "" || "user".includes(root.searchText.toLowerCase())
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                        }
+
+                        Text {
+                            text: "ABOUT"
+                            color: Colors.muted
+                            font.pixelSize: UIScale.fontTiny
+                            font.weight: Font.Bold
+                            font.letterSpacing: 1.5
+                            leftPadding: UIScale.spacingSm
+                            Layout.topMargin: UIScale.radiusMd
+                            Layout.bottomMargin: UIScale.spacingXs
+                            visible: root.searchText === "" || "about".includes(root.searchText.toLowerCase())
+                        }
+                        NavItem {
+                            navId: "about"
+                            navLabel: "About"
+                            navIcon: ""
+                            isNavSelected: root.section === "about"
+                            visible: root.searchText === "" || "about".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                     } // ColumnLayout navColumn
                 } // Flickable
-
-                // Machine footer
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.topMargin: UIScale.spacingSm
-                    implicitHeight: Math.round(46 * UIScale.value)
-                    radius: UIScale.spacingSm
-                    color: Colors.withAlpha(Colors.text, 0.03)
-                    border.color: Colors.withAlpha(Colors.text, 0.05)
-                    border.width: 1
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: UIScale.spacingSm
-                        anchors.rightMargin: UIScale.spacingSm
-                        spacing: UIScale.spacingSm
-
-                        UserAvatar {
-                            size: Math.round(30 * UIScale.value)
-                        }
-
-                        Column {
-                            Layout.fillWidth: true
-                            spacing: 1
-
-                            Text {
-                                text: UserService.name !== "" ? UserService.name : root._hostname
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontSmall
-                                font.weight: Font.Bold
-                                elide: Text.ElideRight
-                                width: parent.width
-                            }
-                            Text {
-                                text: root._hostname
-                                color: Colors.textDim
-                                font.pixelSize: UIScale.fontTiny
-                                font.family: "monospace"
-                                elide: Text.ElideRight
-                                width: parent.width
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -439,67 +439,83 @@ Item {
 
             Loader {
                 anchors.fill: parent
-                active: HomePanelService.open
+                active: SettingsPanelService.open
                 sourceComponent: {
-                    if (root.section === "home")
-                        return dashboardComp;
-                    if (root.section === "community")
-                        return communityPanelComp;
-                    if (root.section === "network")
-                        return networkExpandedComp;
-                    if (root.section === "sysmon")
-                        return sysMonPanelComp;
-                    if (root.section === "nixpurity")
-                        return nixPurityComp;
-                    if (root.section === "notifs")
-                        return notifHistComp;
-                    if (root.section === "calendar")
-                        return calendarPanelComp;
-                    if (root.section === "responsivetest")
-                        return responsiveTestComp;
-                    if (root.section === "assemblytest")
-                        return assemblyTestComp;
+                    if (root.section === "appearance")
+                        return appearancePanelComp;
+                    if (root.section === "wallpaper")
+                        return wallpaperPanelComp;
+                    if (root.section === "bar")
+                        return barPanelComp;
+                    if (root.section === "clock")
+                        return clockPanelComp;
+                    if (root.section === "appswitcher")
+                        return appSwitcherPanelComp;
+                    if (root.section === "workspace")
+                        return workspacePanelComp;
+                    if (root.section === "display")
+                        return displayPanelComp;
+                    if (root.section === "bluetooth")
+                        return bluetoothPanelComp;
+                    if (root.section === "wifi")
+                        return wifiPanelComp;
+                    if (root.section === "sound")
+                        return soundComp;
+                    if (root.section === "user")
+                        return userPanelComp;
+                    if (root.section === "about")
+                        return aboutComp;
                     return placeholderComp;
                 }
             }
 
             Component {
-                id: dashboardComp
-                DashboardPanel {}
+                id: appearancePanelComp
+                AppearancePanel {}
             }
             Component {
-                id: communityPanelComp
-                CommunityPanel {}
+                id: wallpaperPanelComp
+                WallpaperPanel {}
             }
             Component {
-                id: networkExpandedComp
-                NetworkPanel {}
+                id: barPanelComp
+                BarPanel {}
             }
             Component {
-                id: sysMonPanelComp
-                SysMonPanel {}
+                id: clockPanelComp
+                ClockPanel {}
             }
             Component {
-                id: nixPurityComp
-                NixPurity {}
+                id: appSwitcherPanelComp
+                AppSwitcherPanel {}
             }
             Component {
-                id: notifHistComp
-                NotifHistory {}
+                id: workspacePanelComp
+                WorkspaceIndicatorPanel {}
             }
             Component {
-                id: calendarPanelComp
-                CalendarPanel {}
+                id: displayPanelComp
+                DisplayPanel {}
             }
             Component {
-                id: responsiveTestComp
-                ResponsiveTestPanel {}
+                id: bluetoothPanelComp
+                BluetoothPanel {}
             }
             Component {
-                id: assemblyTestComp
-                Globe3DGate {
-                    panelSource: "AssemblyTest.qml"
-                }
+                id: wifiPanelComp
+                WifiPanel {}
+            }
+            Component {
+                id: soundComp
+                Sound {}
+            }
+            Component {
+                id: userPanelComp
+                UserPanel {}
+            }
+            Component {
+                id: aboutComp
+                About {}
             }
 
             Component {
