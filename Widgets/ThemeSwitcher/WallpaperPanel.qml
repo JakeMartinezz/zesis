@@ -12,6 +12,19 @@ Item {
 
     readonly property string _wallpapersDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
 
+    readonly property real paneMargin: Math.round(28 * UIScale.value)
+
+    // Container-aware split, see docs/qml-patterns.md #2. Both sides of the threshold are
+    // measured from content. The grid needs at least two target-sized columns to be worth
+    // its own pane, and the right pane needs at least as much as its widest row requires.
+    readonly property real _gridTargetCellWidth: Math.round(150 * UIScale.value)
+    readonly property real _leftMinWidth: root._gridTargetCellWidth * 2 + UIScale.spacingSm * 2 + UIScale.radiusMd
+    readonly property real _leftMaxWidth: Math.round(520 * UIScale.value)
+    readonly property real leftColWidth: Math.max(root._leftMinWidth, Math.min(root._leftMaxWidth, Math.round(root.width * 0.36)))
+    readonly property real _rightMinWidth: Math.max(headerRow.implicitWidth, backendRow.implicitWidth) + root.paneMargin * 2
+    readonly property bool sideBySide: root.width > 0 && root.width >= root._leftMinWidth + 1 + root._rightMinWidth
+    readonly property real stackedGridHeight: Math.max(Math.round(240 * UIScale.value), Math.round(root.height * 0.4))
+
     Component.onCompleted: scanner.running = true
 
     ListModel {
@@ -260,21 +273,34 @@ Item {
         id: paletteRow
         required property string rowLabel
         required property var swatches
-        implicitHeight: Math.round(62 * UIScale.value)
+        implicitHeight: Math.max(rowLabelText.implicitHeight, swatchGrid.implicitHeight)
 
-        RowLayout {
-            anchors.fill: parent
-            spacing: UIScale.spacingSm
+        readonly property real _availableWidth: paletteRow.width - rowLabelText.width - UIScale.spacingSm
+        readonly property real _cellPitch: Math.round(42 * UIScale.value) + UIScale.spacingSm
+        readonly property int _maxCols: Math.max(1, Math.floor((paletteRow._availableWidth + UIScale.spacingSm) / paletteRow._cellPitch))
+        readonly property int _rows: Math.max(1, Math.ceil(paletteRow.swatches.length / paletteRow._maxCols))
+        readonly property int _balancedCols: Math.ceil(paletteRow.swatches.length / paletteRow._rows)
 
-            Text {
-                text: paletteRow.rowLabel
-                color: Colors.textDim
-                font.pixelSize: UIScale.fontCaption
-                font.weight: Font.Medium
-                Layout.preferredWidth: Math.round(38 * UIScale.value)
-                Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-                topPadding: UIScale.spacingXs
-            }
+        Text {
+            id: rowLabelText
+            anchors.top: parent.top
+            anchors.left: parent.left
+            width: Math.round(38 * UIScale.value)
+            text: paletteRow.rowLabel
+            color: Colors.textDim
+            font.pixelSize: UIScale.fontCaption
+            font.weight: Font.Medium
+            topPadding: UIScale.spacingXs
+        }
+
+        Grid {
+            id: swatchGrid
+            anchors.top: parent.top
+            anchors.left: rowLabelText.right
+            anchors.leftMargin: UIScale.spacingSm
+            columns: paletteRow._balancedCols
+            columnSpacing: UIScale.spacingSm
+            rowSpacing: UIScale.spacingSm
 
             Repeater {
                 model: paletteRow.swatches
@@ -319,16 +345,17 @@ Item {
         }
     }
 
-    RowLayout {
+    Item {
+        id: bodyArea
         anchors.fill: parent
-        spacing: 0
 
         // Left: wallpaper list
         ColumnLayout {
             id: leftCol
-            Layout.fillWidth: false
-            Layout.preferredWidth: Math.round(454 * UIScale.value)
-            Layout.fillHeight: true
+            anchors.top: parent.top
+            anchors.left: parent.left
+            width: root.sideBySide ? root.leftColWidth : parent.width
+            height: root.sideBySide ? parent.height : root.stackedGridHeight
             spacing: UIScale.spacingSm
 
             StyledTextInput {
@@ -351,7 +378,9 @@ Item {
                 Layout.bottomMargin: UIScale.radiusMd
                 clip: true
                 model: filteredWallpapers
-                cellWidth: Math.floor(gridView.width / 3)
+                // Column count follows the space available
+                readonly property int _columns: Math.max(2, Math.min(5, Math.floor(width / root._gridTargetCellWidth)))
+                cellWidth: Math.floor(width / Math.max(1, _columns))
                 cellHeight: Math.round(cellWidth * 9 / 16) + Math.round(28 * UIScale.value)
 
                 ScrollBar.vertical: ScrollBar {
@@ -380,266 +409,285 @@ Item {
             }
         }
 
+        // Vertical divider in side-by-side mode, horizontal once stacked
         Rectangle {
-            implicitWidth: 1
-            Layout.fillHeight: true
+            id: divider
+            anchors.top: root.sideBySide ? parent.top : leftCol.bottom
+            anchors.left: root.sideBySide ? leftCol.right : parent.left
+            width: root.sideBySide ? 1 : bodyArea.width
+            height: root.sideBySide ? bodyArea.height : 1
             color: Colors.withAlpha(Colors.outline, 0.5)
         }
 
-        // Right: preview + palette
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.margins: Math.round(28 * UIScale.value)
-            spacing: 0
+        // Right: preview + palette, scrollable so a short/narrow settings window doesn't
+        // clip the palette instead of just needing to scroll to it
+        Flickable {
+            id: rightFlick
+            anchors.top: root.sideBySide ? parent.top : divider.bottom
+            anchors.left: root.sideBySide ? divider.right : parent.left
+            width: root.sideBySide ? bodyArea.width - leftCol.width - divider.width : bodyArea.width
+            height: root.sideBySide ? bodyArea.height : bodyArea.height - leftCol.height - divider.height
+            clip: true
+            contentWidth: width
+            contentHeight: controlsCol.implicitHeight + root.paneMargin * 2
 
-            Text {
-                text: "SETTINGS / WALLPAPER"
-                color: Colors.accent
-                font.pixelSize: UIScale.fontCaption
-                font.weight: Font.Bold
-                font.letterSpacing: 2
-                font.family: "monospace"
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
             }
 
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.topMargin: UIScale.spacingXs
-                Layout.bottomMargin: UIScale.spacingLg
-                spacing: UIScale.spacingSm
+            ColumnLayout {
+                id: controlsCol
+                x: root.paneMargin
+                y: root.paneMargin
+                width: rightFlick.width - root.paneMargin * 2
+                spacing: 0
 
                 Text {
-                    text: "Wallpaper & Theme"
-                    color: Colors.text
-                    font.pixelSize: UIScale.fontTitle
-                    font.weight: Font.ExtraBold
+                    text: "SETTINGS / WALLPAPER"
+                    color: Colors.accent
+                    font.pixelSize: UIScale.fontCaption
+                    font.weight: Font.Bold
+                    font.letterSpacing: 2
+                    font.family: "monospace"
                 }
 
-                Item {
+                RowLayout {
+                    id: headerRow
                     Layout.fillWidth: true
-                }
-
-                // Scheme type dropdown
-                StyledComboBox {
-                    id: schemeDropdown
-                    Layout.preferredHeight: Math.round(32 * UIScale.value)
-                    model: [
-                        {
-                            value: "scheme-tonal-spot",
-                            label: "Tonal Spot"
-                        },
-                        {
-                            value: "scheme-vibrant",
-                            label: "Vibrant"
-                        },
-                        {
-                            value: "scheme-expressive",
-                            label: "Expressive"
-                        },
-                        {
-                            value: "scheme-fidelity",
-                            label: "Fidelity"
-                        },
-                        {
-                            value: "scheme-content",
-                            label: "Content"
-                        },
-                        {
-                            value: "scheme-neutral",
-                            label: "Neutral"
-                        },
-                        {
-                            value: "scheme-monochrome",
-                            label: "Monochrome"
-                        },
-                        {
-                            value: "scheme-rainbow",
-                            label: "Rainbow"
-                        },
-                        {
-                            value: "scheme-fruit-salad",
-                            label: "Fruit Salad"
-                        },
-                    ]
-                    selectedValue: ThemeState.schemeType
-                    onChosen: value => {
-                        ThemeState.schemeType = value;
-                        if (ThemeState.lastWallpaper !== "")
-                            ThemeState.apply(ThemeState.lastWallpaper);
-                        else
-                            ThemeState._persistState();
-                    }
-                }
-
-                // Dark / Light toggle
-                Rectangle {
-                    Layout.preferredWidth: Math.round(120 * UIScale.value)
-                    Layout.preferredHeight: Math.round(32 * UIScale.value)
-                    radius: Math.round(16 * UIScale.value)
-                    color: Colors.surface
-
-                    Rectangle {
-                        width: Math.round(56 * UIScale.value)
-                        height: Math.round(26 * UIScale.value)
-                        radius: Math.round(13 * UIScale.value)
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: ThemeState.palette === "dark" ? Math.round(3 * UIScale.value) : Math.round(61 * UIScale.value)
-                        color: Colors.accent
-                        Behavior on x {
-                            NumberAnimation {
-                                duration: Anim.medium
-                                easing.type: Easing.InOutQuad
-                            }
-                        }
-                    }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        spacing: 0
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Dark"
-                            color: ThemeState.palette === "dark" ? Colors.bg : Colors.textDim
-                            font.pixelSize: UIScale.fontTiny
-                            font.weight: Font.Medium
-                            horizontalAlignment: Text.AlignHCenter
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: Anim.medium
-                                }
-                            }
-                        }
-                        Text {
-                            Layout.fillWidth: true
-                            text: "Light"
-                            color: ThemeState.palette === "light" ? Colors.bg : Colors.textDim
-                            font.pixelSize: UIScale.fontTiny
-                            font.weight: Font.Medium
-                            horizontalAlignment: Text.AlignHCenter
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: Anim.medium
-                                }
-                            }
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: ThemeState.togglePalette()
-                    }
-                }
-            }
-
-            // Wallpaper backend picker
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.bottomMargin: UIScale.spacingLg
-                spacing: UIScale.spacingSm
-
-                Text {
-                    text: "Wallpaper backend"
-                    color: Colors.textDim
-                    font.pixelSize: UIScale.fontSmall
-                }
-
-                StyledComboBox {
-                    id: backendComboBox
-                    model: ThemeState.wallpaperBackends.map(b => ({
-                                value: b.id,
-                                label: b.label
-                            }))
-                    selectedValue: ThemeState.wallpaperBackend
-                    onChosen: value => {
-                        ThemeState.wallpaperBackend = value;
-                        ThemeState._persistState();
-                    }
-                }
-
-                StyledTextInput {
-                    id: customCmdField
-                    visible: ThemeState.wallpaperBackend === "custom"
-                    Layout.fillWidth: true
-                    placeholder: "e.g. swww img \"$1\" --transition-type fade"
-                    text: ThemeState.customWallpaperCommand
-                    onAccepted: {
-                        ThemeState.customWallpaperCommand = customCmdField.text;
-                        ThemeState._persistState();
-                    }
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                    visible: !customCmdField.visible
-                }
-            }
-
-            Text {
-                Layout.fillWidth: true
-                Layout.bottomMargin: UIScale.spacingSm
-                visible: ThemeState.lastError !== ""
-                text: ThemeState.lastError
-                color: "#e05c5c"
-                font.pixelSize: UIScale.fontTiny
-                wrapMode: Text.WordWrap
-            }
-
-            // Current wallpaper preview
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: Math.round(180 * UIScale.value)
-                Layout.bottomMargin: Math.round(24 * UIScale.value)
-                radius: UIScale.radiusMd
-                color: Colors.surface
-                clip: true
-                visible: ThemeState.lastWallpaper !== ""
-
-                Image {
-                    anchors.fill: parent
-                    source: ThemeState.lastWallpaper !== "" ? ("file://" + ThemeState.lastWallpaper) : ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: parent.radius
-                    color: Qt.rgba(0, 0, 0, 0.45)
-                    visible: ThemeState.applying
+                    Layout.topMargin: UIScale.spacingXs
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
 
                     Text {
-                        anchors.centerIn: parent
-                        text: "Applying..."
-                        color: "white"
-                        font.pixelSize: UIScale.fontSmall
-                        font.weight: Font.Medium
+                        text: "Wallpaper & Theme"
+                        color: Colors.text
+                        font.pixelSize: UIScale.fontTitle
+                        font.weight: Font.ExtraBold
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+
+                    // Scheme type dropdown
+                    StyledComboBox {
+                        id: schemeDropdown
+                        Layout.preferredHeight: Math.round(32 * UIScale.value)
+                        model: [
+                            {
+                                value: "scheme-tonal-spot",
+                                label: "Tonal Spot"
+                            },
+                            {
+                                value: "scheme-vibrant",
+                                label: "Vibrant"
+                            },
+                            {
+                                value: "scheme-expressive",
+                                label: "Expressive"
+                            },
+                            {
+                                value: "scheme-fidelity",
+                                label: "Fidelity"
+                            },
+                            {
+                                value: "scheme-content",
+                                label: "Content"
+                            },
+                            {
+                                value: "scheme-neutral",
+                                label: "Neutral"
+                            },
+                            {
+                                value: "scheme-monochrome",
+                                label: "Monochrome"
+                            },
+                            {
+                                value: "scheme-rainbow",
+                                label: "Rainbow"
+                            },
+                            {
+                                value: "scheme-fruit-salad",
+                                label: "Fruit Salad"
+                            },
+                        ]
+                        selectedValue: ThemeState.schemeType
+                        onChosen: value => {
+                            ThemeState.schemeType = value;
+                            if (ThemeState.lastWallpaper !== "")
+                                ThemeState.apply(ThemeState.lastWallpaper);
+                            else
+                                ThemeState._persistState();
+                        }
+                    }
+
+                    // Dark / Light toggle
+                    Rectangle {
+                        Layout.preferredWidth: Math.round(120 * UIScale.value)
+                        Layout.preferredHeight: Math.round(32 * UIScale.value)
+                        radius: Math.round(16 * UIScale.value)
+                        color: Colors.surface
+
+                        Rectangle {
+                            width: Math.round(56 * UIScale.value)
+                            height: Math.round(26 * UIScale.value)
+                            radius: Math.round(13 * UIScale.value)
+                            anchors.verticalCenter: parent.verticalCenter
+                            x: ThemeState.palette === "dark" ? Math.round(3 * UIScale.value) : Math.round(61 * UIScale.value)
+                            color: Colors.accent
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: Anim.medium
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            spacing: 0
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Dark"
+                                color: ThemeState.palette === "dark" ? Colors.bg : Colors.textDim
+                                font.pixelSize: UIScale.fontTiny
+                                font.weight: Font.Medium
+                                horizontalAlignment: Text.AlignHCenter
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Anim.medium
+                                    }
+                                }
+                            }
+                            Text {
+                                Layout.fillWidth: true
+                                text: "Light"
+                                color: ThemeState.palette === "light" ? Colors.bg : Colors.textDim
+                                font.pixelSize: UIScale.fontTiny
+                                font.weight: Font.Medium
+                                horizontalAlignment: Text.AlignHCenter
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Anim.medium
+                                    }
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: ThemeState.togglePalette()
+                        }
                     }
                 }
-            }
 
-            Text {
-                text: "Color Palette"
-                color: Colors.text
-                font.pixelSize: UIScale.fontLead
-                font.weight: Font.DemiBold
-                Layout.bottomMargin: Math.round(16 * UIScale.value)
-            }
+                // Wallpaper backend picker
+                RowLayout {
+                    id: backendRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
 
-            PaletteRow {
-                Layout.fillWidth: true
-                rowLabel: "Dark"
-                swatches: root._darkSwatches
-            }
-            PaletteRow {
-                Layout.fillWidth: true
-                Layout.topMargin: UIScale.radiusMd
-                rowLabel: "Light"
-                swatches: root._lightSwatches
-            }
+                    Text {
+                        text: "Wallpaper backend"
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
 
-            Item {
-                Layout.fillHeight: true
+                    StyledComboBox {
+                        id: backendComboBox
+                        model: ThemeState.wallpaperBackends.map(b => ({
+                                    value: b.id,
+                                    label: b.label
+                                }))
+                        selectedValue: ThemeState.wallpaperBackend
+                        onChosen: value => {
+                            ThemeState.wallpaperBackend = value;
+                            ThemeState._persistState();
+                        }
+                    }
+
+                    StyledTextInput {
+                        id: customCmdField
+                        visible: ThemeState.wallpaperBackend === "custom"
+                        Layout.fillWidth: true
+                        placeholder: "e.g. swww img \"$1\" --transition-type fade"
+                        text: ThemeState.customWallpaperCommand
+                        onAccepted: {
+                            ThemeState.customWallpaperCommand = customCmdField.text;
+                            ThemeState._persistState();
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        visible: !customCmdField.visible
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingSm
+                    visible: ThemeState.lastError !== ""
+                    text: ThemeState.lastError
+                    color: "#e05c5c"
+                    font.pixelSize: UIScale.fontTiny
+                    wrapMode: Text.WordWrap
+                }
+
+                // Current wallpaper preview
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Math.round(180 * UIScale.value)
+                    Layout.bottomMargin: Math.round(24 * UIScale.value)
+                    radius: UIScale.radiusMd
+                    color: Colors.surface
+                    clip: true
+                    visible: ThemeState.lastWallpaper !== ""
+
+                    Image {
+                        anchors.fill: parent
+                        source: ThemeState.lastWallpaper !== "" ? ("file://" + ThemeState.lastWallpaper) : ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: parent.radius
+                        color: Qt.rgba(0, 0, 0, 0.45)
+                        visible: ThemeState.applying
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Applying..."
+                            color: "white"
+                            font.pixelSize: UIScale.fontSmall
+                            font.weight: Font.Medium
+                        }
+                    }
+                }
+
+                Text {
+                    text: "Color Palette"
+                    color: Colors.text
+                    font.pixelSize: UIScale.fontLead
+                    font.weight: Font.DemiBold
+                    Layout.bottomMargin: Math.round(16 * UIScale.value)
+                }
+
+                PaletteRow {
+                    Layout.fillWidth: true
+                    rowLabel: "Dark"
+                    swatches: root._darkSwatches
+                }
+                PaletteRow {
+                    Layout.fillWidth: true
+                    Layout.topMargin: UIScale.radiusMd
+                    rowLabel: "Light"
+                    swatches: root._lightSwatches
+                }
             }
         }
     }
