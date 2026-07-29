@@ -5,6 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import "../../"
+import "../Shared"
 
 Item {
     id: root
@@ -324,50 +325,21 @@ Item {
 
         // Left: wallpaper list
         ColumnLayout {
-            Layout.preferredWidth: Math.round(340 * UIScale.value)
+            id: leftCol
+            Layout.fillWidth: false
+            Layout.preferredWidth: Math.round(454 * UIScale.value)
             Layout.fillHeight: true
             spacing: UIScale.spacingSm
 
-            Rectangle {
+            StyledTextInput {
+                id: searchField
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.round(36 * UIScale.value)
                 Layout.topMargin: UIScale.spacingLg
                 Layout.leftMargin: Math.round(16 * UIScale.value)
                 Layout.rightMargin: Math.round(16 * UIScale.value)
-                radius: UIScale.radiusSm
-                color: Colors.surface
-                border.color: searchField.activeFocus ? Colors.accent : Colors.outline
-                border.width: 1
-                Behavior on border.color {
-                    ColorAnimation {
-                        duration: Anim.fast
-                    }
-                }
-
-                TextInput {
-                    id: searchField
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                        leftMargin: UIScale.radiusMd
-                        rightMargin: UIScale.radiusMd
-                    }
-                    color: Colors.text
-                    font.pixelSize: UIScale.fontSmall
-                    clip: true
-                    selectionColor: Colors.withAlpha(Colors.accent, 0.35)
-                    onTextChanged: root._updateFilter(text)
-
-                    Text {
-                        anchors.fill: parent
-                        verticalAlignment: Text.AlignVCenter
-                        text: "Search wallpapers..."
-                        color: Colors.textDim
-                        font.pixelSize: UIScale.fontSmall
-                        visible: searchField.text === ""
-                    }
-                }
+                showClearButton: true
+                placeholder: "Search wallpapers..."
+                onTextChanged: root._updateFilter(text)
             }
 
             GridView {
@@ -379,7 +351,7 @@ Item {
                 Layout.bottomMargin: UIScale.radiusMd
                 clip: true
                 model: filteredWallpapers
-                cellWidth: Math.round(gridView.width / 3)
+                cellWidth: Math.floor(gridView.width / 3)
                 cellHeight: Math.round(cellWidth * 9 / 16) + Math.round(28 * UIScale.value)
 
                 ScrollBar.vertical: ScrollBar {
@@ -448,19 +420,10 @@ Item {
                 }
 
                 // Scheme type dropdown
-                Rectangle {
-                    id: schemeDropdownBtn
+                StyledComboBox {
+                    id: schemeDropdown
                     Layout.preferredHeight: Math.round(32 * UIScale.value)
-                    implicitWidth: schemeRow.implicitWidth + Math.round(24 * UIScale.value)
-                    radius: UIScale.spacingSm
-                    color: schemePopup.opened ? Colors.withAlpha(Colors.accent, 0.15) : (schemeHover.hovered ? Colors.surfaceHigh : Colors.surface)
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: Anim.fast
-                        }
-                    }
-
-                    readonly property var _schemes: [
+                    model: [
                         {
                             value: "scheme-tonal-spot",
                             label: "Tonal Spot"
@@ -498,104 +461,13 @@ Item {
                             label: "Fruit Salad"
                         },
                     ]
-
-                    readonly property string _currentLabel: {
-                        for (var i = 0; i < _schemes.length; i++) {
-                            if (_schemes[i].value === ThemeState.schemeType)
-                                return _schemes[i].label;
-                        }
-                        return ThemeState.schemeType;
-                    }
-
-                    Row {
-                        id: schemeRow
-                        anchors.centerIn: parent
-                        spacing: UIScale.spacingXs
-
-                        Text {
-                            text: schemeDropdownBtn._currentLabel
-                            color: Colors.text
-                            font.pixelSize: UIScale.fontBody
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: schemePopup.opened ? "▴" : "▾"
-                            color: Colors.textDim
-                            font.pixelSize: UIScale.fontTiny
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    HoverHandler {
-                        id: schemeHover
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: schemePopup.opened ? schemePopup.close() : schemePopup.open()
-                    }
-
-                    Popup {
-                        id: schemePopup
-                        y: parent.height + UIScale.spacingXs
-                        x: parent.width - width
-                        width: Math.round(160 * UIScale.value)
-                        padding: UIScale.spacingXs
-                        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
-
-                        background: Rectangle {
-                            radius: UIScale.radiusMd
-                            color: Colors.surface
-                            border.color: Colors.withAlpha(Colors.outline, 0.6)
-                            border.width: 1
-                        }
-
-                        contentItem: Column {
-                            spacing: Math.round(2 * UIScale.value)
-
-                            Repeater {
-                                model: schemeDropdownBtn._schemes
-                                Rectangle {
-                                    id: schemeOption
-                                    required property var modelData
-                                    width: schemePopup.width - UIScale.radiusMd
-                                    implicitHeight: Math.round(32 * UIScale.value)
-                                    radius: UIScale.spacingSm
-                                    color: modelData.value === ThemeState.schemeType ? Colors.withAlpha(Colors.accent, 0.15) : (optHover.hovered ? Colors.surfaceHigh : "transparent")
-                                    Behavior on color {
-                                        ColorAnimation {
-                                            duration: Anim.fast
-                                        }
-                                    }
-
-                                    Text {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: UIScale.spacingSm
-                                        text: schemeOption.modelData.label
-                                        color: schemeOption.modelData.value === ThemeState.schemeType ? Colors.accent : Colors.text
-                                        font.pixelSize: UIScale.fontBody
-                                        font.weight: schemeOption.modelData.value === ThemeState.schemeType ? Font.Medium : Font.Normal
-                                    }
-
-                                    HoverHandler {
-                                        id: optHover
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: {
-                                            ThemeState.schemeType = schemeOption.modelData.value;
-                                            schemePopup.close();
-                                            if (ThemeState.lastWallpaper !== "")
-                                                ThemeState.apply(ThemeState.lastWallpaper);
-                                            else
-                                                ThemeState._persistState();
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    selectedValue: ThemeState.schemeType
+                    onChosen: value => {
+                        ThemeState.schemeType = value;
+                        if (ThemeState.lastWallpaper !== "")
+                            ThemeState.apply(ThemeState.lastWallpaper);
+                        else
+                            ThemeState._persistState();
                     }
                 }
 
@@ -658,6 +530,59 @@ Item {
                         onClicked: ThemeState.togglePalette()
                     }
                 }
+            }
+
+            // Wallpaper backend picker
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.bottomMargin: UIScale.spacingLg
+                spacing: UIScale.spacingSm
+
+                Text {
+                    text: "Wallpaper backend"
+                    color: Colors.textDim
+                    font.pixelSize: UIScale.fontSmall
+                }
+
+                StyledComboBox {
+                    id: backendComboBox
+                    model: ThemeState.wallpaperBackends.map(b => ({
+                                value: b.id,
+                                label: b.label
+                            }))
+                    selectedValue: ThemeState.wallpaperBackend
+                    onChosen: value => {
+                        ThemeState.wallpaperBackend = value;
+                        ThemeState._persistState();
+                    }
+                }
+
+                StyledTextInput {
+                    id: customCmdField
+                    visible: ThemeState.wallpaperBackend === "custom"
+                    Layout.fillWidth: true
+                    placeholder: "e.g. swww img \"$1\" --transition-type fade"
+                    text: ThemeState.customWallpaperCommand
+                    onAccepted: {
+                        ThemeState.customWallpaperCommand = customCmdField.text;
+                        ThemeState._persistState();
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                    visible: !customCmdField.visible
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                Layout.bottomMargin: UIScale.spacingSm
+                visible: ThemeState.lastError !== ""
+                text: ThemeState.lastError
+                color: "#e05c5c"
+                font.pixelSize: UIScale.fontTiny
+                wrapMode: Text.WordWrap
             }
 
             // Current wallpaper preview

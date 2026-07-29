@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.Pipewire
@@ -12,14 +13,6 @@ Item {
     readonly property PwNode sink: AudioService.sink
     readonly property real vol: AudioService.vol
     readonly property bool muted: AudioService.muted
-    property bool sinkListOpen: false
-
-    Connections {
-        target: Pipewire
-        function onDefaultAudioSinkChanged() {
-            root.sinkListOpen = false;
-        }
-    }
 
     function volIcon(v, m) {
         if (m || v === 0)
@@ -392,141 +385,107 @@ Item {
                 }
 
                 // Output device
-                Column {
+                StyledComboBox {
+                    id: sinkCombo
                     Layout.fillWidth: true
                     Layout.leftMargin: UIScale.spacingMd
                     Layout.rightMargin: UIScale.spacingMd
                     Layout.bottomMargin: UIScale.spacingMd
-                    spacing: Math.round(2 * UIScale.value)
+                    implicitHeight: Math.round(44 * UIScale.value)
 
-                    Rectangle {
-                        width: parent.width
-                        height: Math.round(44 * UIScale.value)
-                        radius: UIScale.radiusMd
-                        color: sinkHeaderHover.hovered ? Colors.surfaceHigh : Colors.surface
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: Anim.fast
-                            }
+                    model: Pipewire.ready ? Pipewire.nodes.values.filter(n => n.isSink && !n.isStream).map(n => ({
+                                value: n.id,
+                                label: n.description || n.name || ""
+                            })) : []
+                    selectedValue: root.sink?.id
+
+                    onChosen: value => {
+                        var node = Pipewire.nodes.values.find(n => n.id === value);
+                        if (node)
+                            Pipewire.preferredDefaultAudioSink = node;
+                    }
+
+                    contentItem: RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: UIScale.spacingMd
+                        anchors.rightMargin: sinkCombo.indicator.width + UIScale.spacingMd
+                        spacing: UIScale.spacingSm
+
+                        Text {
+                            text: "󰋋"
+                            font.pixelSize: Math.round(16 * UIScale.value)
+                            color: Colors.accent
                         }
 
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: UIScale.spacingMd
-                            anchors.rightMargin: UIScale.spacingMd
-                            spacing: UIScale.spacingSm
-
-                            Text {
-                                text: "󰋋"
-                                font.pixelSize: Math.round(16 * UIScale.value)
-                                color: Colors.accent
-                            }
-
-                            Text {
-                                text: "Output  ·  " + (root.sink?.description || root.sink?.name || "No output")
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontTiny
-                                font.weight: Font.DemiBold
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                text: root.sinkListOpen ? "⌄" : "⌃"
-                                color: Colors.textDim
-                                font.pixelSize: UIScale.fontTiny
-                            }
-                        }
-
-                        HoverHandler {
-                            id: sinkHeaderHover
-                        }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: root.sinkListOpen = !root.sinkListOpen
+                        Text {
+                            Layout.fillWidth: true
+                            text: "Output  ·  " + (root.sink?.description || root.sink?.name || "No output")
+                            color: Colors.text
+                            font.pixelSize: UIScale.fontTiny
+                            font.weight: Font.DemiBold
+                            elide: Text.ElideRight
                         }
                     }
 
-                    Rectangle {
-                        width: parent.width
-                        height: sinkCol.implicitHeight + UIScale.spacingSm
-                        radius: UIScale.radiusMd
-                        color: Colors.surface
-                        visible: root.sinkListOpen
-                        clip: true
+                    delegate: ItemDelegate {
+                        id: sinkItem
+                        required property var modelData
+                        required property int index
+                        width: ListView.view ? ListView.view.width : sinkCombo.width
+                        implicitHeight: Math.round(36 * UIScale.value)
+                        padding: 0
 
-                        Column {
-                            id: sinkCol
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.top: parent.top
-                            anchors.margins: UIScale.spacingXs
-                            spacing: 0
+                        readonly property bool active: sinkCombo.currentIndex === sinkItem.index
 
-                            Repeater {
-                                model: ScriptModel {
-                                    values: Pipewire.ready ? Pipewire.nodes.values.filter(n => n.isSink && !n.isStream) : []
+                        background: Rectangle {
+                            radius: UIScale.spacingSm
+                            color: "transparent"
+
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: parent.radius
+                                color: Colors.accent
+                                opacity: sinkItem.active ? 0 : (sinkItem.hovered ? 0.08 : 0)
+                                Behavior on opacity {
+                                    NumberAnimation {
+                                        duration: Anim.fast
+                                        easing.type: Easing.BezierSpline
+                                        easing.bezierCurve: Anim.standard
+                                    }
                                 }
+                            }
+                        }
 
-                                delegate: Item {
-                                    id: sinkRow
-                                    required property PwNode modelData
-                                    width: parent.width
-                                    height: Math.round(36 * UIScale.value)
-
-                                    readonly property bool active: Pipewire.defaultAudioSink === sinkRow.modelData
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: Math.round(2 * UIScale.value)
-                                        radius: UIScale.radiusSm
-                                        color: sinkRow.active ? Colors.withAlpha(Colors.accent, 0.15) : (sinkMa.pressed ? Colors.surfaceHigh : "transparent")
-                                        Behavior on color {
-                                            ColorAnimation {
-                                                duration: Anim.micro
-                                            }
-                                        }
+                        contentItem: Item {
+                            Rectangle {
+                                width: UIScale.radiusSm
+                                height: UIScale.radiusSm
+                                radius: UIScale.radiusSm / 2
+                                anchors.left: parent.left
+                                anchors.leftMargin: UIScale.spacingSm
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: sinkItem.active ? Colors.accent : Colors.withAlpha(Colors.text, 0.22)
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Anim.fast
                                     }
+                                }
+                            }
 
-                                    Rectangle {
-                                        width: UIScale.radiusSm
-                                        height: UIScale.radiusSm
-                                        radius: UIScale.radiusSm / 2
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: UIScale.radiusMd
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: sinkRow.active ? Colors.accent : Colors.withAlpha(Colors.text, 0.22)
-                                        Behavior on color {
-                                            ColorAnimation {
-                                                duration: Anim.fast
-                                            }
-                                        }
-                                    }
-
-                                    Text {
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: Math.round(26 * UIScale.value)
-                                        anchors.right: parent.right
-                                        anchors.rightMargin: UIScale.spacingSm
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: sinkRow.modelData.description || sinkRow.modelData.name || ""
-                                        color: sinkRow.active ? Colors.text : Colors.textDim
-                                        font.pixelSize: UIScale.fontTiny
-                                        font.weight: sinkRow.active ? Font.DemiBold : Font.Normal
-                                        elide: Text.ElideRight
-                                        Behavior on color {
-                                            ColorAnimation {
-                                                duration: Anim.fast
-                                            }
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        id: sinkMa
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: Pipewire.preferredDefaultAudioSink = sinkRow.modelData
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: Math.round(22 * UIScale.value)
+                                anchors.right: parent.right
+                                anchors.rightMargin: UIScale.spacingSm
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: sinkItem.modelData.label
+                                color: sinkItem.active ? Colors.text : Colors.textDim
+                                font.pixelSize: UIScale.fontTiny
+                                font.weight: sinkItem.active ? Font.DemiBold : Font.Normal
+                                elide: Text.ElideRight
+                                Behavior on color {
+                                    ColorAnimation {
+                                        duration: Anim.fast
                                     }
                                 }
                             }

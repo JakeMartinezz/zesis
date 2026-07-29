@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import "./"
 import "../Shared"
 import "../../"
@@ -10,14 +9,54 @@ import "../../"
 Item {
     id: root
 
-    readonly property var _colonOptions: ["Breathing", "Always on", "Always off", "Hidden"]
-    readonly property var _colonModes: ["breathe", "on", "off", "hidden"]
-    readonly property var _widthOptions: ["Fixed", "Fluid"]
-    readonly property var _widthModes: ["fixed", "fluid"]
-    readonly property var _showDateOptions: ["Off", "On"]
-    readonly property var _showDateValues: [false, true]
-    readonly property var _formatOptions: ["24-hour", "12-hour"]
-    readonly property var _formatValues: [false, true]
+    readonly property var _colonOptions: [
+        {
+            value: "breathe",
+            label: "Breathing"
+        },
+        {
+            value: "on",
+            label: "Always on"
+        },
+        {
+            value: "off",
+            label: "Always off"
+        },
+        {
+            value: "hidden",
+            label: "Hidden"
+        }
+    ]
+    readonly property var _widthOptions: [
+        {
+            value: "fixed",
+            label: "Fixed"
+        },
+        {
+            value: "fluid",
+            label: "Fluid"
+        }
+    ]
+    readonly property var _showDateOptions: [
+        {
+            value: false,
+            label: "Off"
+        },
+        {
+            value: true,
+            label: "On"
+        }
+    ]
+    readonly property var _formatOptions: [
+        {
+            value: false,
+            label: "24-hour"
+        },
+        {
+            value: true,
+            label: "12-hour"
+        }
+    ]
 
     ColumnLayout {
         anchors.fill: parent
@@ -122,8 +161,8 @@ Item {
                         StyledComboBox {
                             Layout.preferredWidth: Math.round(140 * UIScale.value)
                             model: root._colonOptions
-                            currentIndex: root._colonModes.indexOf(ClockSettings.colonMode)
-                            onActivated: idx => ClockSettings.writeColonMode(root._colonModes[idx])
+                            selectedValue: ClockSettings.colonMode
+                            onChosen: value => ClockSettings.writeColonMode(value)
                         }
                     }
                 }
@@ -166,8 +205,8 @@ Item {
                         StyledComboBox {
                             Layout.preferredWidth: Math.round(140 * UIScale.value)
                             model: root._widthOptions
-                            currentIndex: root._widthModes.indexOf(ClockSettings.widthMode)
-                            onActivated: idx => ClockSettings.writeWidthMode(root._widthModes[idx])
+                            selectedValue: ClockSettings.widthMode
+                            onChosen: value => ClockSettings.writeWidthMode(value)
                         }
                     }
                 }
@@ -210,8 +249,8 @@ Item {
                         StyledComboBox {
                             Layout.preferredWidth: Math.round(140 * UIScale.value)
                             model: root._showDateOptions
-                            currentIndex: ClockSettings.showDate ? 1 : 0
-                            onActivated: idx => ClockSettings.writeShowDate(root._showDateValues[idx])
+                            selectedValue: ClockSettings.showDate
+                            onChosen: value => ClockSettings.writeShowDate(value)
                         }
                     }
                 }
@@ -254,8 +293,8 @@ Item {
                         StyledComboBox {
                             Layout.preferredWidth: Math.round(140 * UIScale.value)
                             model: root._formatOptions
-                            currentIndex: ClockSettings.use12Hour ? 1 : 0
-                            onActivated: idx => ClockSettings.writeUse12Hour(root._formatValues[idx])
+                            selectedValue: ClockSettings.use12Hour
+                            onChosen: value => ClockSettings.writeUse12Hour(value)
                         }
                     }
                 }
@@ -640,103 +679,6 @@ Item {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: ts.value = (ts.value + 1) % (ts.maxVal + 1)
-            }
-        }
-    }
-
-    component StyledComboBox: ComboBox {
-        id: cb
-
-        implicitHeight: Math.round(34 * UIScale.value)
-
-        background: Rectangle {
-            radius: UIScale.radiusSm
-            color: Colors.surfaceHigh
-            border.color: cb.popup.visible ? Colors.accent : Colors.withAlpha(Colors.text, 0.12)
-            border.width: 1
-            Behavior on border.color {
-                ColorAnimation {
-                    duration: Anim.fast
-                }
-            }
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.NoButton
-                cursorShape: Qt.PointingHandCursor
-            }
-        }
-
-        contentItem: RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: UIScale.radiusMd
-            anchors.rightMargin: UIScale.spacingSm
-            spacing: UIScale.spacingSm
-            Text {
-                text: cb.displayText
-                color: Colors.text
-                font.pixelSize: UIScale.fontBody
-                verticalAlignment: Text.AlignVCenter
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-            }
-            Text {
-                text: cb.popup.visible ? "" : ""
-                font.family: "Material Icons"
-                font.pixelSize: Math.round(16 * UIScale.value)
-                color: Colors.textDim
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
-
-        delegate: ItemDelegate {
-            id: cbItem
-            required property string modelData
-            required property int index
-            width: ListView.view?.width ?? cb.width
-            implicitHeight: Math.round(34 * UIScale.value)
-
-            background: Rectangle {
-                color: cb.currentIndex === cbItem.index ? Colors.withAlpha(Colors.accent, 0.15) : (cbItem.hovered ? Colors.withAlpha(Colors.text, 0.05) : "transparent")
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Anim.fast
-                    }
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton
-                    cursorShape: Qt.PointingHandCursor
-                }
-            }
-
-            contentItem: Text {
-                text: cbItem.modelData
-                color: Colors.text
-                font.pixelSize: UIScale.fontBody
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: UIScale.radiusMd
-            }
-        }
-
-        popup: Popup {
-            y: cb.height + UIScale.spacingXs
-            width: cb.width
-            padding: UIScale.spacingXs
-
-            background: Rectangle {
-                radius: UIScale.radiusSm
-                color: Colors.surfaceHigh
-                border.color: Colors.accent
-                border.width: 1
-            }
-
-            contentItem: ListView {
-                id: cbList
-                clip: true
-                implicitHeight: contentHeight
-                model: cb.popup.visible ? cb.delegateModel : null
-                currentIndex: cb.highlightedIndex
-                ScrollBar.vertical: ScrollBar {}
             }
         }
     }

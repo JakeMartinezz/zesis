@@ -22,6 +22,7 @@ import "../NixPurity"
 import "../Config"
 import "../User"
 import "../Wifi"
+import "../Shared"
 import "../../"
 
 Item {
@@ -53,7 +54,7 @@ Item {
 
     readonly property bool panelOpen: HomePanelService.open
     onPanelOpenChanged: if (!panelOpen)
-        searchInput.text = ""
+        searchField.text = ""
 
     property string _reqSec: HomePanelService.requestedSection
     on_ReqSecChanged: {
@@ -266,92 +267,15 @@ Item {
                 }
 
                 // Search bar
-                Rectangle {
+                StyledTextInput {
+                    id: searchField
                     Layout.fillWidth: true
                     Layout.bottomMargin: UIScale.radiusMd
-                    implicitHeight: Math.round(32 * UIScale.value)
-                    radius: Math.round(9 * UIScale.value)
-                    color: searchInput.activeFocus ? Colors.withAlpha(Colors.accent, 0.08) : Colors.withAlpha(Colors.text, 0.04)
-                    border.color: searchInput.activeFocus ? Colors.withAlpha(Colors.accent, 0.4) : Colors.withAlpha(Colors.text, 0.06)
-                    border.width: 1
-                    Behavior on color {
-                        ColorAnimation {
-                            duration: Anim.fast
-                        }
-                    }
-                    Behavior on border.color {
-                        ColorAnimation {
-                            duration: Anim.fast
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        z: -1
-                        onClicked: searchInput.forceActiveFocus()
-                    }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: UIScale.spacingSm
-                        anchors.rightMargin: UIScale.spacingSm
-                        spacing: Math.round(7 * UIScale.value)
-
-                        Text {
-                            text: ""
-                            font.family: "Material Icons"
-                            font.pixelSize: UIScale.fontLead
-                            color: searchInput.activeFocus ? Colors.accent : Colors.muted
-                            Behavior on color {
-                                ColorAnimation {
-                                    duration: Anim.fast
-                                }
-                            }
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                            implicitHeight: Math.round(20 * UIScale.value)
-
-                            Text {
-                                anchors.fill: parent
-                                verticalAlignment: Text.AlignVCenter
-                                visible: searchInput.text === ""
-                                text: "Search settings"
-                                color: Colors.muted
-                                font.pixelSize: UIScale.fontBody
-                            }
-
-                            TextInput {
-                                id: searchInput
-                                anchors.fill: parent
-                                verticalAlignment: TextInput.AlignVCenter
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontBody
-                                clip: true
-                                onTextChanged: root.searchText = text
-                                Keys.onEscapePressed: {
-                                    if (text !== "")
-                                        text = "";
-                                    else
-                                        HomePanelService.open = false;
-                                }
-                            }
-                        }
-
-                        Text {
-                            visible: root.searchText !== ""
-                            text: ""
-                            font.family: "Material Icons"
-                            font.pixelSize: UIScale.fontLead
-                            color: Colors.muted
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: searchInput.text = ""
-                            }
-                        }
-                    }
+                    icon: ""
+                    showClearButton: true
+                    placeholder: "Search settings"
+                    onTextChanged: root.searchText = text
+                    onEscapePressed: HomePanelService.open = false
                 }
 
                 // Scrollable nav list
@@ -825,6 +749,16 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        z: 9999
+        propagateComposedEvents: true
+        onPressed: mouse => {
+            root.forceActiveFocus();
+            mouse.accepted = false;
         }
     }
 }

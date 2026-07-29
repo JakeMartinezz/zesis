@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import "../../"
 import "../Weather"
 import "../Globe2D"
@@ -611,141 +610,6 @@ Item {
         }
     }
 
-    component StyledComboBox: ComboBox {
-        id: cb
-
-        implicitHeight: Math.round(36 * UIScale.value)
-
-        background: Rectangle {
-            radius: UIScale.radiusSm
-            color: Colors.surfaceHigh
-            border.color: cb.popup.visible ? Colors.accent : Colors.withAlpha(Colors.text, 0.12)
-            border.width: 1
-            Behavior on border.color {
-                ColorAnimation {
-                    duration: Anim.fast
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Anim.standard
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.NoButton
-                cursorShape: Qt.PointingHandCursor
-            }
-        }
-
-        contentItem: RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: UIScale.radiusMd
-            anchors.rightMargin: UIScale.spacingSm
-            spacing: UIScale.spacingSm
-
-            Text {
-                text: cb.displayText
-                color: Colors.text
-                font.pixelSize: UIScale.fontBody
-                verticalAlignment: Text.AlignVCenter
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-            }
-            Text {
-                text: cb.popup.visible ? "" : ""
-                font.family: "Material Icons"
-                font.pixelSize: Math.round(18 * UIScale.value)
-                color: Colors.textDim
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
-
-        delegate: ItemDelegate {
-            id: cbItem
-            required property string modelData
-            required property int index
-            width: ListView.view?.width ?? cb.width
-            implicitHeight: Math.round(36 * UIScale.value)
-
-            background: Rectangle {
-                color: cb.currentIndex === cbItem.index ? Colors.withAlpha(Colors.accent, 0.15) : (cbItem.hovered ? Colors.withAlpha(Colors.text, 0.05) : "transparent")
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Anim.fast
-                        easing.type: Easing.BezierSpline
-                        easing.bezierCurve: Anim.standard
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton
-                    cursorShape: Qt.PointingHandCursor
-                }
-            }
-
-            contentItem: Text {
-                text: cbItem.modelData
-                color: Colors.text
-                font.pixelSize: UIScale.fontBody
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: UIScale.radiusMd
-            }
-        }
-
-        popup: Popup {
-            y: cb.height + UIScale.spacingXs
-            width: cb.width
-            height: Math.min(listView.contentHeight + topPadding + bottomPadding, Math.round(280 * UIScale.value))
-            padding: UIScale.spacingXs
-            transformOrigin: Item.Top
-
-            enter: Transition {
-                NumberAnimation {
-                    property: "opacity"
-                    from: 0
-                    to: 1
-                    duration: Anim.fast
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Anim.emphasizedDecel
-                }
-                NumberAnimation {
-                    property: "scale"
-                    from: 0.9
-                    to: 1
-                    duration: Anim.fast
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Anim.emphasizedDecel
-                }
-            }
-            exit: Transition {
-                NumberAnimation {
-                    property: "opacity"
-                    from: 1
-                    to: 0
-                    duration: Anim.micro
-                    easing.type: Easing.BezierSpline
-                    easing.bezierCurve: Anim.emphasizedAccel
-                }
-            }
-
-            background: Rectangle {
-                radius: UIScale.radiusSm
-                color: Colors.surfaceHigh
-                border.color: Colors.accent
-                border.width: 1
-            }
-
-            contentItem: ListView {
-                id: listView
-                clip: true
-                implicitHeight: contentHeight
-                model: cb.popup.visible ? cb.delegateModel : null
-                currentIndex: cb.highlightedIndex
-                ScrollBar.vertical: ScrollBar {}
-            }
-        }
-    }
-
     readonly property var _visiblePoints: {
         var pts = [];
         // Stress-test data, just for performance
@@ -1001,20 +865,15 @@ Item {
 
                         StyledComboBox {
                             Layout.fillWidth: true
-                            model: LocationSharingService.activenessCadenceOptions.map(o => o.label)
-                            currentIndex: {
-                                var opts = LocationSharingService.activenessCadenceOptions;
-                                for (var i = 0; i < opts.length; i++) {
-                                    if (opts[i].secs === root._draftCadenceSecs)
-                                        return i;
-                                }
-                                return 0;
-                            }
-                            onActivated: idx => {
-                                var secs = LocationSharingService.activenessCadenceOptions[idx].secs;
-                                root._draftCadenceSecs = secs;
-                                if (secs >= LocationSharingService.activenessCadenceSecs) {
-                                    LocationSharingService.setActivenessCadence(secs);
+                            model: LocationSharingService.activenessCadenceOptions.map(o => ({
+                                        value: o.secs,
+                                        label: o.label
+                                    }))
+                            selectedValue: root._draftCadenceSecs
+                            onChosen: value => {
+                                root._draftCadenceSecs = value;
+                                if (value >= LocationSharingService.activenessCadenceSecs) {
+                                    LocationSharingService.setActivenessCadence(value);
                                 } else {
                                     root._activenessDialogMode = "cadence";
                                     root._showActivenessDialog = true;

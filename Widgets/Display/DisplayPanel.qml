@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import "../../"
 import "../Shared"
 
@@ -23,107 +22,6 @@ Item {
         selWidth = DisplayService.currentWidth;
         selHeight = DisplayService.currentHeight;
         selRefresh = DisplayService.currentRefresh;
-    }
-
-    component StyledComboBox: ComboBox {
-        id: cb
-
-        implicitHeight: Math.round(36 * UIScale.value)
-
-        background: Rectangle {
-            radius: UIScale.radiusSm
-            color: Colors.surfaceHigh
-            border.color: cb.popup.visible ? Colors.accent : Colors.withAlpha(Colors.text, 0.12)
-            border.width: 1
-            Behavior on border.color {
-                ColorAnimation {
-                    duration: Anim.fast
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.NoButton
-                cursorShape: Qt.PointingHandCursor
-            }
-        }
-
-        contentItem: RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: UIScale.radiusMd
-            anchors.rightMargin: UIScale.spacingSm
-            spacing: UIScale.spacingSm
-
-            Text {
-                text: cb.displayText
-                color: Colors.text
-                font.pixelSize: UIScale.fontBody
-                verticalAlignment: Text.AlignVCenter
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-            }
-            Text {
-                text: cb.popup.visible ? "" : ""
-                font.family: "Material Icons"
-                font.pixelSize: Math.round(18 * UIScale.value)
-                color: Colors.textDim
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
-
-        delegate: ItemDelegate {
-            id: cbItem
-            required property string modelData
-            required property int index
-            width: ListView.view?.width ?? cb.width
-            implicitHeight: Math.round(36 * UIScale.value)
-
-            background: Rectangle {
-                color: cb.currentIndex === cbItem.index ? Colors.withAlpha(Colors.accent, 0.15) : (cbItem.hovered ? Colors.withAlpha(Colors.text, 0.05) : "transparent")
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Anim.fast
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton
-                    cursorShape: Qt.PointingHandCursor
-                }
-            }
-
-            contentItem: Text {
-                text: cbItem.modelData
-                color: Colors.text
-                font.pixelSize: UIScale.fontBody
-                verticalAlignment: Text.AlignVCenter
-                leftPadding: UIScale.radiusMd
-            }
-        }
-
-        popup: Popup {
-            y: cb.height + UIScale.spacingXs
-            width: cb.width
-            height: Math.min(listView.contentHeight + topPadding + bottomPadding, Math.round(280 * UIScale.value))
-            padding: UIScale.spacingXs
-
-            background: Rectangle {
-                radius: UIScale.radiusSm
-                color: Colors.surfaceHigh
-                border.color: Colors.accent
-                border.width: 1
-            }
-
-            contentItem: ListView {
-                id: listView
-                clip: true
-                implicitHeight: contentHeight
-                model: cb.popup.visible ? cb.delegateModel : null
-                currentIndex: cb.highlightedIndex
-                ScrollBar.vertical: ScrollBar {}
-            }
-        }
     }
 
     ColumnLayout {
@@ -218,21 +116,16 @@ Item {
                     Layout.leftMargin: UIScale.panelPad
                     Layout.rightMargin: UIScale.panelPad
 
-                    model: DisplayService.uniqueResolutions.map(r => r.width + " × " + r.height)
+                    model: DisplayService.uniqueResolutions.map(r => ({
+                                value: r.width + "x" + r.height,
+                                label: r.width + "x" + r.height
+                            }))
+                    selectedValue: root.selWidth + "x" + root.selHeight
 
-                    currentIndex: {
-                        var res = DisplayService.uniqueResolutions;
-                        for (var i = 0; i < res.length; i++) {
-                            if (res[i].width === root.selWidth && res[i].height === root.selHeight)
-                                return i;
-                        }
-                        return 0;
-                    }
-
-                    onActivated: idx => {
-                        var r = DisplayService.uniqueResolutions[idx];
-                        root.selWidth = r.width;
-                        root.selHeight = r.height;
+                    onChosen: value => {
+                        var parts = value.split("x");
+                        root.selWidth = parseInt(parts[0]);
+                        root.selHeight = parseInt(parts[1]);
                         var rates = DisplayService.refreshRatesFor(root.selWidth, root.selHeight);
                         root.selRefresh = rates.length > 0 ? rates[0] : 0;
                     }
@@ -258,22 +151,14 @@ Item {
 
                     model: DisplayService.refreshRatesFor(root.selWidth, root.selHeight).map(r => {
                         var rounded = Math.round(r);
-                        return (Math.abs(r - rounded) < 0.01 ? rounded : r.toFixed(2)) + " Hz";
+                        return {
+                            value: r.toFixed(4),
+                            label: (Math.abs(r - rounded) < 0.01 ? rounded : r.toFixed(2)) + " Hz"
+                        };
                     })
+                    selectedValue: root.selRefresh.toFixed(4)
 
-                    currentIndex: {
-                        var rates = DisplayService.refreshRatesFor(root.selWidth, root.selHeight);
-                        for (var i = 0; i < rates.length; i++) {
-                            if (Math.abs(rates[i] - root.selRefresh) < 0.01)
-                                return i;
-                        }
-                        return 0;
-                    }
-
-                    onActivated: idx => {
-                        var rates = DisplayService.refreshRatesFor(root.selWidth, root.selHeight);
-                        root.selRefresh = rates[idx];
-                    }
+                    onChosen: value => root.selRefresh = parseFloat(value)
                 }
 
                 Divider {
