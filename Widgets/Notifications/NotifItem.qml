@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
+import Quickshell
 import Quickshell.Services.Notifications
 import "../../"
 
@@ -12,12 +14,15 @@ Rectangle {
     property bool replyExpanded: false
     onReplyExpandedChanged: NotifServer.replyActive = replyExpanded
 
+    readonly property string image: root.notification?.image ?? ""
+    readonly property bool hasImage: root.image !== ""
+
     radius: UIScale.radiusLg
     color: Colors.surface
     border.color: Colors.withAlpha(Colors.accent, 0.18)
     border.width: 1
     implicitWidth: 340
-    implicitHeight: contentCol.implicitHeight + UIScale.spacingLg + 4
+    implicitHeight: mainRow.implicitHeight + UIScale.spacingLg + 4
     clip: true
 
     opacity: 0
@@ -185,243 +190,300 @@ Rectangle {
         }
     }
 
-    ColumnLayout {
-        id: contentCol
+    RowLayout {
+        id: mainRow
         anchors {
             left: parent.left
             right: parent.right
             top: parent.top
             margins: UIScale.spacingMd
         }
-        spacing: 4
+        spacing: UIScale.spacingSm
 
-        RowLayout {
+        Item {
+            id: avatar
+            Layout.alignment: Qt.AlignTop
+            visible: root.hasImage
+            implicitWidth: 36
+            implicitHeight: 36
+
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: Colors.surfaceHigh
+            }
+
+            Rectangle {
+                id: avatarMask
+                anchors.fill: parent
+                radius: width / 2
+                visible: false
+                layer.enabled: true
+            }
+
+            Image {
+                anchors.fill: parent
+                source: root.image
+                fillMode: Image.PreserveAspectCrop
+                sourceSize: Qt.size(avatar.width * 2, avatar.height * 2)
+                cache: false
+                asynchronous: true
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: avatarMask
+                    maskThresholdMin: 0.5
+                    maskSpreadAtMin: 1.0
+                }
+            }
+
+            Image {
+                visible: (root.notification?.appIcon ?? "") !== ""
+                width: 16
+                height: 16
+                anchors {
+                    right: parent.right
+                    bottom: parent.bottom
+                }
+                source: (root.notification?.appIcon ?? "") !== "" ? Quickshell.iconPath(root.notification.appIcon) : ""
+                fillMode: Image.PreserveAspectFit
+                asynchronous: true
+            }
+        }
+
+        ColumnLayout {
+            id: contentCol
             Layout.fillWidth: true
-            spacing: UIScale.spacingSm
+            spacing: 4
 
-            Text {
+            RowLayout {
                 Layout.fillWidth: true
-                text: root.notification?.summary ?? ""
-                color: Colors.text
-                font.bold: true
-                font.pixelSize: UIScale.fontBody
-                elide: Text.ElideRight
-            }
-
-            Text {
-                text: root.notification?.appName ?? ""
-                color: Colors.muted
-                font.pixelSize: UIScale.fontCaption
-                opacity: 0.8
-            }
-
-            Text {
-                text: "✕"
-                color: closeHover.containsMouse ? Colors.accent : Colors.muted
-                font.pixelSize: UIScale.fontSmall
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Anim.fast
-                    }
-                }
-
-                MouseArea {
-                    id: closeHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    acceptedButtons: Qt.LeftButton
-                    onClicked: {
-                        NotifServer.markRead();
-                        root.dismiss();
-                    }
-                }
-            }
-        }
-
-        Text {
-            Layout.fillWidth: true
-            visible: (root.notification?.body ?? "") !== ""
-            text: root.notification?.body ?? ""
-            color: Colors.textDim
-            font.pixelSize: UIScale.fontSmall
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            textFormat: Text.MarkdownText
-        }
-
-        // Action row: View + Reply + any extra actions
-        RowLayout {
-            Layout.fillWidth: true
-            visible: !root.replyExpanded
-            spacing: 6
-
-            Rectangle {
-                radius: 6
-                color: viewHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
-                implicitWidth: viewLabel.implicitWidth + 16
-                implicitHeight: viewLabel.implicitHeight + 8
+                spacing: UIScale.spacingSm
 
                 Text {
-                    id: viewLabel
-                    anchors.centerIn: parent
-                    text: "View"
-                    color: Colors.accent
-                    font.pixelSize: UIScale.fontCaption
+                    Layout.fillWidth: true
+                    text: root.notification?.summary ?? ""
+                    color: Colors.text
+                    font.bold: true
+                    font.pixelSize: UIScale.fontBody
+                    elide: Text.ElideRight
                 }
-
-                MouseArea {
-                    id: viewHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: root.viewNotification()
-                }
-            }
-
-            Rectangle {
-                visible: root.notification?.hasInlineReply ?? false
-                radius: 6
-                color: replyHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
-                implicitWidth: replyLabel.implicitWidth + 16
-                implicitHeight: replyLabel.implicitHeight + 8
 
                 Text {
-                    id: replyLabel
-                    anchors.centerIn: parent
-                    text: "Reply"
-                    color: Colors.accent
+                    text: root.notification?.appName ?? ""
+                    color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
+                    opacity: 0.8
                 }
 
-                MouseArea {
-                    id: replyHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: {
-                        root.replyExpanded = true;
-                        Qt.callLater(function () {
-                            replyInput.forceActiveFocus();
-                        });
-                    }
-                }
-            }
-
-            Repeater {
-                model: root.notification?.actions?.filter(a => a.identifier !== "default" && a.identifier !== "inline-reply") ?? []
-                delegate: Rectangle {
-                    required property NotificationAction modelData
-                    radius: 6
-                    color: extraActionHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
-                    implicitWidth: extraActionLabel.implicitWidth + 16
-                    implicitHeight: extraActionLabel.implicitHeight + 8
-
-                    Text {
-                        id: extraActionLabel
-                        anchors.centerIn: parent
-                        text: parent.modelData.text
-                        color: Colors.accent
-                        font.pixelSize: UIScale.fontCaption
+                Text {
+                    text: "✕"
+                    color: closeHover.containsMouse ? Colors.accent : Colors.muted
+                    font.pixelSize: UIScale.fontSmall
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Anim.fast
+                        }
                     }
 
                     MouseArea {
-                        id: extraActionHover
+                        id: closeHover
                         anchors.fill: parent
                         hoverEnabled: true
+                        acceptedButtons: Qt.LeftButton
                         onClicked: {
-                            parent.modelData.invoke();
+                            NotifServer.markRead();
                             root.dismiss();
                         }
                     }
                 }
             }
-        }
-
-        // Inline reply row
-        RowLayout {
-            id: replyRow
-            Layout.fillWidth: true
-            visible: root.replyExpanded
-            spacing: 6
-
-            Rectangle {
-                Layout.fillWidth: true
-                radius: 6
-                color: Colors.surfaceHigh
-                implicitHeight: replyInput.implicitHeight + 10
-                border.color: replyInput.activeFocus ? Colors.withAlpha(Colors.accent, 0.5) : Colors.withAlpha(Colors.accent, 0.15)
-                border.width: 1
-
-                Text {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                        leftMargin: 10
-                        rightMargin: 10
-                    }
-                    visible: replyInput.text === "" && !replyInput.activeFocus
-                    text: root.notification?.inlineReplyPlaceholder || "Reply…"
-                    color: Colors.muted
-                    font.pixelSize: UIScale.fontSmall
-                }
-
-                TextInput {
-                    id: replyInput
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                        leftMargin: 10
-                        rightMargin: 10
-                    }
-                    color: Colors.text
-                    font.pixelSize: UIScale.fontSmall
-                    clip: true
-                    Keys.onReturnPressed: root.sendReply(replyInput.text)
-                    Keys.onEscapePressed: {
-                        root.replyExpanded = false;
-                        replyInput.text = "";
-                    }
-                }
-            }
-
-            Rectangle {
-                radius: 6
-                color: sendHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
-                implicitWidth: sendLabel.implicitWidth + 14
-                implicitHeight: sendLabel.implicitHeight + 8
-
-                Text {
-                    id: sendLabel
-                    anchors.centerIn: parent
-                    text: "Send"
-                    color: Colors.accent
-                    font.pixelSize: UIScale.fontCaption
-                }
-
-                MouseArea {
-                    id: sendHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: root.sendReply(replyInput.text)
-                }
-            }
 
             Text {
-                text: "✕"
-                color: cancelHover.containsMouse ? Colors.accent : Colors.muted
+                Layout.fillWidth: true
+                visible: (root.notification?.body ?? "") !== ""
+                text: root.notification?.body ?? ""
+                color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Anim.fast
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                textFormat: Text.MarkdownText
+            }
+
+            // Action row: View + Reply + any extra actions
+            RowLayout {
+                Layout.fillWidth: true
+                visible: !root.replyExpanded
+                spacing: 6
+
+                Rectangle {
+                    radius: 6
+                    color: viewHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
+                    implicitWidth: viewLabel.implicitWidth + 16
+                    implicitHeight: viewLabel.implicitHeight + 8
+
+                    Text {
+                        id: viewLabel
+                        anchors.centerIn: parent
+                        text: "View"
+                        color: Colors.accent
+                        font.pixelSize: UIScale.fontCaption
+                    }
+
+                    MouseArea {
+                        id: viewHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: root.viewNotification()
                     }
                 }
 
-                MouseArea {
-                    id: cancelHover
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: {
-                        root.replyExpanded = false;
-                        replyInput.text = "";
+                Rectangle {
+                    visible: root.notification?.hasInlineReply ?? false
+                    radius: 6
+                    color: replyHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
+                    implicitWidth: replyLabel.implicitWidth + 16
+                    implicitHeight: replyLabel.implicitHeight + 8
+
+                    Text {
+                        id: replyLabel
+                        anchors.centerIn: parent
+                        text: "Reply"
+                        color: Colors.accent
+                        font.pixelSize: UIScale.fontCaption
+                    }
+
+                    MouseArea {
+                        id: replyHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.replyExpanded = true;
+                            Qt.callLater(function () {
+                                replyInput.forceActiveFocus();
+                            });
+                        }
+                    }
+                }
+
+                Repeater {
+                    model: root.notification?.actions?.filter(a => a.identifier !== "default" && a.identifier !== "inline-reply") ?? []
+                    delegate: Rectangle {
+                        required property NotificationAction modelData
+                        radius: 6
+                        color: extraActionHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
+                        implicitWidth: extraActionLabel.implicitWidth + 16
+                        implicitHeight: extraActionLabel.implicitHeight + 8
+
+                        Text {
+                            id: extraActionLabel
+                            anchors.centerIn: parent
+                            text: parent.modelData.text
+                            color: Colors.accent
+                            font.pixelSize: UIScale.fontCaption
+                        }
+
+                        MouseArea {
+                            id: extraActionHover
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                parent.modelData.invoke();
+                                root.dismiss();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inline reply row
+            RowLayout {
+                id: replyRow
+                Layout.fillWidth: true
+                visible: root.replyExpanded
+                spacing: 6
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    radius: 6
+                    color: Colors.surfaceHigh
+                    implicitHeight: replyInput.implicitHeight + 10
+                    border.color: replyInput.activeFocus ? Colors.withAlpha(Colors.accent, 0.5) : Colors.withAlpha(Colors.accent, 0.15)
+                    border.width: 1
+
+                    Text {
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: 10
+                            rightMargin: 10
+                        }
+                        visible: replyInput.text === "" && !replyInput.activeFocus
+                        text: root.notification?.inlineReplyPlaceholder || "Reply…"
+                        color: Colors.muted
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    TextInput {
+                        id: replyInput
+                        anchors {
+                            left: parent.left
+                            right: parent.right
+                            verticalCenter: parent.verticalCenter
+                            leftMargin: 10
+                            rightMargin: 10
+                        }
+                        color: Colors.text
+                        font.pixelSize: UIScale.fontSmall
+                        clip: true
+                        Keys.onReturnPressed: root.sendReply(replyInput.text)
+                        Keys.onEscapePressed: {
+                            root.replyExpanded = false;
+                            replyInput.text = "";
+                        }
+                    }
+                }
+
+                Rectangle {
+                    radius: 6
+                    color: sendHover.containsMouse ? Colors.withAlpha(Colors.accent, 0.2) : Colors.surfaceHigh
+                    implicitWidth: sendLabel.implicitWidth + 14
+                    implicitHeight: sendLabel.implicitHeight + 8
+
+                    Text {
+                        id: sendLabel
+                        anchors.centerIn: parent
+                        text: "Send"
+                        color: Colors.accent
+                        font.pixelSize: UIScale.fontCaption
+                    }
+
+                    MouseArea {
+                        id: sendHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: root.sendReply(replyInput.text)
+                    }
+                }
+
+                Text {
+                    text: "✕"
+                    color: cancelHover.containsMouse ? Colors.accent : Colors.muted
+                    font.pixelSize: UIScale.fontSmall
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Anim.fast
+                        }
+                    }
+
+                    MouseArea {
+                        id: cancelHover
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.replyExpanded = false;
+                            replyInput.text = "";
+                        }
                     }
                 }
             }

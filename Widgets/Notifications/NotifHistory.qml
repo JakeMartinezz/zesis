@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
+import Quickshell
 import "../../"
 import "../Shared"
 
@@ -113,11 +115,15 @@ Item {
                 required property string body
                 required property string time
                 required property int index
+                required property string image
+                required property string appIcon
+
+                readonly property bool hasImage: histItem.image !== ""
 
                 width: listView.width
                 radius: UIScale.radiusMd
                 color: Colors.surface
-                implicitHeight: itemLayout.implicitHeight + UIScale.spacingMd + 2
+                implicitHeight: itemRow.implicitHeight + UIScale.spacingMd + 2
                 clip: true
 
                 transform: Translate {
@@ -184,54 +190,111 @@ Item {
                     onFinished: NotifServer.history.remove(histItem.index)
                 }
 
-                ColumnLayout {
-                    id: itemLayout
+                RowLayout {
+                    id: itemRow
                     anchors {
                         left: parent.left
                         right: parent.right
                         top: parent.top
                         margins: UIScale.spacingSm
                     }
-                    spacing: 2
+                    spacing: UIScale.spacingSm
 
-                    RowLayout {
+                    Item {
+                        id: histAvatar
+                        Layout.alignment: Qt.AlignTop
+                        visible: histItem.hasImage
+                        implicitWidth: 28
+                        implicitHeight: 28
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: width / 2
+                            color: Colors.surfaceHigh
+                        }
+
+                        Rectangle {
+                            id: histAvatarMask
+                            anchors.fill: parent
+                            radius: width / 2
+                            visible: false
+                            layer.enabled: true
+                        }
+
+                        Image {
+                            anchors.fill: parent
+                            source: histItem.image
+                            fillMode: Image.PreserveAspectCrop
+                            sourceSize: Qt.size(histAvatar.width * 2, histAvatar.height * 2)
+                            cache: false
+                            asynchronous: true
+                            layer.enabled: true
+                            layer.effect: MultiEffect {
+                                maskEnabled: true
+                                maskSource: histAvatarMask
+                                maskThresholdMin: 0.5
+                                maskSpreadAtMin: 1.0
+                            }
+                        }
+
+                        Image {
+                            visible: histItem.appIcon !== ""
+                            width: 12
+                            height: 12
+                            anchors {
+                                right: parent.right
+                                bottom: parent.bottom
+                            }
+                            source: histItem.appIcon !== "" ? Quickshell.iconPath(histItem.appIcon) : ""
+                            fillMode: Image.PreserveAspectFit
+                            asynchronous: true
+                        }
+                    }
+
+                    ColumnLayout {
+                        id: itemLayout
                         Layout.fillWidth: true
+                        spacing: 2
 
-                        Text {
-                            text: histItem.appName
-                            color: Colors.muted
-                            font.pixelSize: UIScale.fontCaption
-                            elide: Text.ElideRight
+                        RowLayout {
                             Layout.fillWidth: true
+
+                            Text {
+                                text: histItem.appName
+                                color: Colors.muted
+                                font.pixelSize: UIScale.fontCaption
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
+
+                            Text {
+                                text: histItem.time
+                                color: Colors.muted
+                                font.pixelSize: UIScale.fontCaption
+                                opacity: 0.7
+                            }
                         }
 
                         Text {
-                            text: histItem.time
-                            color: Colors.muted
-                            font.pixelSize: UIScale.fontCaption
-                            opacity: 0.7
+                            Layout.fillWidth: true
+                            text: histItem.summary
+                            color: Colors.text
+                            font.bold: true
+                            font.pixelSize: UIScale.fontSmall
+                            elide: Text.ElideRight
                         }
-                    }
 
-                    Text {
-                        Layout.fillWidth: true
-                        text: histItem.summary
-                        color: Colors.text
-                        font.bold: true
-                        font.pixelSize: UIScale.fontSmall
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        visible: histItem.body !== ""
-                        text: histItem.body
-                        color: Colors.textDim
-                        font.pixelSize: UIScale.fontCaption
-                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                        textFormat: Text.MarkdownText
-                        maximumLineCount: 2
-                        elide: Text.ElideRight
+                        Text {
+                            Layout.fillWidth: true
+                            visible: histItem.body !== ""
+                            text: histItem.body
+                            color: Colors.textDim
+                            font.pixelSize: UIScale.fontCaption
+                            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                            textFormat: Text.MarkdownText
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                        }
                     }
                 }
             }

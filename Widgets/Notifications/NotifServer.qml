@@ -90,6 +90,8 @@ Singleton {
                 appName: n.appName ?? "",
                 summary: n.summary ?? "",
                 body: n.body ?? "",
+                image: n.image ?? "",
+                appIcon: n.appIcon ?? "",
                 time: Qt.formatTime(new Date(), "hh:mm")
             });
             if (historyModel.count > 50)
