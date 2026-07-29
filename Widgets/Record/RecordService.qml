@@ -22,12 +22,60 @@ Singleton {
         return (Quickshell.env("HOME") || "") + "/Videos";
     }
 
+    // GPUs discovered on this machine, for the device picker in RecordItem's
+    // settings popup: [{value: "/dev/dri/renderD128", label: "AMD (renderD128)"}, ...].
+    // Populated by _deviceProbe below so this stays hardware-agnostic.
+    property var gpuDevices: []
+
+    function _vendorName(hex) {
+        switch (hex) {
+        case "0x1002":
+            return "AMD";
+        case "0x8086":
+            return "Intel";
+        case "0x10de":
+            return "NVIDIA";
+        default:
+            return "GPU";
+        }
+    }
+
+    function _addDevice(line) {
+        line = line.trim();
+        if (!line)
+            return;
+        var parts = line.split("|");
+        var path = parts[0];
+        var vendor = _vendorName(parts[1] || "");
+        var list = root.gpuDevices.slice();
+        list.push({
+            value: path,
+            label: vendor + " (" + path.split("/").pop() + ")"
+        });
+        root.gpuDevices = list;
+    }
+
     function start(geometry) {
         if (recording)
             return;
         var file = _videoDir() + "/recording_" + _timestamp() + ".mp4";
         _currentFile = file;
-        _pendingCmd = geometry ? ["wf-recorder", "-g", geometry, "-f", file] : ["wf-recorder", "-f", file];
+        var cmd = ["wf-recorder"];
+        if (RecordSettings.device === "software") {
+            // No -c/-d, wf-recorder's own default (software libx264). Universal
+            // fallback for machines without a usable VAAPI encode path.
+        } else {
+            cmd.push("-c", "hevc_vaapi");
+            if (RecordSettings.device !== "")
+                cmd.push("-d", RecordSettings.device);
+            cmd.push("-p", "qp=" + RecordSettings.qp);
+        }
+        if (RecordSettings.fpsCap > 0)
+            cmd.push("-r", String(RecordSettings.fpsCap));
+        if (geometry)
+            cmd.push("-g", geometry);
+        cmd.push("-f", file);
+        _pendingCmd = cmd;
         _mkdir.running = true;
     }
 
@@ -96,6 +144,15 @@ Singleton {
         id: _stopper
         running: false
         command: ["pkill", "-INT", "wf-recorder"]
+    }
+
+    Process {
+        id: _deviceProbe
+        running: true
+        command: ["sh", "-c", "for d in /dev/dri/render*; do [ -e \"$d\" ] || continue; rn=$(basename \"$d\"); v=$(cat \"/sys/class/drm/$rn/device/vendor\" 2>/dev/null); echo \"$d|$v\"; done"]
+        stdout: SplitParser {
+            onRead: data => root._addDevice(data)
+        }
     }
 
     Timer {
