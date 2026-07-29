@@ -252,6 +252,21 @@ Item {
             z: 1
         })
 
+    // Kinetic release, ported from Globe2D.qml's fling/coast
+    property var _velVec: ({
+            x: 0,
+            y: 0,
+            z: 0
+        })
+    property var _lastSamplePoint: null
+    property real _lastSampleTime: 0
+    property var flingAxis: ({
+            x: 0,
+            y: 1,
+            z: 0
+        })
+    property real flingSpeed: 0 // rad/sec, decays to 0 via friction
+
     function quatMul(a, b) {
         return {
             w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
@@ -465,6 +480,15 @@ Item {
             z: orientation.z
         };
         pressPoint = projectToSphere(mx, my);
+
+        flingSpeed = 0;
+        _velVec = {
+            x: 0,
+            y: 0,
+            z: 0
+        };
+        _lastSamplePoint = pressPoint;
+        _lastSampleTime = Date.now();
     }
 
     function updateArcballRotation(mx, my) {
@@ -501,6 +525,64 @@ Item {
         var result = quatMul(dq, pressOrientation);
         var mag = Math.sqrt(result.w * result.w + result.x * result.x + result.y * result.y + result.z * result.z);
         orientation = Qt.quaternion(result.w / mag, result.x / mag, result.y / mag, result.z / mag);
+
+        // Copy paste from Globe2D.qml
+        var now = Date.now();
+        var dt = (now - _lastSampleTime) / 1000;
+        if (dt > 0.001 && _lastSamplePoint) {
+            var q0 = _lastSamplePoint, q1 = cur;
+            var sdot = Math.max(-1.0, Math.min(1.0, q0.x * q1.x + q0.y * q1.y + q0.z * q1.z));
+            var sax = {
+                x: q0.y * q1.z - q0.z * q1.y,
+                y: q0.z * q1.x - q0.x * q1.z,
+                z: q0.x * q1.y - q0.y * q1.x
+            };
+            var salen = Math.sqrt(sax.x * sax.x + sax.y * sax.y + sax.z * sax.z);
+            var sangle = Math.acos(sdot);
+            var alpha = 0.35;
+            if (salen > 1e-6 && sangle > 1e-6) {
+                var instVel = {
+                    x: (sax.x / salen) * sangle / dt,
+                    y: (sax.y / salen) * sangle / dt,
+                    z: (sax.z / salen) * sangle / dt
+                };
+                _velVec = {
+                    x: _velVec.x * (1 - alpha) + instVel.x * alpha,
+                    y: _velVec.y * (1 - alpha) + instVel.y * alpha,
+                    z: _velVec.z * (1 - alpha) + instVel.z * alpha
+                };
+            } else {
+                _velVec = {
+                    x: _velVec.x * (1 - alpha),
+                    y: _velVec.y * (1 - alpha),
+                    z: _velVec.z * (1 - alpha)
+                };
+            }
+        }
+        _lastSamplePoint = cur;
+        _lastSampleTime = now;
+    }
+
+    function endArcballDrag() {
+        var stillMs = Date.now() - _lastSampleTime;
+        if (stillMs > 80) {
+            _velVec = {
+                x: 0,
+                y: 0,
+                z: 0
+            };
+        }
+
+        var v = _velVec;
+        var speed = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        if (speed > 0.4) {
+            flingAxis = {
+                x: v.x / speed,
+                y: v.y / speed,
+                z: v.z / speed
+            };
+            flingSpeed = Math.min(speed, 14);
+        }
     }
 
     // Perspective ray-cast from the camera through the clicked pixel,
@@ -1000,6 +1082,34 @@ Item {
         }
     }
 
+    FrameAnimation {
+        running: root.flingSpeed > 0.0005 && !dragArea.pressed
+        onTriggered: {
+            var angle = root.flingSpeed * frameTime;
+            var half = angle / 2;
+            var ax = root.flingAxis;
+            var dq = {
+                w: Math.cos(half),
+                x: ax.x * Math.sin(half),
+                y: ax.y * Math.sin(half),
+                z: ax.z * Math.sin(half)
+            };
+            var cur = {
+                w: root.orientation.scalar,
+                x: root.orientation.x,
+                y: root.orientation.y,
+                z: root.orientation.z
+            };
+            var result = root.quatMul(dq, cur);
+            var mag = Math.sqrt(result.w * result.w + result.x * result.x + result.y * result.y + result.z * result.z);
+            root.orientation = Qt.quaternion(result.w / mag, result.x / mag, result.y / mag, result.z / mag);
+
+            root.flingSpeed *= Math.pow(0.005, frameTime);
+            if (root.flingSpeed < 0.05)
+                root.flingSpeed = 0;
+        }
+    }
+
     // Declared BEFORE any control overlay a consumer adds as a LATER sibling
     // of this whole component, so that overlay wins input hit-testing over
     // this full-size MouseArea.
@@ -1026,9 +1136,11 @@ Item {
             root.updateArcballRotation(mouse.x, mouse.y);
         }
         onReleased: mouse => {
+            root.endArcballDrag();
             if (!moved)
                 root.handleClick(mouse.x, mouse.y);
         }
+        onCanceled: root.endArcballDrag()
         onWheel: wheel => {
             var factor = 1.0 + wheel.angleDelta.y * 0.001;
             root.camDist = Math.max(115, Math.min(2000, root.camDist / factor));
