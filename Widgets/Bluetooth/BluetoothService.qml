@@ -155,7 +155,7 @@ Singleton {
     }
 
     function _notify(urgency, icon, summary, body) {
-        _notifyProc.command = ["notify-send", "-u", urgency, "-i", icon, summary, body];
+        _notifyProc.command = icon !== "" ? ["notify-send", "-u", urgency, "-i", icon, summary, body] : ["notify-send", "-u", urgency, summary, body];
         _notifyProc.running = true;
     }
 
@@ -212,9 +212,9 @@ Singleton {
                     return;
                 const devName = deviceWatcher.modelData.name || deviceWatcher.modelData.address;
                 if (deviceWatcher.deviceConnected)
-                    root._notify("low", "bluetooth-active", "Connected", devName);
+                    root._notify("low", "", "Connected", devName);
                 else
-                    root._notify("low", "bluetooth-disconnected", "Disconnected", devName);
+                    root._notify("low", "", "Disconnected", devName);
             }
 
             onDeviceBondedChanged: {
