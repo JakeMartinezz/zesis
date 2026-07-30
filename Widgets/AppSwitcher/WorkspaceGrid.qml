@@ -77,16 +77,28 @@ Item {
                 readonly property bool isSelected: AppSwitcherService.selectedWorkspace === tile.wsId
                 readonly property real scaleFactor: root.monW > 0 ? (root.tileW / root.monW) : 1
 
+                readonly property var stackedToplevels: {
+                    var arr = tile.modelData.toplevels.values.slice();
+                    arr.sort((a, b) => {
+                        var af = a.lastIpcObject["floating"] ? 1 : 0;
+                        var bf = b.lastIpcObject["floating"] ? 1 : 0;
+                        return af - bf;
+                    });
+                    return arr;
+                }
+
                 // Hover tracking, updated by the DropArea as a drag moves across the tile
                 property string dropTargetAddr: ""
                 property string dropTargetSide: "" // "l", "r", "t", "b"
 
                 function findDropTarget(dx, dy) {
-                    var tops = tile.modelData.toplevels.values;
+                    var tops = tile.stackedToplevels;
                     var monOX = root.wsMonitor ? root.wsMonitor.x : 0;
                     var monOY = root.wsMonitor ? root.wsMonitor.y : 0;
                     var sf = tile.scaleFactor;
-                    for (var i = 0; i < tops.length; i++) {
+                    // Walk topmost-first so an overlapping floating window wins
+                    // the hit test over a tiled window underneath it.
+                    for (var i = tops.length - 1; i >= 0; i--) {
                         var at = tops[i].lastIpcObject["at"];
                         var sz = tops[i].lastIpcObject["size"];
                         var addr = tops[i].lastIpcObject["address"] ?? "";
@@ -228,7 +240,7 @@ Item {
                     clip: true
 
                     Repeater {
-                        model: tile.modelData.toplevels.values
+                        model: tile.stackedToplevels
 
                         Item {
                             id: winTile
