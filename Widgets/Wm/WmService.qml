@@ -57,4 +57,7 @@ Singleton {
     function refreshWorkspaces() {
         _backend.refreshWorkspaces();
     }
+    function refreshMonitors() {
+        _backend.refreshMonitors();
+    }
 }

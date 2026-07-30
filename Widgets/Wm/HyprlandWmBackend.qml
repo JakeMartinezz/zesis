@@ -68,4 +68,8 @@ QtObject {
     function refreshWorkspaces() {
         Hyprland.refreshWorkspaces();
     }
+
+    function refreshMonitors() {
+        Hyprland.refreshMonitors();
+    }
 }

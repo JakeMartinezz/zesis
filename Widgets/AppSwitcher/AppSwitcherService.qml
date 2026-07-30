@@ -148,6 +148,7 @@ Singleton {
         if (windows.length === 0)
             return;
         WmService.refreshToplevels();
+        WmService.refreshMonitors();
         // Start at 1: skip current window, land on last-used
         selectedIndex = windows.length > 1 ? 1 : 0;
         if (!root.rememberLastMode || !root._everOpened)
