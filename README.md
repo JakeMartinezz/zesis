@@ -4,6 +4,8 @@
 
 A graphical shell with a mind of its own, using [Quickshell](https://quickshell.outfoxxed.me), targeting Wayland compositors.
 
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/npWCSGaju7)
+
 Contributions and adaptations are welcome - the config is written to be portable across user systems rather than hardcoded to a specific machine.
 
 ---
