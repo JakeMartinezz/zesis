@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1781776760,
-        "narHash": "sha256-6wGTtOOZV/DKubE/gAkJ+8u38dgBgnEFRZIneIs/oyk=",
+        "lastModified": 1785369829,
+        "narHash": "sha256-foW1lI8pV153RJdbAAZyPrvjWesBdSYPN4ZS04/Recg=",
         "owner": "zesis-shell",
         "repo": "athroisma",
-        "rev": "a9cd110cf6c70ab029ff7f92d556e35b17aea38c",
+        "rev": "64cf8c84ea922afd605efdc9b83d40fd3afb8dd2",
         "type": "github"
       },
       "original": {

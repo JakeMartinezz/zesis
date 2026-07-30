@@ -185,7 +185,7 @@ Singleton {
                 tokens.push("nozero");
             tokens.push("limit", String(procLimit));
         }
-        proc.write(tokens.join(" ") + "\n");
+        proc.write("now " + tokens.join(" ") + "\n");
     }
 
     Process {
