@@ -79,6 +79,16 @@ Singleton {
         }
     }
 
+    Connections {
+        target: KeychainService
+        function onLockedChanged() {
+            if (!KeychainService.locked && root.keychainAvailable && root.useKeyring) {
+                secretSearchProc.running = false;
+                secretSearchProc.running = true;
+            }
+        }
+    }
+
     // Public API
 
     function scan() {
