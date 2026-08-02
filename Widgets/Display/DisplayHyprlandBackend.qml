@@ -1,8 +1,10 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 // Hyprland-specific display backend.
 // Reads monitor info via `hyprctl monitors -j` and applies settings via `hyprctl eval`.
+// It persists the applied mode to zesis' cache for hyprland to read.
 //
 // Interface (shared with any future compositor backend):
 //   property string monitorName
@@ -33,6 +35,8 @@ QtObject {
     property int physicalHeightMm: 0
     property var availableModes: []
 
+    readonly property string _cachePath: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/zesis/display.lua"
+
     function refresh() {
         refreshProc.running = true;
     }
@@ -41,6 +45,7 @@ QtObject {
         var pos = root.currentWidth > 0 ? "0x0" : "auto";
         applyProc.command = ["hyprctl", "eval", 'hl.monitor({output="' + root.monitorName + '", mode="' + modeStr + '", position="' + pos + '", scale=' + root.currentScale + '})'];
         applyProc.running = true;
+        cacheFile.setText('return { output = "' + root.monitorName + '", mode = "' + modeStr + '" }\n');
     }
 
     property string _monitorJson: ""
@@ -89,5 +94,11 @@ QtObject {
             if (!running)
                 root.refresh();
         }
+    }
+
+    property QtObject _cacheFile: FileView {
+        id: cacheFile
+        path: root._cachePath
+        printErrors: false
     }
 }

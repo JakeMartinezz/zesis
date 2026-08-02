@@ -94,5 +94,7 @@ Singleton {
         _refresh();
     }
 
+    // I'll figure out how to make an automatic detection whenever we add
+    // a new backend. This is GOOD ENOUGH for now.
     property QtObject _backend: DisplayHyprlandBackend {}
 }
