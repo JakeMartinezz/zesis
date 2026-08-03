@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import Quickshell.Io
 import "../../"
 import "../Shared"
+import "../GitUpdate"
 
 Item {
     id: root
@@ -212,6 +213,66 @@ Item {
                         font.pixelSize: UIScale.fontTiny
                         font.italic: true
                         Layout.topMargin: UIScale.spacingXs
+                    }
+                }
+
+                Divider {
+                    visible: GitUpdateService.status !== "notGitRepo"
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: UIScale.spacingSm
+                    visible: GitUpdateService.status !== "notGitRepo"
+
+                    Text {
+                        text: "SOFTWARE"
+                        color: Colors.muted
+                        font.pixelSize: UIScale.fontTiny
+                        font.weight: Font.Bold
+                        font.letterSpacing: 1.5
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: UIScale.spacingSm
+
+                        Text {
+                            Layout.fillWidth: true
+                            text: {
+                                switch (GitUpdateService.status) {
+                                case "checking":
+                                    return "Checking for updates...";
+                                case "updatable":
+                                    return "Update available";
+                                case "blocked":
+                                    return "Update available (needs help - local changes present)";
+                                case "pulling":
+                                    return "Updating...";
+                                case "pullFailed":
+                                    return "Update failed";
+                                case "offline":
+                                    return "Couldn't check (offline?)";
+                                case "noGit":
+                                    return "Git isn't installed, can't check";
+                                case "noOrigin":
+                                    return "No 'origin' remote configured, can't check";
+                                case "upToDate":
+                                    return "Up to date";
+                                default:
+                                    return "Not checked yet";
+                                }
+                            }
+                            color: (GitUpdateService.status === "updatable" || GitUpdateService.status === "blocked") ? "#e0a25c" : Colors.textDim
+                            font.pixelSize: UIScale.fontBody
+                            wrapMode: Text.WordWrap
+                        }
+
+                        ActionButton {
+                            visible: GitUpdateService.status !== "noGit"
+                            label: GitUpdateService.status === "updatable" ? "Update now" : "Check now"
+                            onActivated: GitUpdateService.status === "updatable" ? GitUpdateService.updateNow() : GitUpdateService.checkNow()
+                        }
                     }
                 }
             }

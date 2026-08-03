@@ -83,6 +83,11 @@ Singleton {
             src: "../Record/RecordItem.qml"
         },
         {
+            id: "gitupdate",
+            label: "Update Available",
+            src: "../GitUpdate/GitUpdateItem.qml"
+        },
+        {
             id: "home",
             label: "Home",
             icon: ""
