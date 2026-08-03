@@ -127,6 +127,45 @@ All Hyprland-specific calls (workspace/window data, dispatch commands, monitor q
 
 The Display widget follows the same pattern with `DisplayHyprlandBackend`, and the Keybinds widget has its own `HyprlandBackend` for reading binds.
 
+### IPC dispatch
+
+Compositor keybinds trigger shell actions through Quickshell's `IpcHandler`. Each overlay/panel exposes its own `IpcHandler { target: "..." }` block with named functions that flip the relevant service's state:
+
+| Target | Function(s) | Defined in |
+| --- | --- | --- |
+| `keybinds` | `toggle()` | `shell.qml` |
+| `home` | `toggle()` | `shell.qml` |
+| `settings` | `toggle()` | `shell.qml` |
+| `appswitcher` | `cycle()`, `back()`, `confirm()`, `cancel()` | `shell.qml` |
+| `desktop` | `toggleConfig()` | `shell.qml` |
+| `lockscreen` | `lock()`, `unlock()` | `Widgets/LockScreen/LockScreen.qml` |
+
+Since Quickshell instances are identified by config path, a dev instance launched with `qs -p ~/Documents/zesis` won't receive `qs ipc call` from a plain install pointed at `~/.config/quickshell` (or vice versa), the compositor config resolves this by trying the dev path first and falling back. Example from this author's own [Hyprland config](https://github.com/SquirrelModeller/squirrel-nixos/blob/main/users/squirrel/dotfiles/.config/hypr/hyprland.lua):
+
+```lua
+-- Hyprland
+local ZESIS_DEV = os.getenv("HOME") .. "/Documents/zesis"
+local function zesis_ipc(cmd)
+    return string.format("sh -c 'qs -p %s ipc call %s 2>/dev/null || qs ipc call %s'", ZESIS_DEV, cmd, cmd)
+end
+hl.bind("ALT + Tab", hl.dsp.exec_cmd(zesis_ipc("appswitcher cycle")), { repeating = true })
+```
+
+### Display
+
+Most compositors only apply monitor config at their own startup, so a backend's job is more than read/apply, the picked mode also has to survive a compositor restart.
+
+The compositor config is expected to read a cache file back at its own startup and fall back to a hardcoded default if it's missing. `DisplayHyprlandBackend` is the only backend implemented so far.
+
+```lua
+local _d_ok, _d = pcall(dofile, os.getenv("HOME") .. "/.cache/zesis/display.lua")
+local d = _d_ok and _d or {}
+hl.monitor({
+    output   = d.output or "DP-1",
+    mode     = d.mode or "preferred",
+})
+```
+
 ## Development
 
 A Nix flake is included with a devshell that provides Quickshell with the correct `QML_IMPORT_PATH`:
