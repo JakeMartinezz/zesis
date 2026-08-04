@@ -1,58 +1,110 @@
-# zesis
+<h1 align="center">zesis</h1>
 
-*ζέσις - Greek for "boiling", "seething": the act of bubbling up with heat or fervor*
+<p align="center"><em>ζέσις - Greek for "boiling", "seething": the act of bubbling up with heat or fervor</em></p>
 
-A graphical shell with a mind of its own, using [Quickshell](https://quickshell.outfoxxed.me), targeting Wayland compositors.
+<div align="center">
 
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.gg/npWCSGaju7)
+[![Discord](https://img.shields.io/badge/discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=ffffff&labelColor=101418)](https://discord.gg/npWCSGaju7)
 
-Contributions and adaptations are welcome - the config is written to be portable across user systems rather than hardcoded to a specific machine.
+</div>
+
+<!-- TODO: drop a screenshot/short video -->
+
+zesis is a desktop shell for Wayland. A bar plus a full suite of panels and widgets all written in QML on top of [Quickshell](https://quickshell.outfoxxed.me) and themed live via [Matugen](https://github.com/InioX/matugen).
+
+It's built for **Hyprland**, that's the only compositor backend implemented so far, on any Wayland compositor that supports `wlr-layer-shell` in principle. The config is written to be portable across machines.
+
+> [!NOTE]
+> Running into a bug, missing something you'd like to see, or just have a question? Please [open an issue](https://github.com/zesis-shell/zesis/issues) - you are very welcome to. Alternatively, reach out on [Discord](https://discord.gg/npWCSGaju7) or at zesis-shell@protonmail.com.
+
+## What's in it
+
+- **Bar** - workspace indicator, system tray, clock, music, and more, with automatic collision-based collapsing
+- **App switcher** - Alt-Tab style, mouse and keyboard aware
+- **Lock screen** - PAM-backed, with a clock and user greeting
+- **Home panel** - a settings-app-style shell hub (Calendar, Network, System Monitor, Community, NixOS purity checker, notification history)
+- **Notifications**, **keybind cheatsheet**, **display picker**, **network (SMB) browser**, **weather**, **Bluetooth + AirPods**, **volume/mic/brightness controls**, **wallpaper picker**
+- **Community globe** - a live 2D/3D globe widget for opt-in location sharing
+- **Desktop widgets** - toggle floating widgets directly onto your desktop, with drag-to-position, resize, and per-widget background styling
+- **Theming** - hot-reloadable color palette via a `Colors` singleton, generated from your wallpaper by Matugen
+
+## Components
+
+- Widgets: [Quickshell](https://quickshell.outfoxxed.me)
+- Compositor: [Hyprland](https://hyprland.org) (only backend currently implemented)
+- Theming: [Matugen](https://github.com/InioX/matugen)
 
 ---
 
 ## Requirements
 
 ### Required
+
+> [!TIP]
+> On Arch, the fastest path is:
+> ```sh
+> sudo pacman -S quickshell matugen nerd-fonts.symbols-only
+> ```
+
 - [Quickshell](https://quickshell.outfoxxed.me) (Qt 6)
 - [Matugen](https://github.com/InioX/matugen)
-- A Wayland compositor that implements `wlr-layer-shell`
-- A [Nerd Font](https://www.nerdfonts.com/) or the `nerd-fonts.symbols-only` package for icons
-- One wallpaper-setting backend: [awww](https://codeberg.org/LGFae/awww) (default), [swww](https://codeberg.org/LGFae/awww), `hyprpaper`, `feh`, or a custom command, configurable in the Wallpaper settings panel
+- A Wayland compositor that implements `wlr-layer-shell`, in practice **Hyprland**, since it's the only compositor backend written so far.
+- A [Nerd Font](https://www.nerdfonts.com/) or the `nerd-fonts.symbols-only` package for icons.
+- One wallpaper-setting backend: [awww](https://codeberg.org/LGFae/awww) (default), [swww](https://codeberg.org/LGFae/awww), `hyprpaper`, `feh`, or a custom command, configurable in the Wallpaper settings panel.
 
 ### Optional
-- Hyprland - workspace/window management, keybind cheatsheet, display picker (only backend currently implemented)
-- `ext-session-lock` compositor support + PAM configuration - lock screen (see below)
-- `avahi` + `smbclient` + `keyutils` - Network widget
-- [athroisma](https://github.com/zesis-shell/athroisma) - System Monitor widget (see below)
-- `python3` + [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) - Calendar widget (parses `.ics` files and expands recurring events).
-- magick (wallpaper preview)
-- awk (for credential search)
-- QtQuick3D + QtDeclarative (Qt 6.6+) and [Congeries](https://github.com/zesis-shell/congeries) - 3D geodesic rod globe (Home panel, dev-mode). Without these the panel falls back to a "3D globe unavailable" message, the rest of zesis is unaffected.
+
+Nothing below is required to get a working bar, each of these lights up one extra widget and degrades with an on-screen message if missing.
+
+| Needs | Unlocks |
+| --- | --- |
+| `ext-session-lock` support + PAM config | Lock screen ([see below](#lock-screen)) |
+| `avahi` + `smbclient` + `keyutils` | Network widget |
+| [athroisma](https://github.com/zesis-shell/athroisma) | System Monitor widget ([see below](#system-monitor-athroisma)) |
+| `python3` + [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) | Calendar widget (`.ics` files, including recurring events) |
+| `magick` | Wallpaper thumbnail previews |
+| `awk` | Credential search (Network widget) |
+| QtQuick3D + QtDeclarative (Qt 6.6+) + [Congeries](https://github.com/zesis-shell/congeries) | 3D geodesic rod globe (Home panel) ([see below](#3d-globe-congeries)) |
 
 ## Setup
 
-Clone the repo and point Quickshell at it:
+> [!WARNING]
+> This clones straight into `~/.config/quickshell`. If you already have something there, back it up first.
 
 ```sh
 git clone https://github.com/zesis-shell/zesis ~/.config/quickshell
 quickshell
 ```
 
-### Lock screen (NixOS)
+That starts zesis in the foreground, you should see the bar appear on your primary monitor immediately. To launch it automatically on login, add it to your Hyprland config:
 
-Add PAM support for the lock screen in your NixOS config:
+```conf
+exec-once = quickshell
+```
+
+### Keybinds
+
+zesis doesn't ship any default keybinds. App switcher, home panel, keybind cheatsheet, lock screen, and everything else are triggered by IPC calls (see [IPC dispatch](#ipc-dispatch)) that you wire up yourself in your compositor config.
+
+For a complete working example, see this author's own [Hyprland config](https://github.com/SquirrelModeller/squirrel-nixos/blob/main/users/squirrel/dotfiles/.config/hypr/hyprland.lua).
+
+The keybind cheatsheet widget reads binds straight from `hyprctl binds -j`, so any bind with a description formatted as `"Category: Label"` shows up there automatically.
+
+### Lock screen
+
+Add PAM support for the lock screen.
+
+**NixOS:**
 
 ```nix
 security.pam.services.quickshell = {};
 ```
 
-### Other distros
-
-Create `/etc/pam.d/quickshell` with contents appropriate for your system (typically mirroring `login` or `swaylock`).
+**Other distros:** create `/etc/pam.d/quickshell` with contents appropriate for your system (typically mirroring `login` or `swaylock`).
 
 ### Compiling shaders
 
-`ShaderEffect`-based widgets (currently the 2D globe) load a pre-baked `.qsb` binary, not the `.frag` source directly - `*.qsb` files are gitignored build artifacts, so they need to be compiled locally before those widgets will render. If a `.qsb` is missing or invalid, the affected widget shows an on-screen warning.
+`ShaderEffect`-based widgets (currently the 2D globe) load a pre-baked `.qsb` binary, not the `.frag` source directly. `*.qsb` files are gitignored build artifacts, so they need to be compiled locally before those widgets will render. If a `.qsb` is missing or invalid, the affected widget just shows an on-screen warning.
 
 With Nix:
 
@@ -67,17 +119,17 @@ Without Nix, `qsb` comes from Qt's `qtshadertools` module, on most distros this 
 sudo pacman -S qt6-shadertools
 ```
 
-Then run `qsb` directly for each `.frag` file:
+Then compile every `.frag` file under `Widgets/` to a matching `.qsb`:
 
 ```sh
-qsb --qt6 -o Widgets/Globe2D/GlobeShader/globe.qsb Widgets/Globe2D/GlobeShader/globe.frag
+find Widgets -name '*.frag' -exec sh -c 'qsb --qt6 -o "${1%.frag}.qsb" "$1"' _ {} \;
 ```
 
 ### System monitor (athroisma)
 
 The System Monitor widget shells out to a bare `athroisma` command, so it needs to be on `PATH`, it's otherwise entirely optional, the rest of zesis is unaffected if it's missing.
 
-With Nix, `flake.nix` already declares `athroisma` as a flake input and puts it on the devshell's `PATH`, but again that only covers `nix develop`.
+With Nix, `flake.nix` already declares `athroisma` as a flake input and puts it on the devshell's `PATH`, but that only covers `nix develop`.
 
 Arch users can install it from the AUR instead: [`athroisma-git`](https://aur.archlinux.org/packages/athroisma-git).
 
@@ -94,7 +146,7 @@ Make sure `~/.local/bin` (or wherever you installed it) is on `PATH` for whateve
 
 ### 3D globe (Congeries)
 
-The Home panel's 3D geodesic rod globe, needs [Congeries](https://github.com/zesis-shell/congeries), a native QtQuick3D plugin from a sibling repo, it's entirely optional. If it's missing that panel just shows a "3D globe unavailable" message instead of failing.
+The Home panel's 3D geodesic rod globe needs [Congeries](https://github.com/zesis-shell/congeries), a native QtQuick3D plugin from a sibling repo. It's entirely optional, if it's missing, that panel just shows a "3D globe unavailable" message instead of failing.
 
 With Nix, `flake.nix` already declares `congeries` as a flake input and wires it into the devshell's `QML_IMPORT_PATH`/`QT_PLUGIN_PATH`, but that only covers `nix develop`, not however you actually run zesis day to day. Make Congeries available at the same scope zesis itself runs at, the same way you already do for Quickshell: system-wide via a NixOS module, per-user via hjem/home-manager, or wired into whatever systemd service launches zesis.
 
@@ -110,11 +162,13 @@ cmake --install build --prefix ~/.local
 export QML_IMPORT_PATH="$HOME/.local/lib/qt-6/qml:$QML_IMPORT_PATH"
 ```
 
-Dependencies: Qt 6.6+ (`Core`, `Qml`, `Quick3D`) and `libpipewire-0.3`, see Congeries' own README for details.
+Dependencies: Qt 6.6+ (`Core`, `Qml`, `Quick3D`) and `libpipewire-0.3`. See Congeries' own README for details.
 
 ---
 
 ## Architecture
+
+*The rest of this section is for contributors and the curious, skip it if you just want zesis running.*
 
 ### Theming
 Colors live in `colors.json` and are exposed via the `Colors` singleton (`Colors.qml`). Editing `colors.json` hot-reloads the theme at runtime without restarting Quickshell. See the token list in `Colors.qml` for available palette properties.
@@ -194,7 +248,7 @@ Enable `qt-qml.qmlls.useQmlImportPathEnvVar` in your workspace settings so `qmll
 
 ## Contributing
 
-PRs and issues are welcome - especially for portability improvements.
+PRs and issues are welcome - especially for portability improvements (new compositor backends, distro packaging, etc).
 
 ## License
 
