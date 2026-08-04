@@ -92,6 +92,14 @@ Item {
 
     property bool dotsFollowRodHeight: true
 
+    // When false rods keep flat, rigid piston tops, and neighbors at different
+    // heights leave a visible crack between them. When true each rod ALSO
+    // flares its own top ring outward tangentially, by an amount
+    // proportional to its own height. In short, this does exactly what the
+    // variable says. Closes gaps.
+    property bool closeHeightGaps: true
+    property real flareGain: 1.0
+
     property bool starsEnabled: true
     property int starCount: 12000
     property real starFieldRadius: 6000.0
@@ -868,6 +876,8 @@ Item {
                 property real rodCount: root.rodCount
                 property real correctionTexWidth: root.correctionTexWidth
                 property vector3d localUpAxis: rodGeom.upAxis
+                property real closeHeightGaps: root.closeHeightGaps ? 1.0 : 0.0
+                property real flareGain: root.flareGain
                 property vector3d camPosition: root.camPosition
                 property real effectMode: root.effectMode
                 property vector3d ripple0Dir: root.rippleDirAt(0)

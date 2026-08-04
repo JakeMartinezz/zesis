@@ -38,6 +38,7 @@ Item {
         points: root.points
         glowEnabled: Globe3DService.glowEnabled
         dotsFollowRodHeight: Globe3DService.dotsFollowRodHeight
+        closeHeightGaps: Globe3DService.closeHeightGaps
 
         // The shatter->assemble intro plays once per quickshell process,
         // then every later open this session starts already "loaded".
@@ -346,6 +347,33 @@ Item {
                         ToggleSwitch {
                             checked: Globe3DService.dotsFollowRodHeight
                             onToggled: Globe3DService.writeDotsFollowRodHeight(!Globe3DService.dotsFollowRodHeight)
+                        }
+                    }
+
+                    RowLayout {
+                        id: closeGapsRow
+                        Layout.fillWidth: true
+
+                        HoverHandler {
+                            id: closeGapsHover
+                            onHoveredChanged: {
+                                if (closeGapsHover.hovered)
+                                    hintTooltip.showFor(closeGapsRow, "Raised rods flare their tops outward so tall spikes visually cover the crack against shorter neighbors");
+                                else
+                                    hintTooltip.hideFor(closeGapsRow);
+                            }
+                        }
+
+                        Text {
+                            text: "Close height gaps"
+                            color: Colors.text
+                            font.pixelSize: UIScale.fontBody
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+                        ToggleSwitch {
+                            checked: Globe3DService.closeHeightGaps
+                            onToggled: Globe3DService.writeCloseHeightGaps(!Globe3DService.closeHeightGaps)
                         }
                     }
 

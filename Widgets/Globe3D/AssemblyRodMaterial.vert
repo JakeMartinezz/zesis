@@ -182,10 +182,18 @@ void MAIN()
     // wherever a NEW community dot appears (AssemblyGlobeView._rebuildDots),
     // and that feedback shouldn't depend on which effect the user happens to
     // have selected. Audio-reactive is ADDITIVE on top too.
+    float ringFlag = UV0.x; // 0 = base ring (stays put), 1 = top ring (extrudes), still baked per-vertex
     float heightFrac = rodHeightFrac(dir, time, effectMode, waveSpeed, waveNumber, ripple0Dir, ripple0Time, ripple1Dir, ripple1Time, ripple2Dir, ripple2Time, ripple3Dir, ripple3Time, ripple4Dir, ripple4Time, ripple5Dir, ripple5Time, ripple6Dir, ripple6Time, ripple7Dir, ripple7Time, audioIntensity, audioBandCount, audioLevelsMap, heightSteps, waveAmplitude, heightExaggeration, assembleT);
 
-    float ringFlag = UV0.x; // 0 = base ring (stays put), 1 = top ring (extrudes), still baked per-vertex
-    VERTEX = VERTEX + normalize(localUpAxis) * (radius * heightFrac * ringFlag);
+    vec3 up = normalize(localUpAxis);
+    VERTEX = VERTEX + up * (radius * heightFrac * ringFlag);
+
+    if (closeHeightGaps > 0.5) {
+        vec3 alongUp = dot(VERTEX, up) * up;
+        vec3 tangential = VERTEX - alongUp;
+        float flare = heightFrac * flareGain * ringFlag;
+        VERTEX = alongUp + tangential * (1.0 + flare);
+    }
 
     vColor = vec4(1.0);
 }

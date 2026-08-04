@@ -242,6 +242,26 @@ Item {
                 value: engine.heightExaggeration
                 onMoved: engine.heightExaggeration = value
             }
+            CheckBox {
+                text: "close gaps"
+                checked: engine.closeHeightGaps
+                onToggled: engine.closeHeightGaps = checked
+            }
+            Text {
+                visible: engine.closeHeightGaps
+                color: "white"
+                font.pixelSize: 14
+                anchors.verticalCenter: parent.verticalCenter
+                text: "flare " + engine.flareGain.toFixed(2)
+            }
+            Slider {
+                visible: engine.closeHeightGaps
+                width: 120
+                from: 0.0
+                to: 5.0
+                value: engine.flareGain
+                onMoved: engine.flareGain = value
+            }
         }
 
         Row {

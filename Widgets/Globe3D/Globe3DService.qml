@@ -11,6 +11,8 @@ import Quickshell.Io
 // - use3DGlobe: whether the Community panel shows the 3D globe instead of
 //   the 2D shader globe. Defaults false (2D), the 3D globe needs the
 //   optional Congeries plugin.
+// - closeHeightGaps: whether raised rods flare their top ring outward to
+//   visually cover the crack against shorter neighbors. Defaults true.
 Singleton {
     id: root
 
@@ -26,6 +28,7 @@ Singleton {
     property bool settingsCollapsed: settingsData.settingsCollapsed
     property bool glowEnabled: settingsData.glowEnabled
     property bool dotsFollowRodHeight: settingsData.dotsFollowRodHeight
+    property bool closeHeightGaps: settingsData.closeHeightGaps
 
     function _write(overrides) {
         var data = {
@@ -33,7 +36,8 @@ Singleton {
             use3DGlobe: root.use3DGlobe,
             settingsCollapsed: root.settingsCollapsed,
             glowEnabled: root.glowEnabled,
-            dotsFollowRodHeight: root.dotsFollowRodHeight
+            dotsFollowRodHeight: root.dotsFollowRodHeight,
+            closeHeightGaps: root.closeHeightGaps
         };
         for (var k in overrides)
             data[k] = overrides[k];
@@ -71,6 +75,12 @@ Singleton {
         });
     }
 
+    function writeCloseHeightGaps(val) {
+        root._write({
+            closeHeightGaps: val
+        });
+    }
+
     JsonAdapter {
         id: settingsData
         property int rodFrequency: 64
@@ -79,6 +89,7 @@ Singleton {
         property bool settingsCollapsed: true
         property bool glowEnabled: true
         property bool dotsFollowRodHeight: true
+        property bool closeHeightGaps: true
     }
 
     FileView {
