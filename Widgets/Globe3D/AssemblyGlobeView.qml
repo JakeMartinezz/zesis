@@ -84,6 +84,29 @@ Item {
     property real dotSize: 10.0
     property real dotIntensity: 3.0
     property color dotColor: "#ff9640"
+
+    property color oceanColor: "#e0d4be"
+
+    // The land elevation gradient: an arbitrary-length, ascending-by-
+    // elevation list of {elevation, color}. A land rod gets the color of
+    // the first entry whose `elevation` exceeds its own normalized
+    // elevation (0..1), or the LAST entry's color if none does, see
+    // AssemblyLayout::applyAssemblyData's doc comment (congeries repo) for
+    // the exact rule.
+    property var landLevels: [
+        {
+            elevation: 0.06,
+            color: "#e8c99a"
+        },
+        {
+            elevation: 0.26,
+            color: "#d9a468"
+        },
+        {
+            elevation: 1.0,
+            color: "#8b6240"
+        }
+    ]
     // Just above the rods' resting tops (1 + _baseHeightFrac) so no z-fight.
     readonly property real dotAltitude: 1.02
 
@@ -755,7 +778,7 @@ Item {
         var timerStart = Date.now();
         // Shares the 2D shader globe's elevation/watermask textures, no
         // duplicating them (see Widgets/Globe2D/GlobeShader/assets)
-        root.rodCount = assemblyLayout.applyAssemblyData(scatter, correctionTexData, root.frequency, root.meshRadius, root.spawnMinRadius, root.spawnMaxRadius, root.correctionTexWidth, Qt.resolvedUrl("../Globe2D/GlobeShader/assets/earth_elevation.png"), Qt.resolvedUrl("../Globe2D/GlobeShader/assets/earth_watermask.png"), root.useImageCache);
+        root.rodCount = assemblyLayout.applyAssemblyData(scatter, correctionTexData, root.frequency, root.meshRadius, root.spawnMinRadius, root.spawnMaxRadius, root.correctionTexWidth, Qt.resolvedUrl("../Globe2D/GlobeShader/assets/earth_elevation.png"), Qt.resolvedUrl("../Globe2D/GlobeShader/assets/earth_watermask.png"), root.oceanColor, root.landLevels, root.useImageCache);
         console.log("buildTargets: TOTAL " + (Date.now() - timerStart) + "ms");
         // Setting root.assembleT (not scatter.t directly) ON PURPOSE,
         // scatter.t is a declarative binding to it, assigning scatter.t

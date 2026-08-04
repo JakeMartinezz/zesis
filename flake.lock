@@ -27,11 +27,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1785246343,
-        "narHash": "sha256-03tvxWSUZ82LEZ3tDSrBHPxlNFGYlGHRrGeKXTq0340=",
+        "lastModified": 1785866117,
+        "narHash": "sha256-TX6zHZm40GMiMYqExjPWL1vGVB75++YBkwBeqQuIEUM=",
         "owner": "zesis-shell",
         "repo": "congeries",
-        "rev": "afdcfe3254fb2bdb8b86c21c52514f546234e656",
+        "rev": "f49e56b5ac632f1af7cf6134596eae7c981b1d46",
         "type": "github"
       },
       "original": {
