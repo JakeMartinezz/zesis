@@ -39,11 +39,21 @@ Item {
     // missing Congeries plugin to just render nothing.
     property bool showErrorMessage: true
 
+    // Gate loading AssemblyGlobeView.qml until Globe3DService confirms the
+    // star catalog data file it statically imports exists on disk.
     Loader {
         id: loader
         anchors.fill: parent
-        active: root.panelActive
+        active: root.panelActive && Globe3DService.starfieldReady
         source: root.panelSource
+    }
+
+    Text {
+        anchors.centerIn: parent
+        visible: root.panelActive && !Globe3DService.starfieldReady
+        text: "Preparing star catalog..."
+        color: Colors.textDim
+        font.pixelSize: UIScale.fontBody
     }
 
     Binding {

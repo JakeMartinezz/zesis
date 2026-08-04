@@ -23,6 +23,24 @@ Singleton {
     // panel being closed/reopened in between.
     property bool hasAssembledThisSession: false
 
+    // AssemblyGlobeView.qml statically `import`s the star catalog data
+    // module, which is gitignored and generated on demand (see
+    // scripts/ensure_starfield.sh). Globe3DGate.qml gates its Loader on this.
+    property bool starfieldReady: false
+
+    Process {
+        id: starfieldProc
+        command: [Quickshell.shellDir + "/scripts/ensure_starfield.sh"]
+        stderr: SplitParser {
+            onRead: line => console.log("[Globe3DService] ensure_starfield:", line)
+        }
+        onExited: (code, status) => { // qmllint disable signal-handler-parameters
+            if (code !== 0)
+                console.log("[Globe3DService] ensure_starfield failed with code", code, "- 3D globe will show its missing-dependency message");
+            root.starfieldReady = true;
+        }
+    }
+
     property int rodFrequency: settingsData.rodFrequency
     property bool use3DGlobe: settingsData.use3DGlobe
     property bool settingsCollapsed: settingsData.settingsCollapsed
@@ -102,7 +120,10 @@ Singleton {
         onFileChanged: reload()
     }
 
-    Component.onCompleted: settingsFile.text()
+    Component.onCompleted: {
+        settingsFile.text();
+        starfieldProc.running = true;
+    }
 
     Process {
         id: writeProc

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick3D
 import QtQuick3D.Helpers
 import Congeries
+import "RealStarField.js" as RealStars
 
 // The 3D globe engine: instanced rod prisms (RodGeometry + ScatterInstancing
 // + AssemblyLayout + FloatTextureData) that can float apart and reassemble on
@@ -129,21 +130,22 @@ Item {
     property real starSize: 30.0
     property real starIntensity: 0.75
 
+    // RealStarField.js is HYG catalog data (~9000 something stars, mag<=6.5,
+    // brightest-first) baked by scripts/build_starfield.py. unit-sphere
+    // positions + per-star color (B-V -> blackbody RGB) + a magnitude-derived
+    // size/intensity curve. starCount acts as an N-brightest cutoff into
+    // that sorted list.
     function _buildStarField() {
-        var n = root.starCount;
+        var n = Math.min(root.starCount, RealStars.STAR_COUNT);
         var r = root.starFieldRadius;
-        var flat = new Array(n * 3);
-        for (var i = 0; i < n; i++) {
-            // Uniform point on a sphere. Z picked uniformly in [-1,1], angle
-            // uniformly around it
-            var z = Math.random() * 2 - 1;
-            var theta = Math.random() * Math.PI * 2;
-            var s = Math.sqrt(1 - z * z);
-            flat[i * 3] = s * Math.cos(theta) * r;
-            flat[i * 3 + 1] = z * r;
-            flat[i * 3 + 2] = s * Math.sin(theta) * r;
-        }
-        starScatter.positions = flat;
+        var srcPos = RealStars.POSITIONS;
+        var positions = new Array(n * 3);
+        for (var i = 0; i < n * 3; i++)
+            positions[i] = srcPos[i] * r;
+
+        starScatter.positions = positions;
+        starScatter.colors = RealStars.COLORS.slice(0, n * 4);
+        starScatter.customData = RealStars.CUSTOM_DATA.slice(0, n * 4);
     }
     onStarCountChanged: root._buildStarField()
     onStarFieldRadiusChanged: root._buildStarField()
@@ -1034,11 +1036,8 @@ Item {
                 property vector3d camUp: root.camUp
                 property real dotSize: root.starSize
                 property real dotIntensity: root.starIntensity
-                property color dotColor: "#ffffff"
-                property real dotFade: 1.0
-                property real colorVariety: 1.0
                 vertexShader: "StarMaterial.vert"
-                fragmentShader: "DotMaterial.frag"
+                fragmentShader: "StarMaterial.frag"
             }
         }
     }
