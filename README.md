@@ -68,6 +68,9 @@ Nothing below is required to get a working bar, each of these lights up one extr
 
 ## Setup
 
+> [!TIP]
+> On NixOS, skip straight to the [NixOS module](#nixos-module) below, it handles the clone, shader compilation, and the athroisma/congeries wiring in one `services.zesis.enable = true;`.
+
 > [!WARNING]
 > This clones straight into `~/.config/quickshell`. If you already have something there, back it up first.
 
@@ -81,6 +84,44 @@ That starts zesis in the foreground, you should see the bar appear on your prima
 ```conf
 exec-once = quickshell
 ```
+
+### NixOS module
+
+The flake exposes `nixosModules.default`, which builds zesis (source + compiled shaders) and deploys it as a *named* Quickshell config (`zesis`), wired into a `systemd --user` service. This covers the whole optional-dependency nonsense above automatically. Shaders are compiled at build time, `athroisma` is put on the service's `PATH`, and `congeries` is put on its `QML_IMPORT_PATH`.
+
+```nix
+{
+  inputs.zesis.url = "github:zesis-shell/zesis";
+
+  outputs = {nixpkgs, zesis, ...}: {
+    nixosConfigurations.mymachine = nixpkgs.lib.nixosSystem {
+      modules = [
+        zesis.nixosModules.default
+        {services.zesis.enable = true;}
+      ];
+    };
+  };
+}
+```
+
+Zesis puts the built config at `/etc/xdg/quickshell/zesis`, and starts a `zesis.service` wanted by `graphical-session.target`.
+
+Both optional deps can be turned off or repointed per-widget:
+
+```nix
+services.zesis = {
+  enable = true;
+  athroisma.enable = false; # or: athroisma.package = ...;
+  congeries.enable = false; # or: congeries.package = ...;
+};
+```
+
+> [!IMPORTANT]
+> Because this is a *named* config, any manual `quickshell`/`qs` invocation, IPC calls in your compositor keybinds, `hypridle.conf`, debugging, etc., needs `-c zesis` (or `QS_CONFIG_NAME=zesis`) or it won't find this instance. See [IPC dispatch](#ipc-dispatch) below.
+
+The module doesn't set up the [lock screen's PAM service](#lock-screen), that's still a separate step.
+
+If you'd rather launch zesis yourself, e.g. with `exec-once = quickshell -c zesis` in your compositor config, instead of the `systemd --user` service, set `services.zesis.systemdService.enable = false;`. The config still lands at `/etc/xdg/quickshell/zesis` either way, only the service is skipped. Note this also skips the service's automatic `athroisma` `PATH` and `congeries` `QML_IMPORT_PATH` wiring, so an `exec-once` launch needs those set up wherever you invoke `quickshell` from (your compositor config's own environment, a wrapper script, etc.) if you use those optional deps.
 
 ### Keybinds
 
@@ -106,7 +147,9 @@ security.pam.services.quickshell = {};
 
 `ShaderEffect`-based widgets (currently the 2D globe) load a pre-baked `.qsb` binary, not the `.frag` source directly. `*.qsb` files are gitignored build artifacts, so they need to be compiled locally before those widgets will render. If a `.qsb` is missing or invalid, the affected widget just shows an on-screen warning.
 
-With Nix:
+On NixOS via the [NixOS module](#nixos-module), shaders are already compiled as part of `services.zesis.configPackage`, nothing to do here.
+
+With Nix otherwise:
 
 ```sh
 nix run .#compile-shaders
@@ -129,7 +172,9 @@ find Widgets -name '*.frag' -exec sh -c 'qsb --qt6 -o "${1%.frag}.qsb" "$1"' _ {
 
 The System Monitor widget shells out to a bare `athroisma` command, so it needs to be on `PATH`, it's otherwise entirely optional, the rest of zesis is unaffected if it's missing.
 
-With Nix, `flake.nix` already declares `athroisma` as a flake input and puts it on the devshell's `PATH`, but that only covers `nix develop`.
+On NixOS via the [NixOS module](#nixos-module), `services.zesis.athroisma.enable` is on by default and already puts it on the service's `PATH`.
+
+With Nix otherwise, `flake.nix` declares `athroisma` as a flake input and puts it on the devshell's `PATH`.
 
 Arch users can install it from the AUR instead: [`athroisma-git`](https://aur.archlinux.org/packages/athroisma-git).
 
@@ -148,7 +193,9 @@ Make sure `~/.local/bin` (or wherever you installed it) is on `PATH` for whateve
 
 The Home panel's 3D geodesic rod globe needs [Congeries](https://github.com/zesis-shell/congeries), a native QtQuick3D plugin from a sibling repo. It's entirely optional, if it's missing, that panel just shows a "3D globe unavailable" message instead of failing.
 
-With Nix, `flake.nix` already declares `congeries` as a flake input and wires it into the devshell's `QML_IMPORT_PATH`/`QT_PLUGIN_PATH`, but that only covers `nix develop`, not however you actually run zesis day to day. Make Congeries available at the same scope zesis itself runs at, the same way you already do for Quickshell: system-wide via a NixOS module, per-user via hjem/home-manager, or wired into whatever systemd service launches zesis.
+On NixOS via the [NixOS module](#nixos-module), `services.zesis.congeries.enable` is on by default and already wires it into the service's `QML_IMPORT_PATH`.
+
+With Nix otherwise, `flake.nix` declares `congeries` as a flake input and wires it into the devshell's `QML_IMPORT_PATH`/`QT_PLUGIN_PATH`.
 
 Without Nix, build it manually with CMake and add the result to `QML_IMPORT_PATH`:
 

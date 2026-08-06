@@ -11,6 +11,7 @@
     };
   };
   outputs = {
+    self,
     nixpkgs,
     athroisma,
     congeries,
@@ -19,62 +20,44 @@
     systems = ["x86_64-linux" "aarch64-linux"];
     forEachSystem = nixpkgs.lib.genAttrs systems;
     pkgsFor = system: import nixpkgs {inherit system;};
-
-    shaderNames = ["globe" "gear"];
+    shadersFor = system: (pkgsFor system).callPackage ./nix/shaders.nix {src = ./.;};
   in {
-    packages = forEachSystem (system: {
-      athroisma = athroisma.packages.${system}.default;
-      congeries = congeries.packages.${system}.default;
-    });
-
-    apps = forEachSystem (system: let
+    packages = forEachSystem (system: let
       pkgs = pkgsFor system;
     in {
+      athroisma = athroisma.packages.${system}.default;
+      congeries = congeries.packages.${system}.default;
+
+      shaders = (shadersFor system).package;
+
+      # The full deployable config. Source tree + compiled shaders merged,
+      # laid out for a Quickshell named config (qs -c zesis), i.e. this
+      # is what belongs at <xdg config dir>/quickshell/zesis/.
+      config =
+        pkgs.runCommand "zesis-config" {
+          nativeBuildInputs = [pkgs.lndir];
+        } ''
+          mkdir -p "$out"
+          lndir -silent ${./.} "$out"
+          lndir -silent ${self.packages.${system}.shaders} "$out"
+        '';
+    });
+
+    apps = forEachSystem (system: {
       compile-shaders = {
         type = "app";
-        program = toString (pkgs.writeShellScript "compile-shaders" ''
-          set -euo pipefail
-          for f in $(find . -name '_*' -prune -o -name '*.frag' -not -path '*/_*' -print | grep -E '/(${pkgs.lib.concatStringsSep "|" shaderNames})\.frag$'); do
-            echo "compiling $f"
-            ${pkgs.qt6.qtshadertools}/bin/qsb --qt6 -o "''${f%.frag}.qsb" "$f"
-          done
-        '');
+        program = toString (shadersFor system).compile;
       };
     });
+
+    nixosModules.default = import ./nix/module.nix {inherit self athroisma congeries;};
 
     devShells = forEachSystem (system: let
       pkgs = pkgsFor system;
     in {
-      default = pkgs.mkShell {
-        packages = with pkgs; [
-          quickshell
-          clang-tools
-          imagemagick
-          glsl_analyzer
-          qt6.qtshadertools
-          athroisma.packages.${system}.default
-          congeries.packages.${system}.default
-          (python3.withPackages (ps:
-            with ps; [
-              icalendar
-              recurring-ical-events
-            ]))
-        ];
-
-        QML_IMPORT_PATH = pkgs.lib.concatStringsSep ":" [
-          "${pkgs.qt6.qtdeclarative}/lib/qt-6/qml"
-          "${pkgs.qt6.qtquick3d}/lib/qt-6/qml"
-          "${pkgs.quickshell}/lib/qt-6/qml"
-          "${congeries.packages.${system}.default}/lib/qt-6/qml"
-        ];
-
-        QT_PLUGIN_PATH = pkgs.lib.concatStringsSep ":" [
-          "${pkgs.qt6.qtquick3d}/lib/qt-6/plugins"
-          "${pkgs.qt6.qtdeclarative}/lib/qt-6/plugins"
-          "${pkgs.qt6.qtbase}/lib/qt-6/plugins"
-        ];
-
-        ZESIS_DEV = "1";
+      default = pkgs.callPackage ./nix/shell.nix {
+        athroisma = athroisma.packages.${system}.default;
+        congeries = congeries.packages.${system}.default;
       };
     });
   };
