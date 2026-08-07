@@ -51,6 +51,8 @@ It's built for **Hyprland**, that's the only compositor backend implemented so f
 - A Wayland compositor that implements `wlr-layer-shell`, in practice **Hyprland**, since it's the only compositor backend written so far.
 - A [Nerd Font](https://www.nerdfonts.com/) or the `nerd-fonts.symbols-only` package for icons.
 - One wallpaper-setting backend: [awww](https://codeberg.org/LGFae/awww) (default), [swww](https://codeberg.org/LGFae/awww), `hyprpaper`, `feh`, or a custom command, configurable in the Wallpaper settings panel.
+- `bash`, `curl`, `python3` - widgets shell out to these directly for core features: theming, weather, AirPods, the 3D globe's starfield generation.
+- A handful of standard desktop utilities most Linux systems already have: `bluez` (`bluetoothctl`, for Bluetooth/AirPods), `libnotify` (`notify-send`), `brightnessctl`, `slurp`, `xdg-utils` (`xdg-open`), `procps` (`pkill`), `gawk`, `hostname`. On NixOS, the [NixOS module](#nixos-module)'s `services.zesis.batteriesIncluded.enable = true;` puts all of these on the service's `PATH` for you, if you don't already have them.
 
 ### Optional
 
@@ -61,9 +63,8 @@ Nothing below is required to get a working bar, each of these lights up one extr
 | `ext-session-lock` support + PAM config | Lock screen ([see below](#lock-screen)) |
 | `avahi` + `smbclient` + `keyutils` | Network widget |
 | [athroisma](https://github.com/zesis-shell/athroisma) | System Monitor widget ([see below](#system-monitor-athroisma)) |
-| `python3` + [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) | Calendar widget (`.ics` files, including recurring events) |
+| [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) (python3 packages) | Calendar widget (`.ics` files, including recurring events) |
 | `magick` | Wallpaper thumbnail previews |
-| `awk` | Credential search (Network widget) |
 | QtQuick3D + QtDeclarative (Qt 6.6+) + [Congeries](https://github.com/zesis-shell/congeries) | 3D geodesic rod globe (Home panel) ([see below](#3d-globe-congeries)) |
 
 ## Setup
