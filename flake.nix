@@ -40,6 +40,8 @@
           mkdir -p "$out"
           lndir -silent ${./.} "$out"
           lndir -silent ${self.packages.${system}.shaders} "$out"
+
+          ln -s /var/cache/zesis/starfield/RealStarField.js "$out/Widgets/Globe3D/RealStarField.js"
         '';
     });
 

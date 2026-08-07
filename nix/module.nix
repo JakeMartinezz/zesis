@@ -78,12 +78,27 @@ in {
   config = lib.mkIf cfg.enable {
     environment.etc."xdg/quickshell/zesis".source = cfg.configPackage;
 
+    # The 3D globe's starfield data (see scripts/ensure_starfield.sh) is
+    # identical for every user, so it's cached once here.
+    # `configPackage` pre-declares Widgets/Globe3D/RealStarField.js
+    # as a symlink into this directory.
+    systemd.tmpfiles.rules = lib.mkIf cfg.congeries.enable [
+      "d /var/cache/zesis/starfield 1777 root root -"
+    ];
+
     systemd.user.services.zesis = lib.mkIf cfg.systemdService.enable {
       description = "Quickshell (zesis)";
       wantedBy = ["graphical-session.target"];
       after = ["graphical-session.target"];
       partOf = ["graphical-session.target"];
-      path = lib.optional cfg.athroisma.enable cfg.athroisma.package;
+
+      path =
+        [
+          pkgs.bash
+          pkgs.curl
+          (pkgs.python3.withPackages (ps: with ps; [icalendar recurring-ical-events]))
+        ]
+        ++ lib.optional cfg.athroisma.enable cfg.athroisma.package;
       environment = lib.mkIf cfg.congeries.enable {
         QML_IMPORT_PATH = lib.concatStringsSep ":" [
           "${pkgs.qt6.qtquick3d}/lib/qt-6/qml"
