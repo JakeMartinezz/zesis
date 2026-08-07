@@ -116,6 +116,25 @@ services.zesis = {
 };
 ```
 
+Beyond athroisma/congeries, plenty of widgets shell out to ordinary desktop tools - matugen, awww, bluetoothctl, curl, notify-send, and so on. By default the service just inherits your normal desktop `PATH` (system-wide installs plus your own per-user profile) for those, so if your system already has them, there's nothing to do. If it doesn't, like a minimal box, or you just want zesis working with zero prior setup, then set `services.zesis.batteriesIncluded.enable = true;` to put the whole set on the service's `PATH` outright:
+
+```nix
+services.zesis = {
+  enable = true;
+  batteriesIncluded.enable = true; # or: batteriesIncluded.packages = [...];
+};
+```
+
+If you'd rather the service *not* inherit your desktop `PATH` at all, an explicit, reproducible dependency surface instead of whatever happens to be installed, or just tighter isolation, then set `services.zesis.inheritPath = false;`. You'll almost certainly want `batteriesIncluded.enable = true;` alongside it:
+
+```nix
+services.zesis = {
+  enable = true;
+  inheritPath = false;
+  batteriesIncluded.enable = true; # or: batteriesIncluded.packages = [...];
+};
+```
+
 > [!IMPORTANT]
 > Because this is a *named* config, any manual `quickshell`/`qs` invocation, IPC calls in your compositor keybinds, `hypridle.conf`, debugging, etc., needs `-c zesis` (or `QS_CONFIG_NAME=zesis`) or it won't find this instance. See [IPC dispatch](#ipc-dispatch) below.
 

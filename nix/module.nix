@@ -60,6 +60,61 @@ in {
       };
     };
 
+    python = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.python3.withPackages (ps: with ps; [icalendar recurring-ical-events]);
+      description = ''
+        The python3 build to put on the service's PATH.
+        Calendar (icalendar/recurring-ical-events), AirPods battery and the
+        3D globe's starfield generation script all need python3.
+      '';
+    };
+
+    batteriesIncluded = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Put the full set of optional runtime tools zesis's widgets can
+          shell out to on the service's PATH outright, regardless of whether
+          your system already has them. Off by default. The service already
+          inherits your normal desktop PATH (/run/current-system/sw/bin plus
+          your per-user profile), so this only matters if you want the complete
+          zesis experience without having installed these yourself.
+        '';
+      };
+      packages = lib.mkOption {
+        type = lib.types.listOf lib.types.package;
+        default = with pkgs; [
+          matugen
+          awww
+          bluez
+          avahi
+          hostname
+          libnotify
+          procps
+          xdg-utils
+          gawk
+          brightnessctl
+          slurp
+        ];
+        description = "Packages put on the service's PATH when batteriesIncluded.enable is true.";
+      };
+    };
+
+    inheritPath = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Append the user's normal desktop PATH (/run/current-system/sw/bin
+        plus their per-user profile) to the service's PATH. Disable for a fully
+        self-contained, explicit PATH instead of inheriting whatever
+        happens to be installed. You'll likely also want
+        `batteriesIncluded.enable = true;` in that case, to still cover the
+        ordinary tools zesis's widgets need.
+      '';
+    };
+
     systemdService = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -92,19 +147,22 @@ in {
       after = ["graphical-session.target"];
       partOf = ["graphical-session.target"];
 
-      path =
-        [
-          pkgs.bash
-          pkgs.curl
-          (pkgs.python3.withPackages (ps: with ps; [icalendar recurring-ical-events]))
-        ]
-        ++ lib.optional cfg.athroisma.enable cfg.athroisma.package;
-      environment = lib.mkIf cfg.congeries.enable {
-        QML_IMPORT_PATH = lib.concatStringsSep ":" [
-          "${pkgs.qt6.qtquick3d}/lib/qt-6/qml"
-          "${cfg.congeries.package}/lib/qt-6/qml"
-        ];
-      };
+      enableDefaultPath = false;
+      environment =
+        {
+          PATH = lib.concatStringsSep ":" (
+            ["${cfg.python}/bin"]
+            ++ lib.optional cfg.athroisma.enable "${cfg.athroisma.package}/bin"
+            ++ lib.optionals cfg.batteriesIncluded.enable (map (p: "${p}/bin") cfg.batteriesIncluded.packages)
+            ++ lib.optionals cfg.inheritPath ["/run/current-system/sw/bin" "/etc/profiles/per-user/%u/bin"]
+          );
+        }
+        // lib.optionalAttrs cfg.congeries.enable {
+          QML_IMPORT_PATH = lib.concatStringsSep ":" [
+            "${pkgs.qt6.qtquick3d}/lib/qt-6/qml"
+            "${cfg.congeries.package}/lib/qt-6/qml"
+          ];
+        };
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/quickshell -c zesis";
         Restart = "on-failure";
