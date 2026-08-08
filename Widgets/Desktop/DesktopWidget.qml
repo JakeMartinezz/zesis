@@ -62,9 +62,10 @@ PanelWindow {
     color: "transparent"
 
     // Widget-specific opt-in for pointer input, gated on storeKey like the
-    // per-widget settings rows in DesktopConfigOverlay. Only the Globe in
-    // manual-rotate mode wants this for now.
-    readonly property bool _wantsInput: root.storeKey === "globe2d" && Globe2DSettings.rotateMode === "manual"
+    // per-widget settings rows in DesktopConfigOverlay. The Globe in
+    // manual-rotate mode and the Vending Machine (keypad, glass taps, flap,
+    // item press) both need real clicks.
+    readonly property bool _wantsInput: (root.storeKey === "globe2d" && Globe2DSettings.rotateMode === "manual") || root.storeKey === "vending"
 
     Region {
         id: clickThrough

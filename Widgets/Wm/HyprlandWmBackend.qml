@@ -1,8 +1,18 @@
 import QtQuick
+import Quickshell
+import Quickshell.Io
 import Quickshell.Hyprland
 
 QtObject {
     id: root
+
+    property bool _hasHyprshutdown: false
+
+    property QtObject _hyprshutdownCheck: Process {
+        command: ["sh", "-c", "which hyprshutdown >/dev/null 2>&1"]
+        running: true
+        onExited: code => root._hasHyprshutdown = (code === 0)
+    }
 
     readonly property var workspaces: Hyprland.workspaces.values
     readonly property var toplevels: Hyprland.toplevels.values
@@ -71,5 +81,19 @@ QtObject {
 
     function refreshMonitors() {
         Hyprland.refreshMonitors();
+    }
+
+    function logout() {
+        if (root._hasHyprshutdown)
+            Quickshell.execDetached(["hyprshutdown"]);
+        else
+            Hyprland.dispatch("hl.dsp.exit()");
+    }
+
+    function closeAppsThen(cmd) {
+        if (root._hasHyprshutdown)
+            Quickshell.execDetached(["hyprshutdown", "--post-cmd", cmd]);
+        else
+            Quickshell.execDetached(["bash", "-c", cmd]);
     }
 }

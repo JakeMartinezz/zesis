@@ -12,6 +12,7 @@ import "Widgets/Notifications"
 import "Widgets/LockScreen"
 import "Widgets/Keybinds"
 import "Widgets/AppSwitcher"
+import "Widgets/Power"
 import "Widgets/Shared"
 import "Widgets/WidgetHome"
 import "Widgets/Polkit"
@@ -337,6 +338,27 @@ Scope {
         }
         function cancel() {
             AppSwitcherService.cancel();
+        }
+    }
+
+    FullscreenOverlay {
+        id: powerOverlay
+        maxContentWidth: 520
+        maxContentHeight: 200
+        content: Component {
+            PowerMenu {
+                onCloseRequested: powerOverlay.close()
+            }
+        }
+
+        onDimmerTapped: powerOverlay.close()
+        onContentLoaded: item => item.focusMenu()
+    }
+
+    IpcHandler {
+        target: "power"
+        function toggle() {
+            powerOverlay.visible ? powerOverlay.close() : powerOverlay.open();
         }
     }
 

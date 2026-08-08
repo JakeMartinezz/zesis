@@ -7,6 +7,7 @@ import "../Clock"
 import "../Weather"
 import "../SysMon"
 import "../Globe2D"
+import "../Power"
 
 Singleton {
     id: root
@@ -41,6 +42,12 @@ Singleton {
             label: "Globe",
             description: "Spinning 2D shader globe with community locations",
             component: _globe2dComp
+        },
+        {
+            key: "vending",
+            label: "Vending Machine",
+            description: "Dial a code to lock, log out, reboot, or shut down",
+            component: _vendingComp
         }
     ]
 
@@ -71,5 +78,9 @@ Singleton {
     Component {
         id: _globe2dComp
         Globe2DDesktopWidget {}
+    }
+    Component {
+        id: _vendingComp
+        VendingMachine {}
     }
 }

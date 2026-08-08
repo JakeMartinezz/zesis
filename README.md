@@ -259,6 +259,7 @@ Compositor keybinds trigger shell actions through Quickshell's `IpcHandler`. Eac
 | `settings` | `toggle()` | `shell.qml` |
 | `appswitcher` | `cycle()`, `back()`, `confirm()`, `cancel()` | `shell.qml` |
 | `desktop` | `toggleConfig()` | `shell.qml` |
+| `power` | `toggle()` | `shell.qml` |
 | `lockscreen` | `lock()`, `unlock()` | `Widgets/LockScreen/LockScreen.qml` |
 
 Since Quickshell instances are identified by config path, a dev instance launched with `qs -p ~/Documents/zesis` won't receive `qs ipc call` from a plain install pointed at `~/.config/quickshell` (or vice versa), the compositor config resolves this by trying the dev path first and falling back. Example from this author's own [Hyprland config](https://github.com/SquirrelModeller/squirrel-nixos/blob/main/users/squirrel/dotfiles/.config/hypr/hyprland.lua):

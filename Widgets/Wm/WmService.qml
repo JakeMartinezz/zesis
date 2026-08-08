@@ -60,4 +60,10 @@ Singleton {
     function refreshMonitors() {
         _backend.refreshMonitors();
     }
+    function logout() {
+        _backend.logout();
+    }
+    function closeAppsThen(cmd) {
+        _backend.closeAppsThen(cmd);
+    }
 }
