@@ -167,6 +167,12 @@ in {
         ExecStart = "${cfg.package}/bin/quickshell -c zesis";
         Restart = "on-failure";
         RestartSec = 5;
+        # Default KillMode (control-group) sends the stop signal to every
+        # process in the service's cgroup, including apps the launcher
+        # spawned - so restarting/reloading zesis killed whatever you'd
+        # opened through it. "process" limits the signal to the tracked
+        # main PID (quickshell itself), leaving launched apps running.
+        KillMode = "process";
       };
     };
   };

@@ -37,6 +37,9 @@ PanelWindow {
     readonly property real _panelWidth: Math.max(root._minPanelWidth, root._favorites.length * root._favIconBox + Math.max(0, root._favorites.length - 1) * root._favRowSpacing + root._panelPad * 2)
 
     property string _searchText: ""
+    property int _selectedIndex: 0
+
+    on_SearchTextChanged: root._selectedIndex = 0
 
     // Prebuilt lowercase haystack per app, computed once when the app list
     // changes rather than per keystroke. The previous _matches() lowercased
@@ -129,6 +132,7 @@ PanelWindow {
         if (root._open) {
             unmapTimer.stop();
             root._searchText = "";
+            root._selectedIndex = 0;
             searchInput.text = "";
             root.visible = true;
         } else {
@@ -303,10 +307,21 @@ PanelWindow {
                                 clip: true
                                 onTextChanged: root._searchText = text
                                 Keys.onReturnPressed: {
-                                    var pick = root._searchText !== "" ? (root._results.length > 0 ? root._results[0] : null) : (root._favorites.length > 0 ? root._favorites[0] : null);
+                                    var list = root._searchText !== "" ? root._results : root._favorites;
+                                    var pick = list.length > 0 ? list[Math.min(root._selectedIndex, list.length - 1)] : null;
                                     root._launch(pick);
                                 }
                                 Keys.onEscapePressed: LauncherService.close()
+                                Keys.onUpPressed: {
+                                    var list = root._searchText !== "" ? root._results : root._favorites;
+                                    if (list.length > 0)
+                                        root._selectedIndex = (root._selectedIndex - 1 + list.length) % list.length;
+                                }
+                                Keys.onDownPressed: {
+                                    var list = root._searchText !== "" ? root._results : root._favorites;
+                                    if (list.length > 0)
+                                        root._selectedIndex = (root._selectedIndex + 1) % list.length;
+                                }
                             }
                         }
                     }
@@ -450,11 +465,12 @@ PanelWindow {
                                     resRow._lastEntry = resRow._entry
                                 readonly property var _display: resRow._entry ?? resRow._lastEntry
                                 readonly property bool _isFav: resRow._display ? LauncherFavoritesService.isFavorite(resRow._display.id) : false
+                                readonly property bool _isSelected: root._searchText !== "" && resRow.index === root._selectedIndex
 
                                 width: resultsClip.width
                                 height: resultsClip._rowH
                                 radius: UIScale.radiusSm
-                                color: resArea.containsMouse ? Colors.withAlpha(Colors.accent, 0.1) : "transparent"
+                                color: (resRow._isSelected || resArea.containsMouse) ? Colors.withAlpha(Colors.accent, 0.1) : "transparent"
                                 // Opacity is a pure GPU/scene-graph property - unlike
                                 // height it never triggers a layout pass, so fading
                                 // rows in/out here costs nothing per frame.
@@ -479,6 +495,7 @@ PanelWindow {
                                     enabled: resRow._shown
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
+                                    onEntered: root._selectedIndex = resRow.index
                                     onClicked: root._launch(resRow._entry)
                                 }
 
