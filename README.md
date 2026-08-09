@@ -15,18 +15,18 @@ zesis is a desktop shell for Wayland. A bar plus a full suite of panels and widg
 It's built for **Hyprland**, that's the only compositor backend implemented so far, on any Wayland compositor that supports `wlr-layer-shell` in principle. The config is written to be portable across machines.
 
 > [!NOTE]
-> Running into a bug, missing something you'd like to see, or just have a question? Please [open an issue](https://github.com/zesis-shell/zesis/issues) - you are very welcome to. Alternatively, reach out on [Discord](https://discord.gg/npWCSGaju7) or at zesis-shell@protonmail.com.
+> This is a fork of [zesis-shell/zesis](https://github.com/zesis-shell/zesis), modified to track the AGS bar layout it was modelled on. Issues with *this* fork belong [here](https://github.com/JakeMartinezz/zesis/issues); for the original project, see upstream.
 
 ## What's in it
 
-- **Bar** - workspace indicator, system tray, clock, music, and more, with automatic collision-based collapsing
+- **Bar** - workspaces, launcher, taskbar, system tray, clock, music, battery, and more, with automatic collision-based collapsing
+- **App launcher** - searchable, with a pinnable favorites row
 - **App switcher** - Alt-Tab style, mouse and keyboard aware
 - **Lock screen** - PAM-backed, with a clock and user greeting
-- **Home panel** - a settings-app-style shell hub (Calendar, Network, System Monitor, Community, NixOS purity checker, notification history)
-- **Notifications**, **keybind cheatsheet**, **display picker**, **network (SMB) browser**, **weather**, **Bluetooth + AirPods**, **volume/mic/brightness controls**, **wallpaper picker**
-- **Community globe** - a live 2D/3D globe widget for opt-in location sharing
+- **Home panel** - a settings-app-style shell hub (Calendar, System Monitor, notification history)
+- **Notifications**, **keybind cheatsheet**, **display picker**, **weather**, **Bluetooth + AirPods**, **volume/mic/brightness controls**, **wallpaper picker**
 - **Desktop widgets** - toggle floating widgets directly onto your desktop, with drag-to-position, resize, and per-widget background styling
-- **Theming** - hot-reloadable color palette via a `Colors` singleton, generated from your wallpaper by Matugen
+- **Theming** - hot-reloadable color palette via a `Colors` singleton, generated from your wallpaper by Matugen, with per-role overrides you can set by hand
 
 ## Components
 
@@ -61,7 +61,6 @@ Nothing below is required to get a working bar, each of these lights up one extr
 | Needs | Unlocks |
 | --- | --- |
 | `ext-session-lock` support + PAM config | Lock screen ([see below](#lock-screen)) |
-| `avahi` + `smbclient` + `keyutils` | Network widget |
 | [athroisma](https://github.com/zesis-shell/athroisma) | System Monitor widget ([see below](#system-monitor-athroisma)) |
 | [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) (python3 packages) | Calendar widget (`.ics` files, including recurring events) |
 | `magick` | Wallpaper thumbnail previews |
@@ -76,7 +75,7 @@ Nothing below is required to get a working bar, each of these lights up one extr
 > This clones straight into `~/.config/quickshell`. If you already have something there, back it up first.
 
 ```sh
-git clone https://github.com/zesis-shell/zesis ~/.config/quickshell
+git clone https://github.com/JakeMartinezz/zesis ~/.config/quickshell
 quickshell
 ```
 
@@ -92,7 +91,7 @@ The flake exposes `nixosModules.default`, which builds zesis (source + compiled 
 
 ```nix
 {
-  inputs.zesis.url = "github:zesis-shell/zesis";
+  inputs.zesis.url = "github:JakeMartinezz/zesis";
 
   outputs = {nixpkgs, zesis, ...}: {
     nixosConfigurations.mymachine = nixpkgs.lib.nixosSystem {
