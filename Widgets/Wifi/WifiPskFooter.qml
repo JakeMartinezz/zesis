@@ -27,10 +27,10 @@ Rectangle {
     function handleConnectionFailed(network) {
         if (WifiService.needsPsk(network)) {
             root.pendingNetwork = network;
-            root.errorMsg = (root._lastPskNetwork === network) ? "Wrong password" : "";
+            root.errorMsg = (root._lastPskNetwork === network) ? I18n.t("wifi.wrongPassword") : "";
             root._lastPskNetwork = null;
         } else {
-            root.errorMsg = "Connection failed";
+            root.errorMsg = I18n.t("wifi.connectionFailed");
         }
     }
 
@@ -65,7 +65,7 @@ Rectangle {
             StyledTextInput {
                 id: pskInput
                 Layout.fillWidth: true
-                placeholder: "Password for " + (root.pendingNetwork ? root.pendingNetwork.name : "")
+                placeholder: I18n.t("wifi.passwordForPlaceholder", [root.pendingNetwork ? root.pendingNetwork.name : ""])
                 echoMode: root.pskVisible ? TextInput.Normal : TextInput.Password
                 onAccepted: root._submitPsk()
             }
@@ -111,7 +111,7 @@ Rectangle {
                 Text {
                     id: joinTxt
                     anchors.centerIn: parent
-                    text: "Join"
+                    text: I18n.t("wifi.join")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontSmall
                     font.weight: Font.Bold

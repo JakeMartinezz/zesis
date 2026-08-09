@@ -29,6 +29,10 @@ Item {
     }
     property string searchText: ""
     property string _hostname: ""
+
+    function matchesSearch(label) {
+        return root.searchText === "" || label.toLowerCase().includes(root.searchText.toLowerCase());
+    }
     readonly property bool _devMode: !!Quickshell.env("ZESIS_DEV")
 
     Process {
@@ -254,7 +258,7 @@ Item {
                     Layout.bottomMargin: UIScale.radiusMd
                     icon: ""
                     showClearButton: true
-                    placeholder: "Search settings"
+                    placeholder: I18n.t("home.searchPlaceholder")
                     onTextChanged: root.searchText = text
                     onEscapePressed: HomePanelService.open = false
                 }
@@ -275,17 +279,18 @@ Item {
                         spacing: 0
 
                         NavItem {
+                            id: navHomeItem
                             navId: "home"
-                            navLabel: "Home"
+                            navLabel: I18n.t("home.navHome")
                             navIcon: ""
                             isNavSelected: root.section === "home"
-                            visible: root.searchText === "" || "home".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "APPS"
+                            text: I18n.t("home.groupApps")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -293,38 +298,41 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["system monitor", "notifications", "calendar"].some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.matchesSearch(navSysMonItem.navLabel) || root.matchesSearch(navNotifsItem.navLabel) || root.matchesSearch(navCalendarItem.navLabel)
                         }
                         NavItem {
+                            id: navSysMonItem
                             navId: "sysmon"
-                            navLabel: "System Monitor"
+                            navLabel: I18n.t("home.navSysMon")
                             navIcon: ""
                             isNavSelected: root.section === "sysmon"
-                            visible: root.searchText === "" || "system monitor".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navNotifsItem
                             navId: "notifs"
-                            navLabel: "Notifications"
+                            navLabel: I18n.t("home.navNotifications")
                             navIcon: ""
                             isNavSelected: root.section === "notifs"
-                            visible: root.searchText === "" || "notifications".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navCalendarItem
                             navId: "calendar"
-                            navLabel: "Calendar"
+                            navLabel: I18n.t("home.navCalendar")
                             navIcon: "󰺻"
                             isNavSelected: root.section === "calendar"
-                            visible: root.searchText === "" || "calendar".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "DEV"
+                            text: I18n.t("home.groupDev")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -332,24 +340,26 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root._devMode && (root.searchText === "" || ["responsive test", "assembly test"].some(s => s.includes(root.searchText.toLowerCase())))
+                            visible: root._devMode && (root.matchesSearch(navResponsiveTestItem.navLabel) || root.matchesSearch(navAssemblyTestItem.navLabel))
                         }
 
                         NavItem {
+                            id: navResponsiveTestItem
                             navId: "responsivetest"
-                            navLabel: "Responsive Test"
+                            navLabel: I18n.t("home.navResponsiveTest")
                             navIcon: "󰙨"
                             isNavSelected: root.section === "responsivetest"
-                            visible: root._devMode && (root.searchText === "" || "responsive test".includes(root.searchText.toLowerCase()))
+                            visible: root._devMode && root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navAssemblyTestItem
                             navId: "assemblytest"
-                            navLabel: "Assembly Test"
+                            navLabel: I18n.t("home.navAssemblyTest")
                             navIcon: "󰙨"
                             isNavSelected: root.section === "assemblytest"
-                            visible: root._devMode && (root.searchText === "" || "assembly test".includes(root.searchText.toLowerCase()))
+                            visible: root._devMode && root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
@@ -459,7 +469,7 @@ Item {
                 Item {
                     Text {
                         anchors.centerIn: parent
-                        text: "Coming soon"
+                        text: I18n.t("home.comingSoon")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontLead
                     }

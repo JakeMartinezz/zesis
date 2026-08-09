@@ -28,7 +28,7 @@ Item {
     readonly property real expandedH: contentArea.height
 
     // Each entry: [label, icon codepoint (Material Icons), widgetIndex]
-    readonly property var layout: [[["Music", "", 0], ["Notifs", "", 1]], [["Sound", "", 2], ["Scale", "", 3]], [["Storage", "", 4]]]
+    readonly property var layout: [[[I18n.t("widgethome.music"), "", 0], [I18n.t("widgethome.notifs"), "", 1]], [[I18n.t("widgethome.sound"), "", 2], [I18n.t("widgethome.scale"), "", 3]], [[I18n.t("widgethome.storage"), "", 4]]]
 
     readonly property var widgetComponents: [musicComp, notifComp, soundComp, configComp, storageComp]
     Component {
@@ -70,7 +70,7 @@ Item {
         }
 
         Text {
-            text: "Widget Home"
+            text: I18n.t("widgethome.title")
             color: Colors.text
             font.bold: true
             font.pixelSize: UIScale.fontLead

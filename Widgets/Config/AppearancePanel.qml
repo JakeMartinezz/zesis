@@ -68,8 +68,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "INTERFACE"
-            title: "Appearance"
+            breadcrumb: I18n.t("appearance.breadcrumb")
+            title: I18n.t("appearance.title")
         }
 
         Flickable {
@@ -91,14 +91,14 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "Interface scale"
+                        text: I18n.t("appearance.interfaceScale")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: root._scaleVal.toFixed(2) + "x"
+                        text: I18n.t("appearance.multiplier", [root._scaleVal.toFixed(2)])
                         color: Colors.accent
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -114,7 +114,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: UIScale.spacingSm
                     Repeater {
-                        model: [["Small", 0.85], ["Normal", 1.0], ["Large", 1.3]]
+                        model: [[I18n.t("appearance.small"), 0.85], [I18n.t("appearance.normal"), 1.0], [I18n.t("appearance.large"), 1.3]]
                         delegate: Rectangle {
                             id: scalePreset
                             required property var modelData
@@ -145,14 +145,14 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "Font size"
+                        text: I18n.t("appearance.fontSize")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: root._fontVal.toFixed(2) + "x"
+                        text: I18n.t("appearance.multiplier", [root._fontVal.toFixed(2)])
                         color: Colors.accent
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -171,14 +171,14 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "Spacing"
+                        text: I18n.t("appearance.spacing")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: root._spacingVal.toFixed(2) + "x"
+                        text: I18n.t("appearance.multiplier", [root._spacingVal.toFixed(2)])
                         color: Colors.accent
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -197,14 +197,14 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "Radius"
+                        text: I18n.t("appearance.radius")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: root._radiusVal.toFixed(2) + "x"
+                        text: I18n.t("appearance.multiplier", [root._radiusVal.toFixed(2)])
                         color: Colors.accent
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -221,14 +221,14 @@ Item {
 
                 // Palette colors
                 Text {
-                    text: "Colors"
+                    text: I18n.t("appearance.colors")
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
                 }
                 Text {
                     Layout.fillWidth: true
-                    text: "Override individual roles of the wallpaper-generated theme. Each palette keeps its own set, so dark and light can differ."
+                    text: I18n.t("appearance.colorsDescription")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -240,7 +240,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: UIScale.spacingSm
                     Repeater {
-                        model: [["Dark mode", "dark"], ["Light mode", "light"]]
+                        model: [[I18n.t("appearance.darkMode"), "dark"], [I18n.t("appearance.lightMode"), "light"]]
                         delegate: Rectangle {
                             id: palBtn
                             required property var modelData
@@ -253,7 +253,7 @@ Item {
                             border.width: 1
                             Text {
                                 anchors.centerIn: parent
-                                text: palBtn.modelData[0] + (ThemeState.palette === palBtn.modelData[1] ? " (active)" : "")
+                                text: ThemeState.palette === palBtn.modelData[1] ? I18n.t("appearance.paletteActive", [palBtn.modelData[0]]) : palBtn.modelData[0]
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontCaption
                             }
@@ -272,7 +272,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     visible: root._editPalette !== ThemeState.palette
-                    text: "Editing the inactive palette - changes apply when you switch to " + root._editPalette + " mode."
+                    text: I18n.t("appearance.editingInactive", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -387,7 +387,7 @@ Item {
                         }
                         ActionButton {
                             visible: ColorOverrides.isOverridden(root._editPalette, root._openRole)
-                            label: "Reset"
+                            label: I18n.t("appearance.reset")
                             onActivated: ColorOverrides.clear(root._editPalette, root._openRole)
                         }
                     }
@@ -403,7 +403,7 @@ Item {
 
                 ActionButton {
                     Layout.topMargin: UIScale.spacingXs
-                    label: "Reset " + root._editPalette + " colors"
+                    label: I18n.t("appearance.resetPaletteColors", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
                     onActivated: ColorOverrides.clearPalette(root._editPalette)
                 }
             }

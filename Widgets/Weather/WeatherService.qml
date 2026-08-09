@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../../"
 
 Singleton {
     id: root
@@ -79,36 +80,36 @@ Singleton {
 
     function conditionText(code) {
         if (code === 0)
-            return "Clear sky";
+            return I18n.t("weather.clearSky");
         if (code === 1)
-            return "Mainly clear";
+            return I18n.t("weather.mainlyClear");
         if (code === 2)
-            return "Partly cloudy";
+            return I18n.t("weather.partlyCloudy");
         if (code === 3)
-            return "Overcast";
+            return I18n.t("weather.overcast");
         if (code <= 48)
-            return "Foggy";
+            return I18n.t("weather.foggy");
         if (code <= 55)
-            return "Drizzle";
+            return I18n.t("weather.drizzle");
         if (code <= 57)
-            return "Freezing drizzle";
+            return I18n.t("weather.freezingDrizzle");
         if (code <= 63)
-            return "Rain";
+            return I18n.t("weather.rain");
         if (code === 65)
-            return "Heavy rain";
+            return I18n.t("weather.heavyRain");
         if (code <= 67)
-            return "Freezing rain";
+            return I18n.t("weather.freezingRain");
         if (code <= 75)
-            return "Snow";
+            return I18n.t("weather.snow");
         if (code === 77)
-            return "Snow grains";
+            return I18n.t("weather.snowGrains");
         if (code <= 82)
-            return "Rain showers";
+            return I18n.t("weather.rainShowers");
         if (code <= 86)
-            return "Snow showers";
+            return I18n.t("weather.snowShowers");
         if (code === 95)
-            return "Thunderstorm";
-        return "Hail storm";
+            return I18n.t("weather.thunderstorm");
+        return I18n.t("weather.hailStorm");
     }
 
     function _fetchIpLocation() {
@@ -188,16 +189,16 @@ Singleton {
         root.hourly = hourlyArr;
 
         // 7-day daily
-        var dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var dayNames = I18n.t("weather.shortDayNames").split("|");
         var dailyArr = [];
         for (var k = 0; k < data.daily.time.length; k++) {
             var parts = data.daily.time[k].split("-");
             var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
             var dlabel;
             if (k === 0)
-                dlabel = "Today";
+                dlabel = I18n.t("weather.today");
             else if (k === 1)
-                dlabel = "Tomorrow";
+                dlabel = I18n.t("weather.tomorrow");
             else
                 dlabel = dayNames[d.getDay()];
             dailyArr.push({
@@ -231,16 +232,16 @@ Singleton {
         onExited: code => {
             if (code !== 0) {
                 root.loading = false;
-                root.error = "Location detection failed";
+                root.error = I18n.t("weather.locationDetectionFailed");
                 return;
             }
             try {
                 var data = JSON.parse(ipProc._buf);
                 var loc = (data.loc || "0,0").split(",");
-                root._fetchWeather(parseFloat(loc[0]), parseFloat(loc[1]), data.city || data.region || "Unknown");
+                root._fetchWeather(parseFloat(loc[0]), parseFloat(loc[1]), data.city || data.region || I18n.t("weather.unknownCity"));
             } catch (e) {
                 root.loading = false;
-                root.error = "Could not parse location";
+                root.error = I18n.t("weather.couldNotParseLocation");
             }
         }
     }
@@ -254,21 +255,21 @@ Singleton {
         onExited: code => {
             if (code !== 0) {
                 root.loading = false;
-                root.error = "Geocoding failed";
+                root.error = I18n.t("weather.geocodingFailed");
                 return;
             }
             try {
                 var data = JSON.parse(geocodeProc._buf);
                 if (!data.results || data.results.length === 0) {
                     root.loading = false;
-                    root.error = "City not found";
+                    root.error = I18n.t("weather.cityNotFound");
                     return;
                 }
                 var r = data.results[0];
                 root._fetchWeather(r.latitude, r.longitude, r.name + (r.country_code ? ", " + r.country_code : ""));
             } catch (e) {
                 root.loading = false;
-                root.error = "Geocode parse failed";
+                root.error = I18n.t("weather.geocodeParseFailed");
             }
         }
     }
@@ -282,7 +283,7 @@ Singleton {
         onExited: code => {
             if (code !== 0) {
                 root.loading = false;
-                root.error = "Weather fetch failed";
+                root.error = I18n.t("weather.weatherFetchFailed");
                 return;
             }
             try {
@@ -292,7 +293,7 @@ Singleton {
                 root.loading = false;
             } catch (e) {
                 root.loading = false;
-                root.error = "Parse error";
+                root.error = I18n.t("weather.parseError");
                 console.log("[WeatherService] parse error:", e);
             }
         }

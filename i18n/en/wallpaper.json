@@ -1,0 +1,16 @@
+{
+  "folderPathPlaceholder": "Wallpaper folder path...",
+  "searchPlaceholder": "Search wallpapers...",
+  "noneFoundIn": "No wallpapers found in\n%1",
+  "noResults": "No results",
+  "breadcrumb": "SETTINGS / WALLPAPER",
+  "title": "Wallpaper & Theme",
+  "popupTitle": "Themes",
+  "dark": "Dark",
+  "light": "Light",
+  "backendLabel": "Wallpaper backend",
+  "applying": "Applying...",
+  "colorPalette": "Color Palette",
+  "applyTo": "Apply to...",
+  "allMonitors": "All Monitors"
+}

@@ -101,7 +101,7 @@ Item {
             Layout.fillWidth: true
 
             Text {
-                text: "Themes"
+                text: I18n.t("wallpaper.popupTitle")
                 color: Colors.text
                 font.pixelSize: Math.round(16 * UIScale.value)
                 font.weight: Font.DemiBold
@@ -140,7 +140,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: "Dark"
+                        text: I18n.t("wallpaper.dark")
                         color: ThemeState.palette === "dark" ? Colors.bg : Colors.textDim
                         font.pixelSize: UIScale.fontCaption
                         font.weight: Font.Medium
@@ -154,7 +154,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: "Light"
+                        text: I18n.t("wallpaper.light")
                         color: ThemeState.palette === "light" ? Colors.bg : Colors.textDim
                         font.pixelSize: UIScale.fontCaption
                         font.weight: Font.Medium
@@ -180,7 +180,7 @@ Item {
             id: searchField
             Layout.fillWidth: true
             showClearButton: true
-            placeholder: "Search wallpapers..."
+            placeholder: I18n.t("wallpaper.searchPlaceholder")
         }
 
         // Wallpaper list
@@ -220,7 +220,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 visible: wallpapers.count === 0 && !scanner.running
-                text: "No wallpapers found in\n" + root._wallpapersDir
+                text: I18n.t("wallpaper.noneFoundIn", [root._wallpapersDir])
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
                 horizontalAlignment: Text.AlignHCenter
@@ -275,7 +275,7 @@ Item {
                 spacing: 2
 
                 Text {
-                    text: "Apply to..."
+                    text: I18n.t("wallpaper.applyTo")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontTiny
                     font.weight: Font.Bold
@@ -285,7 +285,7 @@ Item {
 
                 PickerRow {
                     width: pickerCol.width
-                    label: "All Monitors"
+                    label: I18n.t("wallpaper.allMonitors")
                     onActivated: {
                         ThemeState.apply(root._monitorPickerPath, "");
                         root._monitorPickerOpen = false;

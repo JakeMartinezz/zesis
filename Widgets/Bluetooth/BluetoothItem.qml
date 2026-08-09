@@ -28,8 +28,8 @@ BarButton {
 
                 PanelHeader {
                     Layout.fillWidth: true
-                    breadcrumb: "SETTINGS / SYSTEM"
-                    title: "Bluetooth"
+                    breadcrumb: I18n.t("bluetooth.breadcrumb")
+                    title: I18n.t("bluetooth.title")
                     rightActions: Component {
                         ToggleSwitch {
                             checked: BluetoothService.powered
@@ -60,7 +60,7 @@ BarButton {
                         }
 
                         Text {
-                            text: "Bluetooth adapter not found"
+                            text: I18n.t("bluetooth.adapterNotFound")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             horizontalAlignment: Text.AlignHCenter
@@ -70,7 +70,7 @@ BarButton {
                         }
 
                         Text {
-                            text: "Bluetooth is off"
+                            text: I18n.t("bluetooth.off")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             horizontalAlignment: Text.AlignHCenter
@@ -80,7 +80,7 @@ BarButton {
                         }
 
                         SectionLabel {
-                            text: "PAIRED DEVICES"
+                            text: I18n.t("bluetooth.pairedDevicesSection")
                             Layout.leftMargin: UIScale.spacingMd + UIScale.spacingXs
                             Layout.topMargin: UIScale.spacingXs
                             Layout.bottomMargin: UIScale.spacingXs
@@ -219,12 +219,12 @@ BarButton {
                                                 }
                                                 text: {
                                                     if (devRow.modelData.state === BluetoothDeviceState.Connecting)
-                                                        return "Connecting...";
+                                                        return I18n.t("bluetooth.connecting");
                                                     if (devRow.modelData.state === BluetoothDeviceState.Disconnecting)
-                                                        return "Disconnecting...";
+                                                        return I18n.t("bluetooth.disconnecting");
                                                     if (devRow.modelData.connected && devRow.hasBattery)
-                                                        return "Connected  ·  " + Math.round(devRow.batteryLevel * 100) + "%";
-                                                    return devRow.modelData.connected ? "Connected" : "Paired";
+                                                        return I18n.t("bluetooth.connectedWithBattery", [Math.round(devRow.batteryLevel * 100)]);
+                                                    return devRow.modelData.connected ? I18n.t("bluetooth.connected") : I18n.t("bluetooth.paired");
                                                 }
                                             }
                                         }
@@ -248,7 +248,7 @@ BarButton {
                                                 dim: !AirPodsService.rightEar
                                             }
                                             BluetoothBattBar {
-                                                label: "Case"
+                                                label: I18n.t("bluetooth.case")
                                                 level: AirPodsService.caseLevel
                                                 charging: AirPodsService.caseCharging
                                                 visible: AirPodsService.caseLevel > 0
@@ -276,7 +276,7 @@ BarButton {
                                         Text {
                                             id: connLabel
                                             anchors.centerIn: parent
-                                            text: devRow.modelData.connected ? "Disconnect" : "Connect"
+                                            text: devRow.modelData.connected ? I18n.t("bluetooth.disconnect") : I18n.t("bluetooth.connect")
                                             color: devRow.modelData.connected ? "#e05c5c" : Colors.accent
                                             font.pixelSize: UIScale.fontTiny
                                             font.weight: Font.DemiBold
@@ -318,7 +318,7 @@ BarButton {
                         }
 
                         Text {
-                            text: "No paired devices"
+                            text: I18n.t("bluetooth.noPairedDevices")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontSmall
                             horizontalAlignment: Text.AlignHCenter

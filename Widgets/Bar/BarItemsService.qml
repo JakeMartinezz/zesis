@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import "../../"
 
 Singleton {
     id: root
@@ -8,83 +9,83 @@ Singleton {
     readonly property var items: [
         {
             id: "systray",
-            label: "System Tray",
+            label: I18n.t("bar.itemSystray"),
             src: "SystrayItems.qml"
         },
         // The repaint of this widget causes 0.6% hits on the CPU in regular intervals
         {
             id: "sysmon",
-            label: "System Monitor",
+            label: I18n.t("bar.itemSysmon"),
             src: "../SysMon/SysMonItem.qml"
         },
         {
             id: "theme",
-            label: "Theme Switcher",
+            label: I18n.t("bar.itemTheme"),
             src: "../ThemeSwitcher/ThemeSwitcherItem.qml"
         },
         {
             id: "keybinds",
-            label: "Keybinds",
+            label: I18n.t("bar.itemKeybinds"),
             src: "../Keybinds/KeybindsItem.qml"
         },
         {
             id: "system",
-            label: "System (Bluetooth/Wi-Fi/Sound/Mic)",
+            label: I18n.t("bar.itemSystem"),
             src: "SystemIndicators.qml"
         },
         {
             id: "airpods",
-            label: "AirPods",
+            label: I18n.t("bar.itemAirpods"),
             src: "../AirPods/AirPods.qml"
         },
         {
             id: "weather",
-            label: "Weather",
+            label: I18n.t("bar.itemWeather"),
             src: "../Weather/WeatherItem.qml"
         },
         {
             id: "brightness",
-            label: "Brightness",
+            label: I18n.t("bar.itemBrightness"),
             src: "../Brightness/BrightnessItem.qml"
         },
         {
             id: "notifications",
-            label: "Notifications",
+            label: I18n.t("bar.itemNotifications"),
             src: "../Notifications/NotificationsItem.qml"
         },
         {
             id: "config",
-            label: "Config",
+            label: I18n.t("bar.itemConfig"),
             src: "../Config/ConfigItem.qml"
         },
         {
             id: "battery",
-            label: "Battery",
+            label: I18n.t("bar.itemBattery"),
             src: "../Battery/BatteryItem.qml"
         },
         {
             id: "record",
-            label: "Record",
+            label: I18n.t("bar.itemRecord"),
             src: "../Record/RecordItem.qml"
         },
         {
             id: "gitupdate",
-            label: "Update Available",
+            label: I18n.t("bar.itemGitupdate"),
             src: "../GitUpdate/GitUpdateItem.qml"
         },
         {
             id: "settings",
-            label: "Settings",
+            label: I18n.t("bar.itemSettings"),
             icon: "󰘮"
         },
         {
             id: "lock",
-            label: "Lock",
+            label: I18n.t("bar.itemLock"),
             icon: "󰌾"
         },
         {
             id: "clock",
-            label: "Clock",
+            label: I18n.t("bar.itemClock"),
             src: "../Clock/ClockItem.qml"
         },
     ]

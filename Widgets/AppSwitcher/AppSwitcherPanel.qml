@@ -12,8 +12,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / APP SWITCHER"
-            title: "App Switcher"
+            breadcrumb: I18n.t("appswitcher.breadcrumb")
+            title: I18n.t("appswitcher.title")
         }
 
         Flickable {
@@ -34,7 +34,7 @@ Item {
                 }
 
                 Text {
-                    text: "Default view"
+                    text: I18n.t("appswitcher.defaultView")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -45,7 +45,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.leftMargin: UIScale.panelPad
                     Layout.rightMargin: UIScale.panelPad
-                    model: ["Window cards", "Workspace grid"]
+                    model: [I18n.t("appswitcher.windowCards"), I18n.t("appswitcher.workspaceGrid")]
                     currentIndex: AppSwitcherService.defaultMode
                     onActivated: index => AppSwitcherService.defaultMode = index
                 }
@@ -61,7 +61,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Confirm on key release"
+                        text: I18n.t("appswitcher.confirmOnRelease")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -84,7 +84,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Remember last view this session"
+                        text: I18n.t("appswitcher.rememberLastView")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -107,7 +107,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Follow moved window"
+                        text: I18n.t("appswitcher.followMovedWindow")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -125,7 +125,7 @@ Item {
                 }
 
                 Text {
-                    text: "New workspace"
+                    text: I18n.t("appswitcher.newWorkspace")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -136,7 +136,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.leftMargin: UIScale.panelPad
                     Layout.rightMargin: UIScale.panelPad
-                    model: ["Fill gaps", "Append"]
+                    model: [I18n.t("appswitcher.fillGaps"), I18n.t("appswitcher.append")]
                     currentIndex: AppSwitcherService.newWorkspaceStrategy === "fill" ? 0 : 1
                     onActivated: index => AppSwitcherService.newWorkspaceStrategy = index === 0 ? "fill" : "append"
                 }

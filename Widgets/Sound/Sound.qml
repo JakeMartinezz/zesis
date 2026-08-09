@@ -30,8 +30,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / SOUND"
-            title: "Sound"
+            breadcrumb: I18n.t("sound.breadcrumb")
+            title: I18n.t("sound.title")
         }
 
         Flickable {
@@ -117,7 +117,7 @@ Item {
                             }
 
                             Text {
-                                text: "Master"
+                                text: I18n.t("sound.master")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontBody
                                 font.weight: Font.Bold
@@ -157,7 +157,7 @@ Item {
 
                 // Per-app streams
                 SectionLabel {
-                    text: "APPS"
+                    text: I18n.t("common.apps")
                     color: Colors.textDim
                     font.weight: Font.Medium
                     Layout.leftMargin: UIScale.spacingMd + UIScale.spacingXs
@@ -305,7 +305,7 @@ Item {
                                             }
 
                                             Text {
-                                                text: streamItem.streamMuted ? "muted" : (Math.round(streamItem.streamVol * 100) + "%")
+                                                text: streamItem.streamMuted ? I18n.t("sound.muted") : (Math.round(streamItem.streamVol * 100) + "%")
                                                 color: streamItem.streamMuted ? Colors.textDim : Colors.accent
                                                 font.pixelSize: UIScale.fontTiny
                                                 font.family: "monospace"
@@ -363,7 +363,7 @@ Item {
                         anchors.rightMargin: UIScale.spacingMd
 
                         Text {
-                            text: "Volume OSD"
+                            text: I18n.t("sound.volumeOsdLabel")
                             color: Colors.text
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.DemiBold
@@ -419,7 +419,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Output  ·  " + (root.sink?.description || root.sink?.name || "No output")
+                            text: I18n.t("sound.outputWithName", [root.sink?.description || root.sink?.name || I18n.t("sound.noOutput")])
                             color: Colors.text
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.DemiBold

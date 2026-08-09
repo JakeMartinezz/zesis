@@ -36,6 +36,10 @@ Item {
     onPanelOpenChanged: if (!panelOpen)
         searchField.text = ""
 
+    function matchesSearch(label) {
+        return root.searchText === "" || label.toLowerCase().includes(root.searchText.toLowerCase());
+    }
+
     component NavItem: Rectangle {
         id: navItem
         property string navId: ""
@@ -185,7 +189,7 @@ Item {
                         spacing: 1
 
                         Text {
-                            text: "Settings"
+                            text: I18n.t("settings_chrome.title")
                             color: Colors.text
                             font.pixelSize: UIScale.fontSubhead
                             font.weight: Font.ExtraBold
@@ -239,7 +243,7 @@ Item {
                     Layout.bottomMargin: UIScale.radiusMd
                     icon: ""
                     showClearButton: true
-                    placeholder: "Search settings"
+                    placeholder: I18n.t("settings_chrome.searchPlaceholder")
                     onTextChanged: root.searchText = text
                     onEscapePressed: SettingsPanelService.open = false
                 }
@@ -260,37 +264,39 @@ Item {
                         spacing: 0
 
                         Text {
-                            text: "APPEARANCE"
+                            text: I18n.t("settings_chrome.groupAppearance")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
                             font.letterSpacing: 1.5
                             leftPadding: UIScale.spacingSm
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["appearance", "wallpaper"].some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.matchesSearch(navAppearanceItem.navLabel) || root.matchesSearch(navWallpaperItem.navLabel)
                         }
 
                         NavItem {
+                            id: navAppearanceItem
                             navId: "appearance"
-                            navLabel: "Appearance"
+                            navLabel: I18n.t("settings_chrome.navAppearance")
                             navIcon: "󰘮"
                             isNavSelected: root.section === "appearance"
-                            visible: root.searchText === "" || "appearance".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navWallpaperItem
                             navId: "wallpaper"
-                            navLabel: "Wallpaper"
+                            navLabel: I18n.t("settings_chrome.navWallpaper")
                             navIcon: ""
                             isNavSelected: root.section === "wallpaper"
-                            visible: root.searchText === "" || "wallpaper".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "BAR & WIDGETS"
+                            text: I18n.t("settings_chrome.groupBarWidgets")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -298,38 +304,41 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["bar", "clock", "app switcher"].some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.matchesSearch(navBarItem.navLabel) || root.matchesSearch(navClockItem.navLabel) || root.matchesSearch(navAppSwitcherItem.navLabel)
                         }
                         NavItem {
+                            id: navBarItem
                             navId: "bar"
-                            navLabel: "Bar"
+                            navLabel: I18n.t("settings_chrome.navBar")
                             navIcon: "󰕪"
                             isNavSelected: root.section === "bar"
-                            visible: root.searchText === "" || "bar".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navClockItem
                             navId: "clock"
-                            navLabel: "Clock"
+                            navLabel: I18n.t("settings_chrome.navClock")
                             navIcon: ""
                             isNavSelected: root.section === "clock"
-                            visible: root.searchText === "" || "clock".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navAppSwitcherItem
                             navId: "appswitcher"
-                            navLabel: "App Switcher"
+                            navLabel: I18n.t("settings_chrome.navAppSwitcher")
                             navIcon: ""
                             isNavSelected: root.section === "appswitcher"
-                            visible: root.searchText === "" || "app switcher".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "DEVICES"
+                            text: I18n.t("settings_chrome.groupDevices")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -337,47 +346,51 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["display & scale", "bluetooth", "wi-fi", "sound"].some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.matchesSearch(navDisplayItem.navLabel) || root.matchesSearch(navBluetoothItem.navLabel) || root.matchesSearch(navWifiItem.navLabel) || root.matchesSearch(navSoundItem.navLabel)
                         }
                         NavItem {
+                            id: navDisplayItem
                             navId: "display"
-                            navLabel: "Display & Scale"
+                            navLabel: I18n.t("settings_chrome.navDisplay")
                             navIcon: ""
                             isNavSelected: root.section === "display"
-                            visible: root.searchText === "" || "display & scale".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navBluetoothItem
                             navId: "bluetooth"
-                            navLabel: "Bluetooth"
+                            navLabel: I18n.t("settings_chrome.navBluetooth")
                             navIcon: "󰂯"
                             isNavSelected: root.section === "bluetooth"
-                            visible: BluetoothService.available && (root.searchText === "" || "bluetooth".includes(root.searchText.toLowerCase()))
+                            visible: BluetoothService.available && root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navWifiItem
                             navId: "wifi"
-                            navLabel: "Wi-Fi"
+                            navLabel: I18n.t("settings_chrome.navWifi")
                             navIcon: "󰤨"
                             isNavSelected: root.section === "wifi"
-                            visible: WifiService.available && (root.searchText === "" || "wi-fi".includes(root.searchText.toLowerCase()))
+                            visible: WifiService.available && root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
                         NavItem {
+                            id: navSoundItem
                             navId: "sound"
-                            navLabel: "Sound"
+                            navLabel: I18n.t("settings_chrome.navSound")
                             navIcon: ""
                             isNavSelected: root.section === "sound"
-                            visible: root.searchText === "" || "sound".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "ACCOUNT"
+                            text: I18n.t("settings_chrome.groupAccount")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -385,20 +398,21 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || "user".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navUserItem.navLabel)
                         }
                         NavItem {
+                            id: navUserItem
                             navId: "user"
-                            navLabel: "User"
+                            navLabel: I18n.t("settings_chrome.navUser")
                             navIcon: ""
                             isNavSelected: root.section === "user"
-                            visible: root.searchText === "" || "user".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
 
                         Text {
-                            text: "ABOUT"
+                            text: I18n.t("settings_chrome.groupAbout")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -406,14 +420,15 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || "about".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navAboutItem.navLabel)
                         }
                         NavItem {
+                            id: navAboutItem
                             navId: "about"
-                            navLabel: "About"
+                            navLabel: I18n.t("settings_chrome.navAbout")
                             navIcon: ""
                             isNavSelected: root.section === "about"
-                            visible: root.searchText === "" || "about".includes(root.searchText.toLowerCase())
+                            visible: root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
@@ -507,7 +522,7 @@ Item {
                 Item {
                     Text {
                         anchors.centerIn: parent
-                        text: "Coming soon"
+                        text: I18n.t("settings_chrome.comingSoon")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontLead
                     }

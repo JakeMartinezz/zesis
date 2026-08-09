@@ -6,8 +6,8 @@ import "../../"
 Item {
     id: root
 
-    readonly property var _monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    readonly property var _dayLabels: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    readonly property var _monthNames: I18n.t("calendar.monthNames").split("|")
+    readonly property var _dayLabels: I18n.t("calendar.miniDayLabels").split("|")
     readonly property var _today: new Date()
 
     property int viewYear: root._today.getFullYear()

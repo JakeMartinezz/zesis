@@ -31,8 +31,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "INTERFACE"
-            title: "Bar"
+            breadcrumb: I18n.t("bar.breadcrumb")
+            title: I18n.t("bar.title")
         }
 
         Flickable {
@@ -54,7 +54,7 @@ Item {
 
                 // Bar side
                 Text {
-                    text: "Bar side"
+                    text: I18n.t("bar.side")
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
@@ -63,26 +63,32 @@ Item {
                     Layout.fillWidth: true
                     spacing: UIScale.spacingSm
                     Repeater {
-                        model: ["Top", "Bottom"]
+                        model: [{
+                                value: "top",
+                                label: I18n.t("bar.top")
+                            }, {
+                                value: "bottom",
+                                label: I18n.t("bar.bottom")
+                            }]
                         delegate: Rectangle {
                             id: sideBtn
-                            required property string modelData
+                            required property var modelData
                             Layout.fillWidth: true
                             implicitHeight: Math.round(32 * UIScale.value)
                             radius: UIScale.radiusSm
-                            color: BarConfig.side === sideBtn.modelData.toLowerCase() ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
-                            border.color: BarConfig.side === sideBtn.modelData.toLowerCase() ? Colors.accent : "transparent"
+                            color: BarConfig.side === sideBtn.modelData.value ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
+                            border.color: BarConfig.side === sideBtn.modelData.value ? Colors.accent : "transparent"
                             border.width: 1
                             Text {
                                 anchors.centerIn: parent
-                                text: sideBtn.modelData
+                                text: sideBtn.modelData.label
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontCaption
                             }
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: BarConfig.write(sideBtn.modelData.toLowerCase())
+                                onClicked: BarConfig.write(sideBtn.modelData.value)
                             }
                         }
                     }
@@ -94,13 +100,13 @@ Item {
 
                 // Monitors
                 Text {
-                    text: "Monitors"
+                    text: I18n.t("bar.monitors")
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
                 }
                 Text {
-                    text: "Which screens show the bar. Off by default = all of them."
+                    text: I18n.t("bar.monitorsDescription")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -136,7 +142,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "Edge gap"
+                        text: I18n.t("bar.edgeGap")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -168,7 +174,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "End gap"
+                        text: I18n.t("bar.endGap")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -200,7 +206,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: "Monochrome taskbar icons"
+                        text: I18n.t("bar.monochromeIcons")
                         color: Colors.text
                         font.bold: true
                         font.pixelSize: UIScale.fontBody
@@ -212,7 +218,7 @@ Item {
                     }
                 }
                 Text {
-                    text: "Uses each app's symbolic icon, tinted to match the bar (AGS's bar.taskbar.monochrome). Apps without one keep their full-color icon."
+                    text: I18n.t("bar.monochromeDescription")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -225,13 +231,13 @@ Item {
 
                 // Bar items
                 Text {
-                    text: "Bar items"
+                    text: I18n.t("bar.items")
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
                 }
                 Text {
-                    text: "\"Collapse\" tucks the item behind the »  toggle, regardless of space."
+                    text: I18n.t("bar.itemsDescription")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -245,14 +251,14 @@ Item {
                         Layout.fillWidth: true
                     }
                     Text {
-                        text: "Visible"
+                        text: I18n.t("bar.visible")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontCaption
                         Layout.preferredWidth: Math.round(50 * UIScale.value)
                         horizontalAlignment: Text.AlignHCenter
                     }
                     Text {
-                        text: "Collapse"
+                        text: I18n.t("bar.collapse")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontCaption
                         Layout.preferredWidth: Math.round(60 * UIScale.value)

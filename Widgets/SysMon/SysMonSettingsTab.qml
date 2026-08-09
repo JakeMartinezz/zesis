@@ -16,12 +16,12 @@ ColumnLayout {
     }
 
     SectionLabel {
-        text: "PULL RATE"
+        text: I18n.t("sysmon.pullRate")
         Layout.leftMargin: UIScale.panelPad + UIScale.spacingXs
         visible: !root.compact
     }
     Text {
-        text: "Pull rate"
+        text: I18n.t("sysmon.pullRateLabel")
         color: Colors.text
         font.pixelSize: UIScale.fontSmall
         font.weight: Font.Bold
@@ -87,12 +87,12 @@ ColumnLayout {
     }
 
     SectionLabel {
-        text: "PROCESS LIMIT"
+        text: I18n.t("sysmon.processLimit")
         Layout.leftMargin: UIScale.panelPad + UIScale.spacingXs
         visible: !root.compact
     }
     Text {
-        text: "Process limit"
+        text: I18n.t("sysmon.processLimitLabel")
         color: Colors.text
         font.pixelSize: UIScale.fontSmall
         font.weight: Font.Bold
@@ -167,7 +167,7 @@ ColumnLayout {
         Layout.rightMargin: root.compact ? 0 : UIScale.panelPad
 
         Text {
-            text: "Hide idle processes"
+            text: I18n.t("sysmon.hideIdleProcesses")
             color: Colors.text
             font.pixelSize: UIScale.fontSmall
             Layout.fillWidth: true

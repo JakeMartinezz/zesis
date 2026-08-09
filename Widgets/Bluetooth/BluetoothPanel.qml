@@ -16,8 +16,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / SYSTEM"
-            title: "Bluetooth"
+            breadcrumb: I18n.t("bluetooth.breadcrumb")
+            title: I18n.t("bluetooth.title")
             rightActions: Component {
                 RowLayout {
                     spacing: UIScale.spacingSm
@@ -66,7 +66,7 @@ Item {
                                 }
                             }
                             Text {
-                                text: BluetoothService.scanning ? "Stop" : "Scan"
+                                text: BluetoothService.scanning ? I18n.t("bluetooth.stop") : I18n.t("bluetooth.scan")
                                 color: BluetoothService.scanning ? Colors.accent : Colors.textDim
                                 font.pixelSize: UIScale.fontBody
                                 font.weight: Font.DemiBold
@@ -118,7 +118,7 @@ Item {
                 }
 
                 Text {
-                    text: "Bluetooth adapter not found"
+                    text: I18n.t("bluetooth.adapterNotFound")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -128,7 +128,7 @@ Item {
                 }
 
                 Text {
-                    text: "Bluetooth is off"
+                    text: I18n.t("bluetooth.off")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -140,7 +140,7 @@ Item {
                 // Adapter picker (only when multiple adapters)
 
                 SectionLabel {
-                    text: "ADAPTER"
+                    text: I18n.t("bluetooth.adapterSection")
                     Layout.leftMargin: UIScale.panelPad
                     Layout.topMargin: UIScale.spacingXs
                     Layout.bottomMargin: UIScale.spacingXs
@@ -232,7 +232,7 @@ Item {
                     visible: BluetoothService.available && BluetoothService.powered
 
                     SectionLabel {
-                        text: "PAIRED DEVICES"
+                        text: I18n.t("bluetooth.pairedDevicesSection")
                         Layout.fillWidth: true
                     }
                     Text {
@@ -364,15 +364,15 @@ Item {
                                                 }
                                                 text: {
                                                     if (pairedItem.modelData.state === BluetoothDeviceState.Connecting)
-                                                        return "Connecting...";
+                                                        return I18n.t("bluetooth.connecting");
                                                     if (pairedItem.modelData.state === BluetoothDeviceState.Disconnecting)
-                                                        return "Disconnecting...";
+                                                        return I18n.t("bluetooth.disconnecting");
                                                     if (pairedItem.modelData.connected) {
                                                         if (pairedItem.hasBattery)
-                                                            return "Connected  ·  " + Math.round(pairedItem.batteryLevel * 100) + "%";
-                                                        return "Connected";
+                                                            return I18n.t("bluetooth.connectedWithBattery", [Math.round(pairedItem.batteryLevel * 100)]);
+                                                        return I18n.t("bluetooth.connected");
                                                     }
-                                                    return "Paired";
+                                                    return I18n.t("bluetooth.paired");
                                                 }
                                             }
                                             Text {
@@ -410,7 +410,7 @@ Item {
 
                                             Text {
                                                 anchors.centerIn: parent
-                                                text: "Auto"
+                                                text: I18n.t("common.auto")
                                                 color: pairedItem.modelData.trusted ? Colors.accent : Colors.textDim
                                                 font.pixelSize: UIScale.fontSmall
                                                 font.weight: pairedItem.modelData.trusted ? Font.DemiBold : Font.Normal
@@ -452,7 +452,7 @@ Item {
                                             Text {
                                                 id: connLabel
                                                 anchors.centerIn: parent
-                                                text: pairedItem.modelData.connected ? "Disconnect" : "Connect"
+                                                text: pairedItem.modelData.connected ? I18n.t("bluetooth.disconnect") : I18n.t("bluetooth.connect")
                                                 color: pairedItem.modelData.connected ? "#e05c5c" : Colors.accent
                                                 font.pixelSize: UIScale.fontSmall
                                                 font.weight: Font.DemiBold
@@ -505,7 +505,7 @@ Item {
                                             Text {
                                                 id: forgetLabel
                                                 anchors.centerIn: parent
-                                                text: "Forget"
+                                                text: I18n.t("bluetooth.forget")
                                                 color: forgetHover.hovered ? "#e05c5c" : Colors.withAlpha("#e05c5c", 0.5)
                                                 font.pixelSize: UIScale.fontSmall
                                                 font.weight: Font.DemiBold
@@ -574,7 +574,7 @@ Item {
                                         dim: !AirPodsService.rightEar
                                     }
                                     BluetoothBattBar {
-                                        label: "Case"
+                                        label: I18n.t("bluetooth.case")
                                         level: AirPodsService.caseLevel
                                         charging: AirPodsService.caseCharging
                                         visible: AirPodsService.caseLevel > 0
@@ -586,7 +586,7 @@ Item {
                 }
 
                 Text {
-                    text: "No paired devices"
+                    text: I18n.t("bluetooth.noPairedDevices")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -607,7 +607,7 @@ Item {
                     visible: BluetoothService.available && BluetoothService.powered && (BluetoothService.scanning || BluetoothService.nearbyDevices.length > 0)
 
                     SectionLabel {
-                        text: "NEARBY DEVICES"
+                        text: I18n.t("bluetooth.nearbyDevicesSection")
                         Layout.fillWidth: true
                     }
 
@@ -637,7 +637,7 @@ Item {
                             }
                         }
                         Text {
-                            text: "Scanning"
+                            text: I18n.t("bluetooth.scanning")
                             color: Colors.accent
                             font.pixelSize: UIScale.fontCaption
                             font.weight: Font.Bold
@@ -655,7 +655,7 @@ Item {
                 }
 
                 Text {
-                    text: "Looking for devices..."
+                    text: I18n.t("bluetooth.lookingForDevices")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -718,7 +718,7 @@ Item {
                                     spacing: Math.round(3 * UIScale.value)
 
                                     Text {
-                                        text: nearbyItem.modelData.name || "Unknown Device"
+                                        text: nearbyItem.modelData.name || I18n.t("bluetooth.unknownDevice")
                                         color: Colors.text
                                         font.pixelSize: UIScale.fontBody
                                         font.weight: Font.DemiBold
@@ -726,7 +726,7 @@ Item {
                                         width: parent.width
                                     }
                                     Text {
-                                        text: nearbyItem.modelData.pairing ? "Pairing..." : nearbyItem.modelData.address
+                                        text: nearbyItem.modelData.pairing ? I18n.t("bluetooth.pairing") : nearbyItem.modelData.address
                                         color: nearbyItem.modelData.pairing ? Colors.accent : Colors.muted
                                         font.pixelSize: UIScale.fontSmall
                                         font.family: nearbyItem.modelData.pairing ? "" : "monospace"
@@ -755,7 +755,7 @@ Item {
                                     Text {
                                         id: pairLabel
                                         anchors.centerIn: parent
-                                        text: nearbyItem.modelData.pairing ? "Cancel" : "Pair"
+                                        text: nearbyItem.modelData.pairing ? I18n.t("common.cancel") : I18n.t("bluetooth.pair")
                                         color: Colors.accent
                                         font.pixelSize: UIScale.fontSmall
                                         font.weight: Font.DemiBold

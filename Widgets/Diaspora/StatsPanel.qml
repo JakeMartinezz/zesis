@@ -42,7 +42,7 @@ Rectangle {
 
             Text {
                 Layout.fillWidth: true
-                text: "Network"
+                text: I18n.t("diaspora.network")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontTiny
                 font.capitalization: Font.AllUppercase
@@ -51,7 +51,7 @@ Rectangle {
 
             Text {
                 visible: DiasporaStatsService.lastFetchFailed
-                text: "offline"
+                text: I18n.t("diaspora.offline")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontTiny
             }
@@ -61,7 +61,7 @@ Rectangle {
         Text {
             Layout.fillWidth: true
             visible: DiasporaStatsService.totalEntries === 0 && DiasporaStatsService.loading
-            text: "Loading network stats..."
+            text: I18n.t("diaspora.loadingNetworkStats")
             color: Colors.textDim
             font.pixelSize: UIScale.fontSmall
         }
@@ -83,7 +83,7 @@ Rectangle {
                     font.weight: Font.Bold
                 }
                 Text {
-                    text: "dots on the map"
+                    text: I18n.t("diaspora.dotsOnTheMap")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -107,7 +107,7 @@ Rectangle {
                             font.weight: Font.DemiBold
                         }
                         Text {
-                            text: "verified"
+                            text: I18n.t("diaspora.verified")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                         }
@@ -122,7 +122,7 @@ Rectangle {
                             font.weight: Font.DemiBold
                         }
                         Text {
-                            text: "active"
+                            text: I18n.t("diaspora.active")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                         }
@@ -140,7 +140,7 @@ Rectangle {
                     ]
                     total: 100
                     centerText: Math.round(root._activePct) + "%"
-                    subText: "active"
+                    subText: I18n.t("diaspora.active")
                 }
             }
 
@@ -151,7 +151,7 @@ Rectangle {
                 spacing: UIScale.spacingSm
 
                 Text {
-                    text: "Shells"
+                    text: I18n.t("diaspora.shells")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontTiny
                     font.capitalization: Font.AllUppercase

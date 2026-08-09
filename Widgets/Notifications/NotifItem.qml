@@ -324,7 +324,7 @@ Rectangle {
                     Text {
                         id: viewLabel
                         anchors.centerIn: parent
-                        text: "View"
+                        text: I18n.t("notifications.view")
                         color: Colors.accent
                         font.pixelSize: UIScale.fontCaption
                     }
@@ -347,7 +347,7 @@ Rectangle {
                     Text {
                         id: replyLabel
                         anchors.centerIn: parent
-                        text: "Reply"
+                        text: I18n.t("notifications.reply")
                         color: Colors.accent
                         font.pixelSize: UIScale.fontCaption
                     }
@@ -419,7 +419,7 @@ Rectangle {
                             rightMargin: 10
                         }
                         visible: replyInput.text === "" && !replyInput.activeFocus
-                        text: root.notification?.inlineReplyPlaceholder || "Reply…"
+                        text: root.notification?.inlineReplyPlaceholder || I18n.t("notifications.replyPlaceholder")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -453,7 +453,7 @@ Rectangle {
                     Text {
                         id: sendLabel
                         anchors.centerIn: parent
-                        text: "Send"
+                        text: I18n.t("notifications.send")
                         color: Colors.accent
                         font.pixelSize: UIScale.fontCaption
                     }

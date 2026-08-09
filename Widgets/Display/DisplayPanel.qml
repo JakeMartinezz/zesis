@@ -30,8 +30,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / DISPLAY & SCALE"
-            title: "Display & Scale"
+            breadcrumb: I18n.t("display.breadcrumb")
+            title: I18n.t("display.title")
         }
 
         Flickable {
@@ -79,7 +79,7 @@ Item {
                             spacing: Math.round(2 * UIScale.value)
 
                             Text {
-                                text: DisplayService.monitorModel || DisplayService.monitorName || "Monitor"
+                                text: DisplayService.monitorModel || DisplayService.monitorName || I18n.t("display.monitorFallback")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontBody
                                 font.weight: Font.DemiBold
@@ -92,7 +92,7 @@ Item {
                                     if (DisplayService.diagonalInches > 0)
                                         parts.push(DisplayService.diagonalInches + '"');
                                     if (DisplayService.currentWidth > 0)
-                                        parts.push(DisplayService.currentWidth + " × " + DisplayService.currentHeight + " @ " + Math.round(DisplayService.currentRefresh) + " Hz");
+                                        parts.push(I18n.t("display.resolutionSummary", [DisplayService.currentWidth, DisplayService.currentHeight, Math.round(DisplayService.currentRefresh)]));
                                     return parts.join("  ·  ");
                                 }
                                 color: Colors.textDim
@@ -104,7 +104,7 @@ Item {
                 }
 
                 Text {
-                    text: "Resolution"
+                    text: I18n.t("display.resolutionLabel")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -137,7 +137,7 @@ Item {
                 }
 
                 Text {
-                    text: "Refresh Rate"
+                    text: I18n.t("display.refreshRateLabel")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -153,7 +153,7 @@ Item {
                         var rounded = Math.round(r);
                         return {
                             value: r.toFixed(4),
-                            label: (Math.abs(r - rounded) < 0.01 ? rounded : r.toFixed(2)) + " Hz"
+                            label: I18n.t("display.hzValue", [Math.abs(r - rounded) < 0.01 ? rounded : r.toFixed(2)])
                         };
                     })
                     selectedValue: root.selRefresh.toFixed(4)
@@ -181,7 +181,7 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: root.hasChange ? "Apply" : "Active"
+                        text: root.hasChange ? I18n.t("display.apply") : I18n.t("display.active")
                         color: root.hasChange ? Colors.bg : Colors.muted
                         font.pixelSize: UIScale.fontBody
                         font.weight: Font.DemiBold

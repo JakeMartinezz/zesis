@@ -343,7 +343,7 @@ Item {
             }
 
             Text {
-                text: AppSwitcherService.mode === 0 ? "Switch to workspace view" : "Switch to window view"
+                text: AppSwitcherService.mode === 0 ? I18n.t("appswitcher.switchToWorkspaceView") : I18n.t("appswitcher.switchToWindowView")
                 font.pixelSize: 10
                 color: Colors.muted
                 anchors.verticalCenter: parent.verticalCenter

@@ -1,0 +1,16 @@
+{
+  "folderPathPlaceholder": "Caminho da pasta de papéis de parede...",
+  "searchPlaceholder": "Buscar papéis de parede...",
+  "noneFoundIn": "Nenhum papel de parede encontrado em\n%1",
+  "noResults": "Nenhum resultado",
+  "breadcrumb": "CONFIGURAÇÕES / PAPEL DE PAREDE",
+  "title": "Papel de Parede & Tema",
+  "popupTitle": "Temas",
+  "dark": "Escuro",
+  "light": "Claro",
+  "backendLabel": "Backend do papel de parede",
+  "applying": "Aplicando...",
+  "colorPalette": "Paleta de Cores",
+  "applyTo": "Aplicar em...",
+  "allMonitors": "Todos os Monitores"
+}

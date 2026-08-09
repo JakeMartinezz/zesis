@@ -77,7 +77,7 @@ ColumnLayout {
     }
 
     SectionLabel {
-        text: "INTERFACES"
+        text: I18n.t("sysmon.interfaces")
         Layout.leftMargin: UIScale.panelPad + UIScale.spacingXs
         visible: !root.compact && SysMonService.net.length > 0
     }
@@ -166,7 +166,7 @@ ColumnLayout {
     Text {
         Layout.alignment: Qt.AlignHCenter
         visible: SysMonService.net.length === 0
-        text: "No interfaces"
+        text: I18n.t("sysmon.noInterfaces")
         color: Colors.textDim
         font.pixelSize: UIScale.fontSmall
     }

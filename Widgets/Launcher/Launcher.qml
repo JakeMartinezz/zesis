@@ -288,7 +288,7 @@ PanelWindow {
                                 anchors.fill: parent
                                 verticalAlignment: Text.AlignVCenter
                                 visible: searchInput.text.length === 0
-                                text: "Search"
+                                text: I18n.t("common.search")
                                 color: Colors.muted
                                 font.pixelSize: UIScale.fontBody
                             }

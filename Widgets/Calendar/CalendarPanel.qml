@@ -10,8 +10,8 @@ import "../../"
 Item {
     id: root
 
-    readonly property var _monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    readonly property var _shortDayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    readonly property var _monthNames: I18n.t("calendar.monthNames").split("|")
+    readonly property var _shortDayNames: I18n.t("calendar.shortDayNames").split("|")
     readonly property var _today: new Date()
 
     // Form state
@@ -25,23 +25,23 @@ Item {
 
     readonly property var _reminderOptions: [
         {
-            label: "None",
+            label: I18n.t("calendar.reminderNone"),
             value: null
         },
         {
-            label: "15 min",
+            label: I18n.t("calendar.reminder15Min"),
             value: 15
         },
         {
-            label: "30 min",
+            label: I18n.t("calendar.reminder30Min"),
             value: 30
         },
         {
-            label: "1 hour",
+            label: I18n.t("calendar.reminder1Hour"),
             value: 60
         },
         {
-            label: "1 day",
+            label: I18n.t("calendar.reminder1Day"),
             value: 1440
         }
     ]
@@ -142,14 +142,14 @@ Item {
 
     function fmtTime(ev) {
         if (!ev || ev.allDay)
-            return "All day";
+            return I18n.t("calendar.allDay");
         return ev.start.substring(11, 16);
     }
     function fmtTimeRange(ev) {
         if (!ev)
             return "";
         if (ev.allDay)
-            return "All day";
+            return I18n.t("calendar.allDay");
         var s = ev.start.substring(11, 16);
         var e = ev.end ? ev.end.substring(11, 16) : "";
         return e ? s + " - " + e : s;
@@ -169,24 +169,24 @@ Item {
         if (min === null || min === undefined)
             return "";
         if (min === 0)
-            return "At time of event";
+            return I18n.t("calendar.atTimeOfEvent");
         if (min < 60)
-            return min + " min before";
+            return I18n.t("calendar.minutesBefore", [min]);
         if (min === 60)
-            return "1 hour before";
+            return I18n.t("calendar.oneHourBefore");
         if (min < 1440)
-            return (min / 60) + " hours before";
-        return min === 1440 ? "1 day before" : (min / 1440) + " days before";
+            return I18n.t("calendar.hoursBefore", [min / 60]);
+        return min === 1440 ? I18n.t("calendar.oneDayBefore") : I18n.t("calendar.daysBefore", [min / 1440]);
     }
     function errText(e) {
         if (e === "missing:icalendar")
-            return "Python 'icalendar' not installed";
+            return I18n.t("calendar.icalendarNotInstalled");
         if (e.startsWith("no_dir:"))
-            return "Calendar directory not found: " + e.substring(7);
+            return I18n.t("calendar.calendarDirNotFound", [e.substring(7)]);
         if (e === "vdirsyncer_missing")
-            return "vdirsyncer not found";
+            return I18n.t("calendar.vdirsyncerNotFound");
         if (e === "parse_error")
-            return "Failed to parse calendar data";
+            return I18n.t("calendar.parseError");
         return e;
     }
     function eventDayCol(ev) {
@@ -231,8 +231,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "WIDGETS / CALENDAR"
-            title: "Calendar"
+            breadcrumb: I18n.t("calendar.breadcrumb")
+            title: I18n.t("calendar.title")
         }
 
         // Error banner
@@ -362,7 +362,7 @@ Item {
                 Text {
                     id: thisWeekLabel
                     anchors.centerIn: parent
-                    text: "This week"
+                    text: I18n.t("calendar.thisWeek")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontTiny
                 }
@@ -469,13 +469,13 @@ Item {
 
             StyledTextInput {
                 id: sumField
-                placeholder: "Event title"
+                placeholder: I18n.t("calendar.eventTitlePlaceholder")
             }
 
             RowLayout {
                 spacing: UIScale.spacingMd
                 Text {
-                    text: "All day"
+                    text: I18n.t("calendar.allDay")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -492,7 +492,7 @@ Item {
                 visible: !root._newAllDay
                 spacing: UIScale.spacingXs
                 Text {
-                    text: "From"
+                    text: I18n.t("calendar.from")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -501,7 +501,7 @@ Item {
                     text: "09:00"
                 }
                 Text {
-                    text: "to"
+                    text: I18n.t("calendar.to")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -514,7 +514,7 @@ Item {
             RowLayout {
                 spacing: UIScale.spacingXs
                 Text {
-                    text: "Repeats"
+                    text: I18n.t("calendar.repeats")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -540,7 +540,7 @@ Item {
                         Text {
                             id: repPillLabel
                             anchors.centerIn: parent
-                            text: repPill.modelData.charAt(0).toUpperCase() + repPill.modelData.slice(1)
+                            text: I18n.t("calendar.repeat_" + repPill.modelData)
                             color: root._newRepeat === repPill.modelData ? Colors.accent : Colors.textDim
                             font.pixelSize: UIScale.fontTiny
                             Behavior on color {
@@ -563,7 +563,7 @@ Item {
 
             Text {
                 visible: root._formEvent !== null && root._formEvent.recurring
-                text: "Applies to all occurrences"
+                text: I18n.t("calendar.appliesToAllOccurrences")
                 color: Colors.muted
                 font.pixelSize: UIScale.fontTiny
                 Layout.alignment: Qt.AlignHCenter
@@ -571,7 +571,7 @@ Item {
 
             StyledTextInput {
                 id: locField
-                placeholder: "Location"
+                placeholder: I18n.t("calendar.locationPlaceholder")
             }
 
             Rectangle {
@@ -601,7 +601,7 @@ Item {
                     selectByMouse: true
                     Text {
                         anchors.fill: parent
-                        text: "Notes"
+                        text: I18n.t("calendar.notes")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontSmall
                         visible: descField.text.length === 0 && !descField.activeFocus
@@ -611,7 +611,7 @@ Item {
 
             StyledTextInput {
                 id: urlField
-                placeholder: "Meeting URL"
+                placeholder: I18n.t("calendar.meetingUrlPlaceholder")
             }
 
             ColumnLayout {
@@ -622,7 +622,7 @@ Item {
                     spacing: UIScale.spacingXs
                     StyledTextInput {
                         id: attField
-                        placeholder: "Add attendee email"
+                        placeholder: I18n.t("calendar.addAttendeeEmailPlaceholder")
                         onAccepted: {
                             var email = attField.text.trim();
                             if (email.length > 0) {
@@ -720,7 +720,7 @@ Item {
             RowLayout {
                 spacing: UIScale.spacingXs
                 Text {
-                    text: "Reminder"
+                    text: I18n.t("calendar.reminder")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -771,7 +771,7 @@ Item {
                 visible: CalendarService.availableCalendars.length > 1 && root._formEvent === null
                 spacing: UIScale.spacingXs
                 Text {
-                    text: "In"
+                    text: I18n.t("calendar.in")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                 }
@@ -833,7 +833,7 @@ Item {
                     }
                     Text {
                         anchors.centerIn: parent
-                        text: "Cancel"
+                        text: I18n.t("common.cancel")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -1469,7 +1469,7 @@ Item {
                     }
                     Text {
                         anchors.centerIn: parent
-                        text: "Delete"
+                        text: I18n.t("calendar.delete")
                         color: Colors.accent
                         font.pixelSize: UIScale.fontSmall
                     }

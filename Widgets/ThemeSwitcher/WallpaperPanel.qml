@@ -407,7 +407,7 @@ Item {
                 Layout.topMargin: UIScale.spacingLg
                 Layout.leftMargin: Math.round(16 * UIScale.value)
                 Layout.rightMargin: Math.round(16 * UIScale.value)
-                placeholder: "Wallpaper folder path..."
+                placeholder: I18n.t("wallpaper.folderPathPlaceholder")
                 text: ThemeState.wallpaperFolder
                 onAccepted: {
                     if (text.trim() !== "")
@@ -421,7 +421,7 @@ Item {
                 Layout.leftMargin: Math.round(16 * UIScale.value)
                 Layout.rightMargin: Math.round(16 * UIScale.value)
                 showClearButton: true
-                placeholder: "Search wallpapers..."
+                placeholder: I18n.t("wallpaper.searchPlaceholder")
                 onTextChanged: root._updateFilter(text)
             }
 
@@ -457,7 +457,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: filteredWallpapers.count === 0 && !scanner.running
-                    text: wallpapers.count === 0 ? "No wallpapers found in\n" + root._wallpapersDir : "No results"
+                    text: wallpapers.count === 0 ? I18n.t("wallpaper.noneFoundIn", [root._wallpapersDir]) : I18n.t("wallpaper.noResults")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -499,7 +499,7 @@ Item {
                 spacing: 0
 
                 Text {
-                    text: "SETTINGS / WALLPAPER"
+                    text: I18n.t("wallpaper.breadcrumb")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontCaption
                     font.weight: Font.Bold
@@ -515,7 +515,7 @@ Item {
                     spacing: UIScale.spacingSm
 
                     Text {
-                        text: "Wallpaper & Theme"
+                        text: I18n.t("wallpaper.title")
                         color: Colors.text
                         font.pixelSize: UIScale.fontTitle
                         font.weight: Font.ExtraBold
@@ -552,7 +552,7 @@ Item {
                             spacing: 0
                             Text {
                                 Layout.fillWidth: true
-                                text: "Dark"
+                                text: I18n.t("wallpaper.dark")
                                 color: ThemeState.palette === "dark" ? Colors.bg : Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                                 font.weight: Font.Medium
@@ -565,7 +565,7 @@ Item {
                             }
                             Text {
                                 Layout.fillWidth: true
-                                text: "Light"
+                                text: I18n.t("wallpaper.light")
                                 color: ThemeState.palette === "light" ? Colors.bg : Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                                 font.weight: Font.Medium
@@ -594,7 +594,7 @@ Item {
                     spacing: UIScale.spacingSm
 
                     Text {
-                        text: "Wallpaper backend"
+                        text: I18n.t("wallpaper.backendLabel")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -665,7 +665,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Applying..."
+                            text: I18n.t("wallpaper.applying")
                             color: "white"
                             font.pixelSize: UIScale.fontSmall
                             font.weight: Font.Medium
@@ -674,7 +674,7 @@ Item {
                 }
 
                 Text {
-                    text: "Color Palette"
+                    text: I18n.t("wallpaper.colorPalette")
                     color: Colors.text
                     font.pixelSize: UIScale.fontLead
                     font.weight: Font.DemiBold
@@ -733,7 +733,7 @@ Item {
                 spacing: 2
 
                 Text {
-                    text: "Apply to..."
+                    text: I18n.t("wallpaper.applyTo")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontTiny
                     font.weight: Font.Bold
@@ -743,7 +743,7 @@ Item {
 
                 PickerRow {
                     width: pickerCol.width
-                    label: "All Monitors"
+                    label: I18n.t("wallpaper.allMonitors")
                     onActivated: {
                         ThemeState.apply(root._monitorPickerPath, "");
                         root._monitorPickerOpen = false;

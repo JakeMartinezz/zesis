@@ -59,8 +59,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / SYSTEM MONITOR"
-            title: "System Monitor"
+            breadcrumb: I18n.t("sysmon.breadcrumb")
+            title: I18n.t("sysmon.title")
         }
 
         SysMonTabBar {
@@ -123,7 +123,7 @@ Item {
 
                                 Text {
                                     Layout.preferredWidth: Math.round(50 * UIScale.value)
-                                    text: "PID" + root.sortIndicator(0)
+                                    text: I18n.t("sysmon.pid") + root.sortIndicator(0)
                                     color: root.sortField === 0 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -136,7 +136,7 @@ Item {
                                 }
                                 Text {
                                     Layout.fillWidth: true
-                                    text: "Name" + root.sortIndicator(1)
+                                    text: I18n.t("sysmon.name") + root.sortIndicator(1)
                                     color: root.sortField === 1 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -147,7 +147,7 @@ Item {
                                     }
                                 }
                                 Text {
-                                    text: "CPU%" + root.sortIndicator(2)
+                                    text: I18n.t("sysmon.cpuPercent") + root.sortIndicator(2)
                                     color: root.sortField === 2 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -255,7 +255,7 @@ Item {
                                 spacing: Math.round(6 * UIScale.value)
 
                                 Text {
-                                    text: "Swap"
+                                    text: I18n.t("sysmon.swap")
                                     color: Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -298,7 +298,7 @@ Item {
 
                                 Text {
                                     Layout.preferredWidth: Math.round(50 * UIScale.value)
-                                    text: "PID" + root.sortIndicator(0)
+                                    text: I18n.t("sysmon.pid") + root.sortIndicator(0)
                                     color: root.sortField === 0 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -311,7 +311,7 @@ Item {
                                 }
                                 Text {
                                     Layout.fillWidth: true
-                                    text: "Name" + root.sortIndicator(1)
+                                    text: I18n.t("sysmon.name") + root.sortIndicator(1)
                                     color: root.sortField === 1 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -322,7 +322,7 @@ Item {
                                     }
                                 }
                                 Text {
-                                    text: "Memory" + root.sortIndicator(2)
+                                    text: I18n.t("sysmon.memory") + root.sortIndicator(2)
                                     color: root.sortField === 2 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -473,7 +473,7 @@ Item {
                             }
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
-                                text: "Compute"
+                                text: I18n.t("sysmon.compute")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontCaption
                                 font.weight: Font.Medium
@@ -494,7 +494,7 @@ Item {
                             }
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
-                                text: "VRAM"
+                                text: I18n.t("sysmon.vram")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontCaption
                                 font.weight: Font.Medium
@@ -516,7 +516,7 @@ Item {
 
                                 Text {
                                     Layout.preferredWidth: Math.round(50 * UIScale.value)
-                                    text: "PID" + root.sortIndicator(0)
+                                    text: I18n.t("sysmon.pid") + root.sortIndicator(0)
                                     color: root.sortField === 0 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -529,7 +529,7 @@ Item {
                                 }
                                 Text {
                                     Layout.fillWidth: true
-                                    text: "Name" + root.sortIndicator(1)
+                                    text: I18n.t("sysmon.name") + root.sortIndicator(1)
                                     color: root.sortField === 1 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -541,14 +541,14 @@ Item {
                                 }
                                 Text {
                                     Layout.preferredWidth: Math.round(52 * UIScale.value)
-                                    text: "GFX%"
+                                    text: I18n.t("sysmon.gfxPercent")
                                     color: Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
                                     font.family: "monospace"
                                 }
                                 Text {
-                                    text: "VRAM" + root.sortIndicator(2)
+                                    text: I18n.t("sysmon.vram") + root.sortIndicator(2)
                                     color: root.sortField === 2 ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontCaption
                                     font.weight: Font.Medium
@@ -623,7 +623,7 @@ Item {
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 visible: SysMonService.gpu.length === 0
-                                text: "No GPU detected"
+                                text: I18n.t("sysmon.noGpuDetected")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }

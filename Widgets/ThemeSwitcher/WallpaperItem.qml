@@ -120,7 +120,7 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            text: "Applying..."
+            text: I18n.t("wallpaper.applying")
             color: Colors.text
             font.pixelSize: UIScale.fontCaption
         }

@@ -316,8 +316,8 @@ Item {
         PanelHeader {
             id: header
             Layout.fillWidth: true
-            breadcrumb: root._showSettings ? "WEATHER / SETTINGS" : (WeatherService.locationName !== "" ? WeatherService.locationName.toUpperCase() : "WEATHER")
-            title: root._showSettings ? "Settings" : WeatherService.conditionText(WeatherService.weatherCode)
+            breadcrumb: root._showSettings ? I18n.t("weather.breadcrumbSettings") : (WeatherService.locationName !== "" ? WeatherService.locationName.toUpperCase() : I18n.t("weather.breadcrumbWeather"))
+            title: root._showSettings ? I18n.t("weather.settings") : WeatherService.conditionText(WeatherService.weatherCode)
         }
 
         // Body: display, tab bar and tab content, positioned with plain anchors rather
@@ -370,7 +370,7 @@ Item {
                         Text {
                             id: hourlyLabel
                             anchors.centerIn: parent
-                            text: "Hourly"
+                            text: I18n.t("weather.hourly")
                             font.pixelSize: UIScale.fontSmall
                             font.weight: root.activeTab === 0 ? Font.DemiBold : Font.Normal
                             color: root.activeTab === 0 ? Colors.accent : Colors.textDim
@@ -404,7 +404,7 @@ Item {
                         Text {
                             id: weeklyLabel
                             anchors.centerIn: parent
-                            text: "Weekly"
+                            text: I18n.t("weather.weekly")
                             font.pixelSize: UIScale.fontSmall
                             font.weight: root.activeTab === 1 ? Font.DemiBold : Font.Normal
                             color: root.activeTab === 1 ? Colors.accent : Colors.textDim
@@ -536,7 +536,7 @@ Item {
                 }
 
                 Text {
-                    text: "LOCATION"
+                    text: I18n.t("weather.location")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontTiny
                     font.weight: Font.Bold
@@ -548,7 +548,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.leftMargin: UIScale.panelPad
                     Layout.rightMargin: UIScale.panelPad
-                    model: ["Auto", "Manual"]
+                    model: [I18n.t("weather.modeAuto"), I18n.t("weather.modeManual")]
                     currentIndex: WeatherService.locationMode === "manual" ? 1 : 0
                     onActivated: index => {
                         WeatherService.saveLocationMode(index === 1 ? "manual" : "auto");
@@ -565,7 +565,7 @@ Item {
                     spacing: UIScale.spacingXs
 
                     Text {
-                        text: "City"
+                        text: I18n.t("weather.city")
                         color: Colors.text
                         font.pixelSize: UIScale.fontSmall
                         font.weight: Font.DemiBold
@@ -573,7 +573,7 @@ Item {
 
                     StyledTextInput {
                         Layout.fillWidth: true
-                        placeholder: "e.g. London"
+                        placeholder: I18n.t("weather.cityPlaceholder")
                         text: WeatherService.manualCity
                         onAccepted: {
                             var city = field.text.trim();

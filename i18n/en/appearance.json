@@ -1,0 +1,22 @@
+{
+  "breadcrumb": "INTERFACE",
+  "title": "Appearance",
+  "interfaceScale": "Interface scale",
+  "multiplier": "%1x",
+  "small": "Small",
+  "normal": "Normal",
+  "large": "Large",
+  "fontSize": "Font size",
+  "spacing": "Spacing",
+  "radius": "Radius",
+  "colors": "Colors",
+  "colorsDescription": "Override individual roles of the wallpaper-generated theme. Each palette keeps its own set, so dark and light can differ.",
+  "darkMode": "Dark mode",
+  "lightMode": "Light mode",
+  "dark": "dark",
+  "light": "light",
+  "paletteActive": "%1 (active)",
+  "editingInactive": "Editing the inactive palette - changes apply when you switch to %1 mode.",
+  "reset": "Reset",
+  "resetPaletteColors": "Reset %1 colors"
+}

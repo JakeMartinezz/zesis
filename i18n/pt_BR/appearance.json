@@ -1,0 +1,22 @@
+{
+  "breadcrumb": "INTERFACE",
+  "title": "Aparência",
+  "interfaceScale": "Escala da interface",
+  "multiplier": "%1x",
+  "small": "Pequeno",
+  "normal": "Normal",
+  "large": "Grande",
+  "fontSize": "Tamanho da fonte",
+  "spacing": "Espaçamento",
+  "radius": "Raio",
+  "colors": "Cores",
+  "colorsDescription": "Substitua funções individuais do tema gerado pelo papel de parede. Cada paleta mantém seu próprio conjunto, então os modos claro e escuro podem ser diferentes.",
+  "darkMode": "Modo escuro",
+  "lightMode": "Modo claro",
+  "dark": "escuro",
+  "light": "claro",
+  "paletteActive": "%1 (ativo)",
+  "editingInactive": "Você está editando a paleta inativa - as alterações valem quando você mudar para o modo %1.",
+  "reset": "Redefinir",
+  "resetPaletteColors": "Redefinir cores do modo %1"
+}

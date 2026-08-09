@@ -64,13 +64,13 @@ WlSessionLockSurface {
                     return;
                 if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                     if (surface.inputBuffer === "please") {
-                        surface._roastMessage = "no.";
+                        surface._roastMessage = I18n.t("lockscreen.roastNo");
                         surface.inputBuffer = "";
                         roastTimer.restart();
                         return;
                     }
                     if (surface.inputBuffer === "password") {
-                        surface._roastMessage = "...seriously?";
+                        surface._roastMessage = I18n.t("lockscreen.roastSeriously");
                         surface.inputBuffer = "";
                         roastTimer.restart();
                         return;
@@ -181,7 +181,7 @@ WlSessionLockSurface {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: {
                         var h = new Date().getHours();
-                        var g = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+                        var g = h < 12 ? I18n.t("lockscreen.goodMorning") : h < 17 ? I18n.t("lockscreen.goodAfternoon") : I18n.t("lockscreen.goodEvening");
                         return UserService.name !== "" ? g + ", " + UserService.name : g;
                     }
                     color: Colors.text
@@ -306,7 +306,7 @@ WlSessionLockSurface {
 
             Text {
                 anchors.centerIn: parent
-                text: surface._roastMessage !== "" ? surface._roastMessage : surface.inputBuffer.length > 0 ? Array(Math.min(surface.inputBuffer.length, 14) + 1).join("●") : "type to unlock"
+                text: surface._roastMessage !== "" ? surface._roastMessage : surface.inputBuffer.length > 0 ? Array(Math.min(surface.inputBuffer.length, 14) + 1).join("●") : I18n.t("lockscreen.typeToUnlock")
                 color: surface._roastMessage !== "" ? Colors.muted : surface.inputBuffer.length > 0 ? Colors.accent : Colors.muted
                 font.pixelSize: surface._roastMessage !== "" || surface.inputBuffer.length === 0 ? UIScale.fontBody : Math.round(11 * UIScale.value * UIScale.fontScale)
                 font.letterSpacing: surface._roastMessage !== "" || surface.inputBuffer.length === 0 ? 0 : Math.round(4 * UIScale.value)

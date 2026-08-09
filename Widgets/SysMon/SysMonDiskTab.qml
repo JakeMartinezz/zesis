@@ -41,7 +41,7 @@ ColumnLayout {
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "R Read"
+                    text: I18n.t("sysmon.readAbbrev")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                 }
@@ -68,7 +68,7 @@ ColumnLayout {
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: "W Write"
+                    text: I18n.t("sysmon.writeAbbrev")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                 }
@@ -77,7 +77,7 @@ ColumnLayout {
     }
 
     SectionLabel {
-        text: "DEVICES"
+        text: I18n.t("sysmon.devices")
         Layout.leftMargin: UIScale.panelPad + UIScale.spacingXs
         visible: !root.compact && SysMonService.diskFlat.length > 0
     }
@@ -104,7 +104,7 @@ ColumnLayout {
                 id: writeVal
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                text: "W " + SysMonService.fmtRate(diskRow.modelData.write)
+                text: I18n.t("sysmon.writeRatePrefix") + SysMonService.fmtRate(diskRow.modelData.write)
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
                 font.family: "monospace"
@@ -114,7 +114,7 @@ ColumnLayout {
                 anchors.right: writeVal.left
                 anchors.rightMargin: Math.round(12 * UIScale.value)
                 anchors.verticalCenter: parent.verticalCenter
-                text: "R " + SysMonService.fmtRate(diskRow.modelData.read)
+                text: I18n.t("sysmon.readRatePrefix") + SysMonService.fmtRate(diskRow.modelData.read)
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
                 font.family: "monospace"
@@ -147,13 +147,13 @@ ColumnLayout {
                     Layout.fillWidth: true
                 }
                 Text {
-                    text: "R " + SysMonService.fmtRate(diskCard.modelData.read)
+                    text: I18n.t("sysmon.readRatePrefix") + SysMonService.fmtRate(diskCard.modelData.read)
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     font.family: "monospace"
                 }
                 Text {
-                    text: "W " + SysMonService.fmtRate(diskCard.modelData.write)
+                    text: I18n.t("sysmon.writeRatePrefix") + SysMonService.fmtRate(diskCard.modelData.write)
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     font.family: "monospace"
@@ -166,7 +166,7 @@ ColumnLayout {
     Text {
         Layout.alignment: Qt.AlignHCenter
         visible: SysMonService.diskFlat.length === 0
-        text: "No disks"
+        text: I18n.t("sysmon.noDisks")
         color: Colors.textDim
         font.pixelSize: UIScale.fontSmall
     }

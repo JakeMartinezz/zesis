@@ -80,8 +80,8 @@ Item {
 
                 PanelHeader {
                     Layout.fillWidth: true
-                    breadcrumb: "WIDGETS / RECORDING"
-                    title: "Recording"
+                    breadcrumb: I18n.t("record.breadcrumb")
+                    title: I18n.t("record.title")
                 }
 
                 Flickable {
@@ -104,7 +104,7 @@ Item {
                         }
 
                         SectionLabel {
-                            text: "ENCODE DEVICE"
+                            text: I18n.t("record.encodeDevice")
                             Layout.leftMargin: UIScale.spacingMd
                         }
 
@@ -116,14 +116,14 @@ Item {
                             model: {
                                 var m = [
                                     {
-                                        label: "Auto (recommended)",
+                                        label: I18n.t("record.autoRecommended"),
                                         value: ""
                                     }
                                 ];
                                 for (var i = 0; i < RecordService.gpuDevices.length; i++)
                                     m.push(RecordService.gpuDevices[i]);
                                 m.push({
-                                    label: "Software (CPU)",
+                                    label: I18n.t("record.softwareCpu"),
                                     value: "software"
                                 });
                                 return m;
@@ -140,7 +140,7 @@ Item {
                             spacing: UIScale.spacingSm
 
                             SectionLabel {
-                                text: "QUALITY (QP)"
+                                text: I18n.t("record.quality")
                                 Layout.fillWidth: true
                             }
 
@@ -166,14 +166,14 @@ Item {
                             Layout.fillWidth: true
                             Layout.leftMargin: UIScale.spacingMd
                             Layout.rightMargin: UIScale.spacingMd
-                            text: "Lower is higher quality / larger files. Ignored when using software encode."
+                            text: I18n.t("record.qualityHint")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             wrapMode: Text.WordWrap
                         }
 
                         SectionLabel {
-                            text: "FRAMERATE CAP"
+                            text: I18n.t("record.framerateCap")
                             Layout.leftMargin: UIScale.spacingMd
                             Layout.topMargin: UIScale.spacingXs
                         }
@@ -182,7 +182,7 @@ Item {
                             Layout.fillWidth: true
                             Layout.leftMargin: UIScale.spacingMd
                             Layout.rightMargin: UIScale.spacingMd
-                            model: ["Uncapped", "30", "60"]
+                            model: [I18n.t("record.uncapped"), "30", "60"]
                             currentIndex: RecordSettings.fpsCap === 30 ? 1 : (RecordSettings.fpsCap === 60 ? 2 : 0)
                             onActivated: index => RecordSettings.setFpsCap(index === 1 ? 30 : (index === 2 ? 60 : 0))
                         }
@@ -190,7 +190,7 @@ Item {
                         ActionButton {
                             Layout.alignment: Qt.AlignHCenter
                             Layout.topMargin: UIScale.spacingSm
-                            label: "Record Region..."
+                            label: I18n.t("record.recordRegion")
                             onActivated: {
                                 RecordService.startRegion();
                                 popup.close();
