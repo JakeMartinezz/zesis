@@ -13,31 +13,37 @@ Singleton {
 
     property string palette: "dark"
     property string lastWallpaper: ""
-    property string schemeType: "scheme-tonal-spot"
     property string wallpaperBackend: "awww"
     property string customWallpaperCommand: ""
+    property string wallpaperFolder: _home + "/Pictures/Wallpapers"
     property bool applying: false
     property string lastError: ""
 
+    // Backend commands take two positional args: $1 image path, $2 space-separated
+    // list of target monitor names (always at least one real name, never
+    // empty/omitted - awww/swww's daemon panics with "malformed answer" if you
+    // ever call it without an explicit --outputs target, confirmed against a
+    // known-working reference script that always loops per-monitor and never
+    // calls it bare).
     readonly property var wallpaperBackends: [
         {
             id: "awww",
             label: "awww",
-            command: "awww img \"$1\" --transition-type fade --transition-duration 1"
+            command: "pgrep -x awww-daemon >/dev/null || { awww-daemon >/dev/null 2>&1 & sleep 2; }; for m in $2; do awww img --outputs \"$m\" --transition-type fade --transition-duration 1 \"$1\"; done"
         },
         {
             id: "swww",
             label: "swww",
-            command: "swww img \"$1\" --transition-type fade --transition-duration 1"
+            command: "pgrep -x swww-daemon >/dev/null || { swww-daemon >/dev/null 2>&1 & sleep 2; }; for m in $2; do swww img --outputs \"$m\" --transition-type fade --transition-duration 1 \"$1\"; done"
         },
         {
             id: "hyprpaper",
             label: "hyprpaper",
-            command: "hyprctl hyprpaper preload \"$1\" && hyprctl hyprpaper wallpaper \",$1\""
+            command: "hyprctl hyprpaper preload \"$1\" && for m in $2; do hyprctl hyprpaper wallpaper \"$m,$1\"; done"
         },
         {
             id: "feh",
-            label: "feh (X11)",
+            label: "feh (X11, always all monitors)",
             command: "feh --bg-fill \"$1\""
         },
         {
@@ -57,6 +63,28 @@ Singleton {
         return root.wallpaperBackends[0].command;
     }
 
+    // Backends that need a persistent daemon running before `apply()` can
+    // talk to them (AGS starts awww-daemon the same way on its own startup).
+    readonly property var _daemonStartCommands: ({
+            "awww": "pgrep -x awww-daemon >/dev/null || { awww-daemon >/dev/null 2>&1 & }",
+            "swww": "pgrep -x swww-daemon >/dev/null || { swww-daemon >/dev/null 2>&1 & }"
+        })
+
+    function _ensureDaemonRunning() {
+        var cmd = root._daemonStartCommands[root.wallpaperBackend];
+        if (!cmd)
+            return;
+        daemonStartProcess.command = ["bash", "-c", cmd];
+        daemonStartProcess.running = true;
+    }
+
+    Process {
+        id: daemonStartProcess
+    }
+
+    Component.onCompleted: root._ensureDaemonRunning()
+    onWallpaperBackendChanged: root._ensureDaemonRunning()
+
     Process {
         command: ["mkdir", "-p", root.thumbsDir]
         running: true
@@ -66,9 +94,9 @@ Singleton {
         id: stateData
         property string palette: "dark"
         property string lastWallpaper: ""
-        property string schemeType: "scheme-tonal-spot"
         property string wallpaperBackend: "awww"
         property string customWallpaperCommand: ""
+        property string wallpaperFolder: ""
     }
 
     FileView {
@@ -77,34 +105,34 @@ Singleton {
         onLoaded: {
             root.palette = stateData.palette;
             root.lastWallpaper = stateData.lastWallpaper;
-            root.schemeType = stateData.schemeType;
             root.wallpaperBackend = stateData.wallpaperBackend;
             root.customWallpaperCommand = stateData.customWallpaperCommand;
+            root.wallpaperFolder = stateData.wallpaperFolder || (root._home + "/Pictures/Wallpapers");
         }
     }
 
-    function apply(wallpaperPath) {
+    // monitor: ShellScreen.name to target, or "" for all monitors (default) -
+    // resolved here to a real, space-separated monitor list either way, so the
+    // backend command is never invoked without an explicit target.
+    function apply(wallpaperPath, monitor) {
         if (root.applying)
             return;
         root.applying = true;
         root.lastError = "";
         applyProcess._wallpaperPath = wallpaperPath;
-        var setCmd = root._wallpaperSetCmd();
-        var script = (setCmd.length > 0 ? setCmd + " && " : "") + "matugen image \"$1\" --source-color-index 0 --type \"$2\" --mode \"$3\"";
-        applyProcess.command = ["bash", "-c", script, "--", wallpaperPath, root.schemeType, root.palette];
+        var targets = (monitor && monitor.length > 0) ? monitor : Quickshell.screens.map(s => s.name).join(" ");
+        applyProcess.command = ["bash", "-c", root._wallpaperSetCmd(), "--", wallpaperPath, targets];
         applyProcess.running = true;
+    }
+
+    function setWallpaperFolder(path) {
+        root.wallpaperFolder = path;
+        root._persistState();
     }
 
     function togglePalette() {
         root.palette = (root.palette === "dark" ? "light" : "dark");
         root._persistState();
-        if (root.applying || root.lastWallpaper === "")
-            return;
-        root.applying = true;
-        root.lastError = "";
-        applyProcess._wallpaperPath = root.lastWallpaper;
-        applyProcess.command = ["bash", "-c", "matugen image \"$1\" --source-color-index 0 --type \"$2\" --mode \"$3\"", "--", root.lastWallpaper, root.schemeType, root.palette];
-        applyProcess.running = true;
     }
 
     Process {
@@ -141,9 +169,9 @@ Singleton {
         var json = JSON.stringify({
             palette: root.palette,
             lastWallpaper: root.lastWallpaper,
-            schemeType: root.schemeType,
             wallpaperBackend: root.wallpaperBackend,
-            customWallpaperCommand: root.customWallpaperCommand
+            customWallpaperCommand: root.customWallpaperCommand,
+            wallpaperFolder: root.wallpaperFolder
         });
         saveProcess.command = ["bash", "-c", "printf '%s' \"$1\" > \"$2\"", "--", json, root._stateFile];
         saveProcess.running = true;

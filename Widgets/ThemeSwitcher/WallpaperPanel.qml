@@ -10,9 +10,14 @@ import "../Shared"
 Item {
     id: root
 
-    readonly property string _wallpapersDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+    readonly property string _wallpapersDir: ThemeState.wallpaperFolder
 
     readonly property real paneMargin: Math.round(28 * UIScale.value)
+
+    // Monitor-picker popup state, opened when a wallpaper cell is clicked
+    property bool _monitorPickerOpen: false
+    property string _monitorPickerPath: ""
+    property point _monitorPickerPos: Qt.point(0, 0)
 
     // Container-aware split, see docs/qml-patterns.md #2. Both sides of the threshold are
     // measured from content. The grid needs at least two target-sized columns to be worth
@@ -26,6 +31,7 @@ Item {
     readonly property real stackedGridHeight: Math.max(Math.round(240 * UIScale.value), Math.round(root.height * 0.4))
 
     Component.onCompleted: scanner.running = true
+    on_WallpapersDirChanged: scanner.running = true
 
     ListModel {
         id: wallpapers
@@ -47,7 +53,10 @@ Item {
 
     Process {
         id: scanner
-        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
+        // -L: follow symlinks, including when the wallpaper folder itself is one
+        // (a common dotfiles pattern) - without it, find treats a symlinked dir
+        // as a leaf and never descends into it.
+        command: ["bash", "-c", "find -L \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
         stdout: StdioCollector {}
         onExited: () => listReader.reload()
     }
@@ -175,7 +184,12 @@ Item {
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
-            onClicked: ThemeState.apply(cell.path)
+            onClicked: function (mouse) {
+                var p = mapToItem(root, mouse.x, mouse.y);
+                root._monitorPickerPath = cell.path;
+                root._monitorPickerPos = Qt.point(p.x, p.y);
+                root._monitorPickerOpen = true;
+            }
         }
 
         Process {
@@ -345,6 +359,35 @@ Item {
         }
     }
 
+    component PickerRow: Rectangle {
+        id: pickRow
+        property string label: ""
+        signal activated
+
+        width: parent ? parent.width : 0
+        implicitHeight: Math.round(32 * UIScale.value)
+        radius: UIScale.radiusSm
+        color: pickHover.hovered ? Colors.surfaceHigh : "transparent"
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: UIScale.spacingSm
+            text: pickRow.label
+            color: Colors.text
+            font.pixelSize: UIScale.fontSmall
+        }
+
+        HoverHandler {
+            id: pickHover
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: pickRow.activated()
+        }
+    }
+
     Item {
         id: bodyArea
         anchors.fill: parent
@@ -359,9 +402,22 @@ Item {
             spacing: UIScale.spacingSm
 
             StyledTextInput {
-                id: searchField
+                id: folderField
                 Layout.fillWidth: true
                 Layout.topMargin: UIScale.spacingLg
+                Layout.leftMargin: Math.round(16 * UIScale.value)
+                Layout.rightMargin: Math.round(16 * UIScale.value)
+                placeholder: "Wallpaper folder path..."
+                text: ThemeState.wallpaperFolder
+                onAccepted: {
+                    if (text.trim() !== "")
+                        ThemeState.setWallpaperFolder(text.trim());
+                }
+            }
+
+            StyledTextInput {
+                id: searchField
+                Layout.fillWidth: true
                 Layout.leftMargin: Math.round(16 * UIScale.value)
                 Layout.rightMargin: Math.round(16 * UIScale.value)
                 showClearButton: true
@@ -401,7 +457,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: filteredWallpapers.count === 0 && !scanner.running
-                    text: wallpapers.count === 0 ? "No wallpapers found in\n~/Pictures/Wallpapers" : "No results"
+                    text: wallpapers.count === 0 ? "No wallpapers found in\n" + root._wallpapersDir : "No results"
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -467,58 +523,6 @@ Item {
 
                     Item {
                         Layout.fillWidth: true
-                    }
-
-                    // Scheme type dropdown
-                    StyledComboBox {
-                        id: schemeDropdown
-                        Layout.preferredHeight: Math.round(32 * UIScale.value)
-                        model: [
-                            {
-                                value: "scheme-tonal-spot",
-                                label: "Tonal Spot"
-                            },
-                            {
-                                value: "scheme-vibrant",
-                                label: "Vibrant"
-                            },
-                            {
-                                value: "scheme-expressive",
-                                label: "Expressive"
-                            },
-                            {
-                                value: "scheme-fidelity",
-                                label: "Fidelity"
-                            },
-                            {
-                                value: "scheme-content",
-                                label: "Content"
-                            },
-                            {
-                                value: "scheme-neutral",
-                                label: "Neutral"
-                            },
-                            {
-                                value: "scheme-monochrome",
-                                label: "Monochrome"
-                            },
-                            {
-                                value: "scheme-rainbow",
-                                label: "Rainbow"
-                            },
-                            {
-                                value: "scheme-fruit-salad",
-                                label: "Fruit Salad"
-                            },
-                        ]
-                        selectedValue: ThemeState.schemeType
-                        onChosen: value => {
-                            ThemeState.schemeType = value;
-                            if (ThemeState.lastWallpaper !== "")
-                                ThemeState.apply(ThemeState.lastWallpaper);
-                            else
-                                ThemeState._persistState();
-                        }
                     }
 
                     // Dark / Light toggle
@@ -687,6 +691,77 @@ Item {
                     Layout.topMargin: UIScale.radiusMd
                     rowLabel: "Light"
                     swatches: root._lightSwatches
+                }
+            }
+        }
+    }
+
+    // Monitor picker - opened when a wallpaper cell is clicked, lets a
+    // multi-monitor setup apply the wallpaper to just one screen
+    Item {
+        id: monitorPicker
+        anchors.fill: parent
+        visible: root._monitorPickerOpen
+        z: 1000
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root._monitorPickerOpen = false
+        }
+
+        Rectangle {
+            id: pickerFrame
+            x: Math.max(0, Math.min(root._monitorPickerPos.x, monitorPicker.width - width))
+            y: Math.max(0, Math.min(root._monitorPickerPos.y, monitorPicker.height - height))
+            width: Math.round(200 * UIScale.value)
+            implicitHeight: pickerCol.implicitHeight + UIScale.spacingSm * 2
+            radius: UIScale.radiusMd
+            color: Colors.bg
+            border.color: Colors.outline
+            border.width: 1
+
+            // Swallow clicks inside the menu so they don't reach the backdrop dismiss area
+            MouseArea {
+                anchors.fill: parent
+            }
+
+            Column {
+                id: pickerCol
+                x: UIScale.spacingSm
+                y: UIScale.spacingSm
+                width: parent.width - UIScale.spacingSm * 2
+                spacing: 2
+
+                Text {
+                    text: "Apply to..."
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontTiny
+                    font.weight: Font.Bold
+                    leftPadding: UIScale.spacingXs
+                    bottomPadding: UIScale.spacingXs
+                }
+
+                PickerRow {
+                    width: pickerCol.width
+                    label: "All Monitors"
+                    onActivated: {
+                        ThemeState.apply(root._monitorPickerPath, "");
+                        root._monitorPickerOpen = false;
+                    }
+                }
+
+                Repeater {
+                    model: Quickshell.screens
+                    delegate: PickerRow {
+                        id: monRow
+                        required property var modelData
+                        width: pickerCol.width
+                        label: monRow.modelData.name
+                        onActivated: {
+                            ThemeState.apply(root._monitorPickerPath, monRow.modelData.name);
+                            root._monitorPickerOpen = false;
+                        }
+                    }
                 }
             }
         }

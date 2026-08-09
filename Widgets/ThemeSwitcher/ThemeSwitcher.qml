@@ -14,7 +14,42 @@ Item {
 
     Component.onCompleted: scanner.running = true
 
-    readonly property string _wallpapersDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+    readonly property string _wallpapersDir: ThemeState.wallpaperFolder
+    on_WallpapersDirChanged: scanner.running = true
+
+    // Monitor picker - opened when a wallpaper is clicked, same as WallpaperPanel.qml
+    property bool _monitorPickerOpen: false
+    property string _monitorPickerPath: ""
+    property point _monitorPickerPos: Qt.point(0, 0)
+
+    component PickerRow: Rectangle {
+        id: pickRow
+        property string label: ""
+        signal activated
+
+        width: parent ? parent.width : 0
+        implicitHeight: Math.round(32 * UIScale.value)
+        radius: UIScale.radiusSm
+        color: pickHover.hovered ? Colors.surfaceHigh : "transparent"
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: UIScale.spacingSm
+            text: pickRow.label
+            color: Colors.text
+            font.pixelSize: UIScale.fontSmall
+        }
+
+        HoverHandler {
+            id: pickHover
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: pickRow.activated()
+        }
+    }
 
     ListModel {
         id: wallpapers
@@ -22,7 +57,8 @@ Item {
 
     Process {
         id: scanner
-        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
+        // -L: follow symlinks, including when the wallpaper folder itself is one
+        command: ["bash", "-c", "find -L \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
         stdout: StdioCollector {}
         onExited: () => listReader.reload()
     }
@@ -46,10 +82,10 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: UIScale.radiusLg
-        topLeftRadius: (BarConfig.side === "top" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
-        topRightRadius: (BarConfig.side === "top" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
-        bottomLeftRadius: (BarConfig.side === "bottom" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
-        bottomRightRadius: (BarConfig.side === "bottom" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
+        topLeftRadius: BarConfig.side === "top" ? 0 : UIScale.radiusLg
+        topRightRadius: BarConfig.side === "top" ? 0 : UIScale.radiusLg
+        bottomLeftRadius: BarConfig.side === "bottom" ? 0 : UIScale.radiusLg
+        bottomRightRadius: BarConfig.side === "bottom" ? 0 : UIScale.radiusLg
         color: Colors.bg
         border.color: Colors.outline
         border.width: 1
@@ -167,17 +203,24 @@ Item {
             }
 
             delegate: WallpaperItem {
+                id: wpItem
                 required property string path
                 wallpaperPath: path
                 width: listView.width - Math.round(8 * UIScale.value)
                 visible: searchField.text === "" || path.toLowerCase().includes(searchField.text.toLowerCase())
                 height: visible ? implicitHeight : 0
+                onActivated: {
+                    var p = wpItem.mapToItem(root, wpItem.width / 2, wpItem.height / 2);
+                    root._monitorPickerPath = wpItem.wallpaperPath;
+                    root._monitorPickerPos = p;
+                    root._monitorPickerOpen = true;
+                }
             }
 
             Text {
                 anchors.centerIn: parent
                 visible: wallpapers.count === 0 && !scanner.running
-                text: "No wallpapers found in\n~/Pictures/Wallpapers"
+                text: "No wallpapers found in\n" + root._wallpapersDir
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
                 horizontalAlignment: Text.AlignHCenter
@@ -192,6 +235,77 @@ Item {
         onPressed: mouse => {
             root.forceActiveFocus();
             mouse.accepted = false;
+        }
+    }
+
+    // Monitor picker - opened when a wallpaper is clicked, lets a multi-monitor
+    // setup apply the wallpaper to just one screen. Same pattern as WallpaperPanel.qml.
+    Item {
+        id: monitorPicker
+        anchors.fill: parent
+        visible: root._monitorPickerOpen
+        z: 10000
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root._monitorPickerOpen = false
+        }
+
+        Rectangle {
+            id: pickerFrame
+            x: Math.max(0, Math.min(root._monitorPickerPos.x, monitorPicker.width - width))
+            y: Math.max(0, Math.min(root._monitorPickerPos.y, monitorPicker.height - height))
+            width: Math.round(200 * UIScale.value)
+            implicitHeight: pickerCol.implicitHeight + UIScale.spacingSm * 2
+            radius: UIScale.radiusMd
+            color: Colors.bg
+            border.color: Colors.outline
+            border.width: 1
+
+            // Swallow clicks inside the menu so they don't reach the backdrop dismiss area
+            MouseArea {
+                anchors.fill: parent
+            }
+
+            Column {
+                id: pickerCol
+                x: UIScale.spacingSm
+                y: UIScale.spacingSm
+                width: parent.width - UIScale.spacingSm * 2
+                spacing: 2
+
+                Text {
+                    text: "Apply to..."
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontTiny
+                    font.weight: Font.Bold
+                    leftPadding: UIScale.spacingXs
+                    bottomPadding: UIScale.spacingXs
+                }
+
+                PickerRow {
+                    width: pickerCol.width
+                    label: "All Monitors"
+                    onActivated: {
+                        ThemeState.apply(root._monitorPickerPath, "");
+                        root._monitorPickerOpen = false;
+                    }
+                }
+
+                Repeater {
+                    model: Quickshell.screens
+                    delegate: PickerRow {
+                        id: monRow
+                        required property var modelData
+                        width: pickerCol.width
+                        label: monRow.modelData.name
+                        onActivated: {
+                            ThemeState.apply(root._monitorPickerPath, monRow.modelData.name);
+                            root._monitorPickerOpen = false;
+                        }
+                    }
+                }
+            }
         }
     }
 }
