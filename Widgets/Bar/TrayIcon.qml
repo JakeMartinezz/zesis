@@ -53,20 +53,8 @@ Item {
     PopupWindow {
         id: menuPopup
         anchor.item: root
-        anchor.rect.x: {
-            if (BarConfig.side === "left")
-                return root.width;
-            if (BarConfig.side === "right")
-                return -menuPopup.implicitWidth;
-            return root.width / 2 - menuPopup.implicitWidth / 2;
-        }
-        anchor.rect.y: {
-            if (BarConfig.side === "bottom")
-                return -menuPopup.implicitHeight;
-            if (BarConfig.isVertical)
-                return root.height / 2 - menuPopup.implicitHeight / 2;
-            return root.height;
-        }
+        anchor.rect.x: root.width / 2 - menuPopup.implicitWidth / 2
+        anchor.rect.y: BarConfig.side === "bottom" ? -menuPopup.implicitHeight : root.height
         grabFocus: true
         visible: false
         color: "transparent"

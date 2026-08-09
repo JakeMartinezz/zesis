@@ -28,19 +28,14 @@ Singleton {
             src: "../Keybinds/KeybindsItem.qml"
         },
         {
-            id: "bluetooth",
-            label: "Bluetooth",
-            src: "../Bluetooth/BluetoothItem.qml"
+            id: "system",
+            label: "System (Bluetooth/Wi-Fi/Sound/Mic)",
+            src: "SystemIndicators.qml"
         },
         {
             id: "airpods",
             label: "AirPods",
             src: "../AirPods/AirPods.qml"
-        },
-        {
-            id: "wifi",
-            label: "Wi-Fi",
-            src: "../Wifi/WifiItem.qml"
         },
         {
             id: "weather",
@@ -51,16 +46,6 @@ Singleton {
             id: "brightness",
             label: "Brightness",
             src: "../Brightness/BrightnessItem.qml"
-        },
-        {
-            id: "sound",
-            label: "Sound",
-            src: "../Sound/SoundItem.qml"
-        },
-        {
-            id: "mic",
-            label: "Microphone",
-            src: "../Mic/MicItem.qml"
         },
         {
             id: "notifications",
@@ -88,11 +73,6 @@ Singleton {
             src: "../GitUpdate/GitUpdateItem.qml"
         },
         {
-            id: "home",
-            label: "Home",
-            icon: ""
-        },
-        {
             id: "settings",
             label: "Settings",
             icon: "󰘮"
@@ -117,6 +97,15 @@ Singleton {
     }
 
     property var order: []
+
+    // ids the user pinned to always sit behind the overflow toggle, regardless
+    // of available width - separate from the automatic width-driven collapse
+    property var _collapsed: {
+        const s = {};
+        for (const item of items)
+            s[item.id] = false;
+        return s;
+    }
 
     // items reordered per the persisted order Any id missing from order
     // (not yet merged, example before first load) falls back to catalog
@@ -149,6 +138,17 @@ Singleton {
         s[id] = !isEnabled(id);
         _state = s;
         BarConfig.writeItemStates(s);
+    }
+
+    function isCollapsed(id) {
+        return _collapsed[id] === true;
+    }
+
+    function toggleCollapsed(id) {
+        const c = Object.assign({}, _collapsed);
+        c[id] = !isCollapsed(id);
+        _collapsed = c;
+        BarConfig.writeItemCollapsed(c);
     }
 
     // Inserts id immediately before beforeId in the persisted order, or at the
@@ -188,6 +188,28 @@ Singleton {
             BarConfig.writeItemStates(s);
     }
 
+    function _mergeCollapsed() {
+        const raw = BarConfig.itemCollapsed;
+        const c = Object.assign({}, raw);
+        let dirty = false;
+        for (const item of items) {
+            if (!(item.id in c)) {
+                c[item.id] = false;
+                dirty = true;
+            }
+        }
+        const known = new Set(items.map(x => x.id));
+        for (const id of Object.keys(c)) {
+            if (!known.has(id)) {
+                delete c[id];
+                dirty = true;
+            }
+        }
+        _collapsed = c;
+        if (dirty)
+            BarConfig.writeItemCollapsed(c);
+    }
+
     function _mergeOrder() {
         const known = new Set(items.map(x => x.id));
         const raw = BarConfig.itemOrder || [];
@@ -212,6 +234,9 @@ Singleton {
         }
         function onItemOrderChanged() {
             root._mergeOrder();
+        }
+        function onItemCollapsedChanged() {
+            root._mergeCollapsed();
         }
     }
 }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
@@ -13,12 +14,12 @@ Item {
     id: root
 
     required property string appId
-    property int itemSize: Math.round(44 * UIScale.value)
+    property int itemSize: Math.round(30 * UIScale.value)
 
     implicitWidth: itemSize
     implicitHeight: itemSize
 
-    readonly property int _iconSz: Math.round(26 * UIScale.value)
+    readonly property int _iconSz: Math.round(18 * UIScale.value)
 
     readonly property var _entry: {
         var _ = DesktopEntries.applications.values.length;
@@ -26,6 +27,11 @@ Item {
     }
     readonly property string _name: _entry ? _entry.name : root.appId
     readonly property string _iconName: _entry ? _entry.icon : ""
+    // hasThemeIcon is a synchronous theme lookup - falls back to the regular
+    // color icon when the app has no symbolic variant. (Image.status never
+    // reports Error for a missing themed icon - it resolves to an empty-but-
+    // "Ready" placeholder instead, so that can't be used to detect this.)
+    readonly property bool _hasSymbolic: root._iconName !== "" && Quickshell.hasThemeIcon(root._iconName + "-symbolic")
 
     // WlrForeignToplevel objects for this app (have .activated, .activate(), etc.)
     readonly property var _toplevels: {
@@ -78,6 +84,14 @@ Item {
         }
     }
 
+    // Resting tint - persistent panel-button box (AGS flatButtons:false parity)
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: Math.round(3 * UIScale.value)
+        radius: UIScale.radiusSm
+        color: Colors.withAlpha(Colors.text, 0.05)
+    }
+
     // Active tint
     Rectangle {
         anchors.fill: parent
@@ -115,10 +129,24 @@ Item {
 
             IconImage {
                 id: iconImg
+                visible: false
                 anchors.fill: parent
-                source: root._iconName ? Quickshell.iconPath(root._iconName) : ""
+                source: {
+                    if (!root._iconName)
+                        return "";
+                    if (TaskbarService.monochrome && root._hasSymbolic)
+                        return Quickshell.iconPath(root._iconName + "-symbolic");
+                    return Quickshell.iconPath(root._iconName);
+                }
                 implicitSize: root._iconSz
                 asynchronous: true
+            }
+
+            MultiEffect {
+                anchors.fill: iconImg
+                source: iconImg
+                colorization: (TaskbarService.monochrome && root._hasSymbolic) ? 1.0 : 0.0
+                colorizationColor: Colors.text
             }
 
             Rectangle {
@@ -165,13 +193,11 @@ Item {
         color: "transparent"
 
         anchor.item: root
-        anchor.edges: BarConfig.isVertical ? (BarConfig.side === "left" ? Edges.Right : Edges.Left) : (BarConfig.side === "top" ? Edges.Bottom : Edges.Top)
-        anchor.gravity: BarConfig.isVertical ? (BarConfig.side === "left" ? Edges.Right : Edges.Left) : (BarConfig.side === "top" ? Edges.Bottom : Edges.Top)
+        anchor.edges: BarConfig.side === "top" ? Edges.Bottom : Edges.Top
+        anchor.gravity: BarConfig.side === "top" ? Edges.Bottom : Edges.Top
         anchor.adjustment: PopupAdjustment.All
         anchor.margins.top: BarConfig.side === "bottom" ? Math.round(-8 * UIScale.value) : 0
         anchor.margins.bottom: BarConfig.side === "top" ? Math.round(-8 * UIScale.value) : 0
-        anchor.margins.left: BarConfig.side === "right" ? Math.round(-8 * UIScale.value) : 0
-        anchor.margins.right: BarConfig.side === "left" ? Math.round(-8 * UIScale.value) : 0
 
         readonly property int _cardH: root._thumbH + Math.round(28 * UIScale.value)
         readonly property int _cardSpacing: Math.round(6 * UIScale.value)

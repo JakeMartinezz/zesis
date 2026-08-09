@@ -1,56 +1,99 @@
-pragma ComponentBehavior: Bound
-
 import QtQuick
 import Quickshell.Services.Mpris
 import "../../"
 
+// Icon-only at rest, like AGS's Media widget - reveals the track title briefly
+// on track change or hover, then auto-collapses (AGS's Revealer, 3s timeout).
 Item {
     id: root
 
     readonly property alias isHovered: chipHover.hovered
 
     readonly property var _player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
+    readonly property string _title: root._player ? root._player.trackTitle : ""
 
-    readonly property int _textW: Math.round(110 * UIScale.value)
-    readonly property int _padH: Math.round(12 * UIScale.value)
-    readonly property int _pillH: Math.round(50 * UIScale.value)
+    readonly property real _iconSize: Math.round(26 * UIScale.value)
+    readonly property real _textW: Math.round(110 * UIScale.value)
 
-    implicitWidth: iconText.implicitWidth + Math.round(UIScale.spacingSm) + _textW + _padH * 2
-    implicitHeight: _pillH
+    property bool _revealed: false
 
-    Rectangle {
-        anchors.centerIn: parent
-        width: parent.implicitWidth
-        height: root._pillH
-        radius: 100
-        clip: true
-        color: Colors.barBg
+    visible: root._player !== null
+    clip: true
+    implicitWidth: root._revealed ? (root._iconSize + Math.round(UIScale.spacingXs) + root._textW) : root._iconSize
+    implicitHeight: root._iconSize
 
-        Row {
-            anchors.centerIn: parent
-            spacing: Math.round(UIScale.spacingSm)
+    Behavior on implicitWidth {
+        NumberAnimation {
+            duration: Anim.medium
+            easing.type: Easing.InOutCubic
+        }
+    }
 
-            Text {
-                id: iconText
-                anchors.verticalCenter: parent.verticalCenter
-                text: "󰝚"
-                color: Colors.muted
-                font.pixelSize: UIScale.fontLead
-            }
+    Timer {
+        id: revealTimer
+        interval: 3000
+        onTriggered: if (!chipHover.hovered)
+            root._revealed = false
+    }
 
-            Text {
-                anchors.verticalCenter: parent.verticalCenter
-                text: root._player ? root._player.trackTitle : ""
-                width: root._textW
-                elide: Text.ElideRight
-                color: Colors.text
-                font.pixelSize: UIScale.fontSmall
-                font.bold: true
+    on_TitleChanged: {
+        if (root._title !== "") {
+            root._revealed = true;
+            revealTimer.restart();
+        }
+    }
+
+    HoverHandler {
+        id: chipHover
+        onHoveredChanged: {
+            if (hovered) {
+                revealTimer.stop();
+                root._revealed = true;
+            } else {
+                revealTimer.restart();
             }
         }
+    }
 
-        HoverHandler {
-            id: chipHover
+    TapHandler {
+        onTapped: if (root._player)
+            root._player.togglePlaying()
+    }
+
+    WheelHandler {
+        onWheel: function (w) {
+            if (!root._player)
+                return;
+            if (w.angleDelta.y > 0)
+                root._player.previous();
+            else
+                root._player.next();
+        }
+    }
+
+    Row {
+        anchors.verticalCenter: parent.verticalCenter
+        spacing: Math.round(UIScale.spacingXs)
+
+        Text {
+            width: root._iconSize
+            height: root._iconSize
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            text: "󰝚"
+            color: Colors.text
+            font.pixelSize: UIScale.fontLead
+        }
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root._revealed
+            text: root._title
+            width: root._textW
+            elide: Text.ElideRight
+            color: Colors.text
+            font.pixelSize: UIScale.fontSmall
+            font.bold: true
         }
     }
 }

@@ -634,8 +634,8 @@ Item {
 
                 SysTray {
                     id: realSysTrayTest
-                    x: BarConfig.isVertical ? 0 : (parent.width - width)
-                    y: BarConfig.isVertical ? (parent.height - height) : 0
+                    x: parent.width - width
+                    y: 0
                     maxWidth: root.testWidth
                 }
 

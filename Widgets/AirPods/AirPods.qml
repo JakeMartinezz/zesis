@@ -11,7 +11,7 @@ Item {
     readonly property bool available: AirPodsService.connected
     visible: available
     implicitWidth: available ? pill.implicitWidth : 0
-    implicitHeight: Math.round(30 * UIScale.value)
+    implicitHeight: Math.round(26 * UIScale.value)
 
     // bar indicator
 
@@ -41,7 +41,6 @@ Item {
 
             // Left pod %
             Text {
-                visible: !BarConfig.isVertical
                 text: AirPodsService.leftLevel + "%"
                 font.pixelSize: UIScale.fontTiny
                 font.weight: Font.DemiBold
@@ -61,7 +60,6 @@ Item {
 
             // Right pod %
             Text {
-                visible: !BarConfig.isVertical
                 text: AirPodsService.rightLevel + "%"
                 font.pixelSize: UIScale.fontTiny
                 font.weight: Font.DemiBold
@@ -95,20 +93,8 @@ Item {
     PopupWindow {
         id: apPopup
         anchor.item: root
-        anchor.rect.x: {
-            if (BarConfig.side === "left")
-                return root.width;
-            if (BarConfig.side === "right")
-                return -apPopup.implicitWidth;
-            return root.width / 2 - apPopup.implicitWidth / 2;
-        }
-        anchor.rect.y: {
-            if (BarConfig.side === "bottom")
-                return -apPopup.implicitHeight;
-            if (BarConfig.isVertical)
-                return root.height / 2 - apPopup.implicitHeight / 2;
-            return root.height;
-        }
+        anchor.rect.x: root.width / 2 - apPopup.implicitWidth / 2
+        anchor.rect.y: BarConfig.side === "bottom" ? -apPopup.implicitHeight : root.height
         grabFocus: true
         visible: false
         color: "transparent"
@@ -167,23 +153,15 @@ Item {
             implicitHeight: popupCol.implicitHeight
             scale: 0
             opacity: 0
-            transformOrigin: {
-                if (BarConfig.side === "bottom")
-                    return Item.Bottom;
-                if (BarConfig.side === "left")
-                    return Item.Left;
-                if (BarConfig.side === "right")
-                    return Item.Right;
-                return Item.Top;
-            }
+            transformOrigin: BarConfig.side === "bottom" ? Item.Bottom : Item.Top
 
             Rectangle {
                 anchors.fill: parent
                 radius: UIScale.radiusLg
-                topLeftRadius: (BarConfig.side === "top" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
-                topRightRadius: (BarConfig.side === "top" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
-                bottomLeftRadius: (BarConfig.side === "bottom" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
-                bottomRightRadius: (BarConfig.side === "bottom" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
+                topLeftRadius: BarConfig.side === "top" ? 0 : UIScale.radiusLg
+                topRightRadius: BarConfig.side === "top" ? 0 : UIScale.radiusLg
+                bottomLeftRadius: BarConfig.side === "bottom" ? 0 : UIScale.radiusLg
+                bottomRightRadius: BarConfig.side === "bottom" ? 0 : UIScale.radiusLg
                 color: Colors.bg
                 border.color: Colors.outline
                 border.width: 1

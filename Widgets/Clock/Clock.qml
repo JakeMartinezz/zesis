@@ -8,11 +8,11 @@ import "../Bar"
 Item {
     id: root
 
-    readonly property real cellH: Math.round(30 * UIScale.value)
-    readonly property real cellW: Math.round(14 * UIScale.value)
-    readonly property real colonW: Math.round(14 * UIScale.value)
-    readonly property real hPad: Math.round(14 * UIScale.value)
-    readonly property real vPad: Math.round(5 * UIScale.value)
+    readonly property real cellH: Math.round(22 * UIScale.value)
+    readonly property real cellW: Math.round(11 * UIScale.value)
+    readonly property real colonW: Math.round(8 * UIScale.value)
+    readonly property real hPad: Math.round(9 * UIScale.value)
+    readonly property real vPad: Math.round(2 * UIScale.value)
     readonly property real charGap: Math.round(1 * UIScale.value)
 
     // "breathe" | "on" | "off" | "hidden"
@@ -35,8 +35,8 @@ Item {
         return n * cellW + (n - 1) * charGap;
     }
 
-    implicitWidth: BarConfig.isVertical ? (2 * cellW + charGap + hPad * 2) : ((widthMode === "fixed" ? Math.max(charsRow.implicitWidth, ClockSettings.showDate ? _dateMinContentW : _minContentW) : charsRow.implicitWidth) + hPad * 2)
-    implicitHeight: BarConfig.isVertical ? (2 * cellH + vPad * 3) : (cellH + vPad * 2)
+    implicitWidth: (widthMode === "fixed" ? Math.max(charsRow.implicitWidth, ClockSettings.showDate ? _dateMinContentW : _minContentW) : charsRow.implicitWidth) + hPad * 2
+    implicitHeight: cellH + vPad * 2
 
     TypewriterEngine {
         id: engine
@@ -96,7 +96,7 @@ Item {
             root._altLatch = true;
             return ["U", " ", "U", "P", " ", "L", "8", "?"];
         }
-        if (ClockSettings.showDate && !BarConfig.isVertical)
+        if (ClockSettings.showDate)
             return _dateTimeChars(date);
         return _timeChars(h, date.getMinutes());
     }
@@ -117,14 +117,14 @@ Item {
         var d = new Date();
         d.setHours(h);
         d.setMinutes(m);
-        engine.snapTo(ClockSettings.showDate && !BarConfig.isVertical ? _dateTimeChars(d) : _timeChars(h, m));
+        engine.snapTo(ClockSettings.showDate ? _dateTimeChars(d) : _timeChars(h, m));
     }
 
     function simulateTo(h, m) {
         var d = new Date();
         d.setHours(h);
         d.setMinutes(m);
-        engine.animateTo(ClockSettings.showDate && !BarConfig.isVertical ? _dateTimeChars(d) : _timeChars(h, m));
+        engine.animateTo(ClockSettings.showDate ? _dateTimeChars(d) : _timeChars(h, m));
     }
 
     function triggerAltMode() {
@@ -139,10 +139,8 @@ Item {
         border.width: 1.5
     }
 
-    // Horizontal layout
     Row {
         id: charsRow
-        visible: !BarConfig.isVertical
         anchors.left: parent.left
         anchors.leftMargin: root.hPad
         anchors.verticalCenter: parent.verticalCenter
@@ -160,93 +158,10 @@ Item {
             Text {
                 anchors.centerIn: parent
                 text: "_"
-                font.pixelSize: Math.round(21 * UIScale.value)
+                font.pixelSize: Math.round(15 * UIScale.value)
                 font.bold: true
                 font.family: "monospace"
                 color: engine.cursorOn ? Colors.accent : Colors.withAlpha(Colors.accent, 0.12)
-            }
-        }
-    }
-
-    // Vertical stacked layout (bar on left/right)
-    Column {
-        visible: BarConfig.isVertical
-        anchors.centerIn: parent
-        spacing: root.vPad
-
-        // Hours row, model slots 0-1
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: root.charGap
-
-            Repeater {
-                model: engine.model
-                delegate: Item {
-                    required property string ch
-                    required property int index
-                    visible: index < 2
-                    width: root.cellW
-                    height: root.cellH
-                    Text {
-                        anchors.centerIn: parent
-                        text: parent.ch
-                        font.pixelSize: Math.round(21 * UIScale.value)
-                        font.bold: true
-                        font.family: "monospace"
-                        color: Colors.accent
-                    }
-                }
-            }
-            Item {
-                visible: engine.animState === 2 && engine.cursor < 2
-                width: root.cellW
-                height: root.cellH
-                Text {
-                    anchors.centerIn: parent
-                    text: "_"
-                    font.pixelSize: Math.round(21 * UIScale.value)
-                    font.bold: true
-                    font.family: "monospace"
-                    color: engine.cursorOn ? Colors.accent : Colors.withAlpha(Colors.accent, 0.12)
-                }
-            }
-        }
-
-        // Minutes row, model slots > 2 (colon at index 2 is skipped)
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: root.charGap
-
-            Repeater {
-                model: engine.model
-                delegate: Item {
-                    required property string ch
-                    required property int index
-                    visible: index > 2
-                    width: root.cellW
-                    height: root.cellH
-                    Text {
-                        anchors.centerIn: parent
-                        text: parent.ch
-                        font.pixelSize: Math.round(21 * UIScale.value)
-                        font.bold: true
-                        font.family: "monospace"
-                        color: Colors.accent
-                    }
-                }
-            }
-            Item {
-                visible: engine.animState === 2 && engine.cursor > 2
-                width: root.cellW
-                height: root.cellH
-                Text {
-                    anchors.centerIn: parent
-                    text: "_"
-                    font.pixelSize: Math.round(21 * UIScale.value)
-                    font.bold: true
-                    font.family: "monospace"
-                    color: engine.cursorOn ? Colors.accent : Colors.withAlpha(Colors.accent, 0.12)
-                }
             }
         }
     }
@@ -263,7 +178,7 @@ Item {
         Text {
             anchors.centerIn: parent
             text: parent.ch === "/" ? ":" : parent.ch
-            font.pixelSize: Math.round(21 * UIScale.value)
+            font.pixelSize: Math.round(15 * UIScale.value)
             font.bold: true
             font.family: "monospace"
             color: Colors.accent

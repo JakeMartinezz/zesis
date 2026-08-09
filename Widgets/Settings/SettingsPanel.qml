@@ -6,7 +6,6 @@ import "../Config"
 import "../ThemeSwitcher"
 import "../Clock"
 import "../AppSwitcher"
-import "../WorkspaceIndicator"
 import "../Display"
 import "../Bluetooth"
 import "../Wifi"
@@ -299,7 +298,7 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["bar", "clock", "app switcher", "workspace"].some(s => s.includes(root.searchText.toLowerCase()))
+                            visible: root.searchText === "" || ["bar", "clock", "app switcher"].some(s => s.includes(root.searchText.toLowerCase()))
                         }
                         NavItem {
                             navId: "bar"
@@ -325,15 +324,6 @@ Item {
                             navIcon: ""
                             isNavSelected: root.section === "appswitcher"
                             visible: root.searchText === "" || "app switcher".includes(root.searchText.toLowerCase())
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
-                        }
-                        NavItem {
-                            navId: "workspace"
-                            navLabel: "Workspace"
-                            navIcon: ""
-                            isNavSelected: root.section === "workspace"
-                            visible: root.searchText === "" || "workspace".includes(root.searchText.toLowerCase())
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
@@ -451,8 +441,6 @@ Item {
                         return clockPanelComp;
                     if (root.section === "appswitcher")
                         return appSwitcherPanelComp;
-                    if (root.section === "workspace")
-                        return workspacePanelComp;
                     if (root.section === "display")
                         return displayPanelComp;
                     if (root.section === "bluetooth")
@@ -488,10 +476,6 @@ Item {
             Component {
                 id: appSwitcherPanelComp
                 AppSwitcherPanel {}
-            }
-            Component {
-                id: workspacePanelComp
-                WorkspaceIndicatorPanel {}
             }
             Component {
                 id: displayPanelComp

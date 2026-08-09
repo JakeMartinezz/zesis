@@ -14,10 +14,10 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: UIScale.radiusLg
-        topLeftRadius: (BarConfig.side === "top" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
-        topRightRadius: (BarConfig.side === "top" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
-        bottomLeftRadius: (BarConfig.side === "bottom" || BarConfig.side === "left") ? 0 : UIScale.radiusLg
-        bottomRightRadius: (BarConfig.side === "bottom" || BarConfig.side === "right") ? 0 : UIScale.radiusLg
+        topLeftRadius: BarConfig.side === "top" ? 0 : UIScale.radiusLg
+        topRightRadius: BarConfig.side === "top" ? 0 : UIScale.radiusLg
+        bottomLeftRadius: BarConfig.side === "bottom" ? 0 : UIScale.radiusLg
+        bottomRightRadius: BarConfig.side === "bottom" ? 0 : UIScale.radiusLg
         color: Colors.bg
         border.color: Colors.outline
         border.width: 1
@@ -50,7 +50,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: UIScale.spacingSm
                 Repeater {
-                    model: ["Top", "Bottom", "Left", "Right"]
+                    model: ["Top", "Bottom"]
                     delegate: Rectangle {
                         id: sideBtn
                         required property string modelData

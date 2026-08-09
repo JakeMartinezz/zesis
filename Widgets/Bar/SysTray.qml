@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../../"
-import "../Home"
 import "../Settings"
 import "../LockScreen"
 import "../Shared"
@@ -16,17 +15,19 @@ Rectangle {
     // -1 = unconstrained (show every enabled+available item at natural size)
     property real maxWidth: -1
 
-    radius: 100
-    color: Colors.barBg
+    // No background/radius of its own - sits flush on the bar's continuous
+    // surface, like AGS's end box. Each icon carries its own panel-button tint.
+    radius: 0
+    color: "transparent"
     visible: BarItemsService.anyEnabled
-    implicitWidth: BarConfig.isVertical ? Math.round(50 * UIScale.value) : (layout.implicitWidth + root._pad)
-    implicitHeight: BarConfig.isVertical ? (layout.implicitHeight + root._pad) : Math.round(50 * UIScale.value)
+    implicitWidth: layout.implicitWidth + root._pad
+    implicitHeight: Math.round(34 * UIScale.value)
 
-    readonly property real _pad: Math.round(24 * UIScale.value)
+    readonly property real _pad: Math.round(10 * UIScale.value)
     readonly property real _gap: 4
     // Matches BarButton.qml's own implicitWidth formula for the "»" chevron
     // Let's see if whoever updates the BarButton also remembers to update this shit.
-    readonly property real _chevronWidth: Math.round(30 * UIScale.value)
+    readonly property real _chevronWidth: Math.round(26 * UIScale.value)
 
     function _catalogIndex(id) {
         var arr = BarItemsService.orderedItems;
@@ -54,16 +55,20 @@ Rectangle {
         return result;
     }
 
+    // _enabledIds minus ids the user manually pinned behind the overflow toggle -
+    // only this subset is eligible to sit in the main row / count toward _fitCount.
+    readonly property var _autoIds: root._enabledIds.filter(id => !BarItemsService.isCollapsed(id))
+
     // Counts trailing items kept, so the last-declared items (e.g. clock) stay closest to
     // the pill's fixed right edge and are the last thing to collapse.
     readonly property int _fitCount: {
-        if (BarConfig.isVertical || root.maxWidth < 0)
-            return root._enabledIds.length;
+        if (root.maxWidth < 0)
+            return root._autoIds.length;
         var budget = root.maxWidth - root._pad;
         var used = 0;
         var count = 0;
-        for (var i = root._enabledIds.length - 1; i >= 0; i--) {
-            var d = trayRepeater.itemAt(root._catalogIndex(root._enabledIds[i]));
+        for (var i = root._autoIds.length - 1; i >= 0; i--) {
+            var d = trayRepeater.itemAt(root._catalogIndex(root._autoIds[i]));
             var w = d ? d.itemWidth : 0;
             var next = used + (count > 0 ? root._gap : 0) + w;
             var reserve = (i > 0) ? (root._gap + root._chevronWidth) : 0;
@@ -75,41 +80,49 @@ Rectangle {
         return count;
     }
 
-    readonly property bool _hasOverflow: root._fitCount < root._enabledIds.length
+    // Whether there's anything currently NOT shown in the row (manually pinned
+    // behind the toggle, or pushed out by the width-driven fit).
+    readonly property bool _hasHidden: root._fitCount < root._autoIds.length || root._autoIds.length < root._enabledIds.length
 
-    // Overflowed items are a PREFIX of _enabledIds, since _fitCount counts trailing items
-    // kept. A disabled/unavailable id isn't in _enabledIds at all, so this returns false
-    // for it, structurally absent, not overflowed.
-    function _isOverflowed(id) {
-        var idx = root._enabledIds.indexOf(id);
-        return idx >= 0 && idx < (root._enabledIds.length - root._fitCount);
-    }
+    // Clicking the chevron doesn't open a popup - it just drops the hidden
+    // icons directly into the bar row itself, growing it inline.
+    property bool _expanded: false
 
-    // Single source of truth for main-row visibility: enabled+available AND not collapsed
-    function _isVisibleInRow(id) {
-        var idx = root._enabledIds.indexOf(id);
+    // Whether id sits in the row on its own merit, regardless of _expanded -
+    // i.e. the stable "always shown" classification used to decide which
+    // side of the chevron an item renders on (see _leftIdsOrdered/_rightIdsOrdered).
+    function _fitsWithoutExpand(id) {
+        if (BarItemsService.isCollapsed(id))
+            return false;
+        var idx = root._autoIds.indexOf(id);
         if (idx < 0)
             return false;
-        return idx >= (root._enabledIds.length - root._fitCount);
+        return idx >= (root._autoIds.length - root._fitCount);
     }
 
-    readonly property real _maxOverflowedItemWidth: {
-        var max = 0;
-        for (var i = 0; i < root._enabledIds.length - root._fitCount; i++) {
-            var d = trayRepeater.itemAt(root._catalogIndex(root._enabledIds[i]));
-            if (d && d.itemWidth > max)
-                max = d.itemWidth;
-        }
-        return max;
+    // Single source of truth for main-row visibility: always-fits items, plus
+    // everything else once revealed inline via the chevron toggle.
+    function _isVisibleInRow(id) {
+        return root._fitsWithoutExpand(id) || (root._expanded && root._enabledIds.indexOf(id) >= 0);
     }
-    readonly property real _maxOverflowedItemHeight: {
-        var max = 0;
-        for (var i = 0; i < root._enabledIds.length - root._fitCount; i++) {
-            var d = trayRepeater.itemAt(root._catalogIndex(root._enabledIds[i]));
-            if (d && d.itemHeight > max)
-                max = d.itemHeight;
-        }
-        return max;
+
+    // Catalog-order ids that sit before/after the chevron. Kept separate from
+    // the (single, never-recreated) trayRepeater's model - only their
+    // Layout.column changes, so revealing/hiding never destroys+recreates a
+    // delegate. Hidden ids go left of the chevron and grow leftward when
+    // revealed; always-fits ids go right of it and never move (see the
+    // GridLayout below for why that keeps the chevron itself stationary).
+    readonly property var _leftIdsOrdered: BarItemsService.orderedItems.map(it => it.id).filter(id => root._enabledIds.indexOf(id) >= 0 && !root._fitsWithoutExpand(id))
+    readonly property var _rightIdsOrdered: BarItemsService.orderedItems.map(it => it.id).filter(id => root._enabledIds.indexOf(id) >= 0 && root._fitsWithoutExpand(id))
+
+    function _columnFor(id) {
+        var li = root._leftIdsOrdered.indexOf(id);
+        if (li >= 0)
+            return li;
+        var ri = root._rightIdsOrdered.indexOf(id);
+        if (ri >= 0)
+            return root._leftIdsOrdered.length + 1 + ri;
+        return 0;
     }
 
     // Drag-to-reorder logic
@@ -139,7 +152,7 @@ Rectangle {
     // item (row order) whose center lies past the pointer, or "" to mean
     // append at end.
     function _computeDropBefore(draggedId, pos) {
-        var coord = BarConfig.isVertical ? pos.y : pos.x;
+        var coord = pos.x;
         for (var i = 0; i < root._enabledIds.length; i++) {
             var id = root._enabledIds[i];
             if (id === draggedId || !root._isVisibleInRow(id))
@@ -148,7 +161,7 @@ Rectangle {
             if (!slot)
                 continue;
             var center = slot.mapToItem(root, slot.width / 2, slot.height / 2);
-            var centerCoord = BarConfig.isVertical ? center.y : center.x;
+            var centerCoord = center.x;
             if (coord < centerCoord)
                 return id;
         }
@@ -179,27 +192,22 @@ Rectangle {
         BarButton {}
     }
 
-    // The inner Loader stays active/visible unconditionally, the wrapper's own
-    // visible is the ONE place overflow/disabled/unavailable state is
-    // expressed. See docs/qml-patterns.md #1.
+    // The inner Loader stays active/visible unconditionally. The wrapper's own
+    // visible is the hard mount/unmount gate (disabled or unavailable ids take
+    // no space at all, no animation). Layout.preferredWidth is the SOFT gate -
+    // it slides between 0 and the item's natural width, like AGS's
+    // Revealer(transition: "slide_left") on SysTrayToggle, so overflow/collapse
+    // reveals smoothly instead of popping in/out. See docs/qml-patterns.md #1.
     component TrayItemSlot: Item {
         id: slot
         required property var itemData
-        // Popup usage sets this true unconditionally, the popup row itself already gates
-        // visibility on overflow state, so the icon inside it should always show once the
-        // row is shown. Main-row usage leaves this false, so visibility comes straight from
-        // root._isVisibleInRow, the single source of truth that already accounts for
-        // disabled/unavailable ids (not just overflow).
-        property bool forceVisible: false
-        // Only the main row enables this. The overflow popup's own TrayItemSlot
-        // instances leave it false, so drag-to-reorder is scoped to the main
-        // row only.
         property bool reorderable: false
 
         readonly property real itemWidth: content.item ? content.implicitWidth : 0
         readonly property real itemHeight: content.item ? content.implicitHeight : 0
         readonly property var itemRef: content.item
         readonly property bool itemAvailable: content.item ? content.item.available !== false : true
+        readonly property bool _rowVisible: root._isVisibleInRow(slot.itemData.id)
 
         readonly property bool _isDragging: root._dragItemData !== null && root._dragItemData.id === slot.itemData.id
         readonly property bool _showDropBefore: root._dragItemData !== null && !slot._isDragging && root._dropBeforeId === slot.itemData.id
@@ -211,11 +219,20 @@ Rectangle {
         }
 
         Layout.alignment: Qt.AlignCenter
-        visible: slot.forceVisible || root._isVisibleInRow(slot.itemData.id)
-        Layout.preferredWidth: slot.itemWidth
+        Layout.row: 0
+        Layout.column: root._columnFor(slot.itemData.id)
+        visible: root._enabledIds.indexOf(slot.itemData.id) >= 0
+        Layout.preferredWidth: slot._rowVisible ? slot.itemWidth : 0
         Layout.preferredHeight: slot.itemHeight
         implicitWidth: Layout.preferredWidth
         implicitHeight: Layout.preferredHeight
+
+        Behavior on Layout.preferredWidth {
+            NumberAnimation {
+                duration: Anim.medium
+                easing.type: Easing.InOutCubic
+            }
+        }
 
         DragHandler {
             id: dragHandler
@@ -249,52 +266,61 @@ Rectangle {
             color: Colors.accent
             radius: 1
             z: 10
-            width: BarConfig.isVertical ? parent.width : 2
-            height: BarConfig.isVertical ? 2 : parent.height
-            x: BarConfig.isVertical ? 0 : -root._gap / 2 - width / 2
-            y: BarConfig.isVertical ? -root._gap / 2 - height / 2 : 0
+            width: 2
+            height: parent.height
+            x: -root._gap / 2 - width / 2
+            y: 0
         }
         Rectangle {
             visible: slot._showDropAfter
             color: Colors.accent
             radius: 1
             z: 10
-            width: BarConfig.isVertical ? parent.width : 2
-            height: BarConfig.isVertical ? 2 : parent.height
-            x: BarConfig.isVertical ? 0 : parent.width + root._gap / 2 - width / 2
-            y: BarConfig.isVertical ? parent.height + root._gap / 2 - height / 2 : 0
+            width: 2
+            height: parent.height
+            x: parent.width + root._gap / 2 - width / 2
+            y: 0
         }
 
-        Loader {
-            id: content
-            active: BarItemsService.isEnabled(slot.itemData.id)
-            visible: active && (item == null || item.available !== false)
-            opacity: slot._isDragging ? 0.3 : 1
+        // Clips independently of the slot itself, so the drop-target marker
+        // lines (which deliberately poke outside the slot's bounds above)
+        // stay unclipped while the icon content gets cropped as its animated
+        // width slides between 0 and its natural size. clip only affects
+        // painting though, not hit-testing - enabled:false is what actually
+        // stops a mid-collapse (invisible but still full-sized) icon from
+        // swallowing clicks meant for a neighboring slot.
+        Item {
+            id: contentClip
+            anchors.fill: parent
+            clip: true
+            enabled: slot._rowVisible
 
-            Component.onCompleted: {
-                if (slot.itemData.src)
-                    content.source = slot.itemData.src;
-                else
-                    content.sourceComponent = simpleButton;
-            }
+            Loader {
+                id: content
+                active: BarItemsService.isEnabled(slot.itemData.id)
+                visible: active && (item == null || item.available !== false)
+                opacity: slot._isDragging ? 0.3 : 1
 
-            onLoaded: {
-                if (!slot.itemData.src) {
-                    content.item.icon = slot.itemData.icon ?? "";
-                    if (slot.itemData.id === "home") {
-                        content.item.active = Qt.binding(() => HomePanelService.open);
-                        content.item.clicked.connect(() => {
-                            HomePanelService.open = !HomePanelService.open;
-                        });
-                    } else if (slot.itemData.id === "settings") {
-                        content.item.active = Qt.binding(() => SettingsPanelService.open);
-                        content.item.clicked.connect(() => {
-                            SettingsPanelService.open = !SettingsPanelService.open;
-                        });
-                    } else if (slot.itemData.id === "lock") {
-                        content.item.clicked.connect(() => {
-                            LockService.triggerLock();
-                        });
+                Component.onCompleted: {
+                    if (slot.itemData.src)
+                        content.source = slot.itemData.src;
+                    else
+                        content.sourceComponent = simpleButton;
+                }
+
+                onLoaded: {
+                    if (!slot.itemData.src) {
+                        content.item.icon = slot.itemData.icon ?? "";
+                        if (slot.itemData.id === "settings") {
+                            content.item.active = Qt.binding(() => SettingsPanelService.open);
+                            content.item.clicked.connect(() => {
+                                SettingsPanelService.open = !SettingsPanelService.open;
+                            });
+                        } else if (slot.itemData.id === "lock") {
+                            content.item.clicked.connect(() => {
+                                LockService.triggerLock();
+                            });
+                        }
                     }
                 }
             }
@@ -306,17 +332,28 @@ Rectangle {
         anchors.centerIn: parent
         rowSpacing: root._gap
         columnSpacing: root._gap
-        rows: BarConfig.isVertical ? -1 : 1
-        columns: BarConfig.isVertical ? 1 : -1
 
+        // Every child below gets an explicit Layout.column (see _columnFor),
+        // so visual order is driven by that instead of declaration/repeater
+        // order. That's what lets hidden items slot in on the chevron's LEFT
+        // without the chevron itself (or the trailing always-fits cluster)
+        // ever having to move: with the whole tray right-edge-anchored, a
+        // fixed column count to the chevron's right pins its absolute
+        // position regardless of how wide the revealed group on its left
+        // gets. Matches AGS's SysTrayToggle placement (chevron sits before
+        // the revealable icons, after the always-shown ones stay put).
         Loader {
             id: overflowChevron
+            Layout.row: 0
+            Layout.column: root._leftIdsOrdered.length
             Layout.alignment: Qt.AlignCenter
-            active: !BarConfig.isVertical && root._hasOverflow
+            // Stays mounted while expanded too, so there's always a way to
+            // collapse back even once nothing is technically "hidden" anymore.
+            active: root._hasHidden || root._expanded
             visible: active
             sourceComponent: BarButton {
-                icon: "»"
-                onClicked: overflowPopup.visible ? overflowPopup.close() : overflowPopup.open()
+                icon: root._expanded ? "«" : "»"
+                onClicked: root._expanded = !root._expanded
             }
         }
 
@@ -357,53 +394,6 @@ Rectangle {
             source: root._dragGrab ? root._dragGrab.url : ""
             visible: status === Image.Ready
             smooth: true
-        }
-    }
-
-    AnimatedPopup {
-        id: overflowPopup
-        anchorItem: overflowChevron
-        implicitWidth: Math.max(Math.round(180 * UIScale.value), root._maxOverflowedItemWidth + Math.round(90 * UIScale.value) + UIScale.spacingSm * 4)
-        readonly property real _rowHeight: Math.max(Math.round(30 * UIScale.value), root._maxOverflowedItemHeight)
-        implicitHeight: Math.min(Math.round(320 * UIScale.value), Math.max(1, root._enabledIds.length - root._fitCount) * (_rowHeight + 2) + Math.round(16 * UIScale.value))
-        content: Component {
-            Flickable {
-                contentWidth: width
-                contentHeight: overflowCol.implicitHeight
-                clip: true
-
-                ColumnLayout {
-                    id: overflowCol
-                    width: parent.width
-                    spacing: 2
-
-                    Repeater {
-                        model: BarItemsService.orderedItems
-                        delegate: RowLayout {
-                            id: ovRow
-                            required property var modelData
-                            readonly property bool overflowed: root._isOverflowed(ovRow.modelData.id)
-                            Layout.fillWidth: true
-                            Layout.leftMargin: UIScale.spacingSm
-                            Layout.rightMargin: UIScale.spacingSm
-                            visible: ovRow.overflowed
-                            spacing: UIScale.spacingSm
-
-                            TrayItemSlot {
-                                itemData: ovRow.modelData
-                                forceVisible: true
-                            }
-                            Text {
-                                text: ovRow.modelData.label
-                                Layout.fillWidth: true
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontSmall
-                                elide: Text.ElideRight
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }

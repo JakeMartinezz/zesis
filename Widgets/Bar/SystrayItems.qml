@@ -4,8 +4,8 @@ import QtQuick.Layouts
 import Quickshell.Services.SystemTray
 
 GridLayout {
-    rows: BarConfig.isVertical ? -1 : 1
-    columns: BarConfig.isVertical ? 1 : -1
+    rows: 1
+    columns: -1
     rowSpacing: 4
     columnSpacing: 4
 

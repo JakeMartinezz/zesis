@@ -2,12 +2,28 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Quickshell
 import "../../"
 import "../Bar"
+import "../Taskbar"
 import "../Shared"
 
 Item {
     id: root
+
+    function _isMonitorEnabled(screenName) {
+        return BarConfig.enabledMonitors.length === 0 || BarConfig.enabledMonitors.includes(screenName);
+    }
+
+    function _toggleMonitor(screenName) {
+        const current = BarConfig.enabledMonitors.length === 0 ? Quickshell.screens.map(s => s.name) : BarConfig.enabledMonitors.slice();
+        const idx = current.indexOf(screenName);
+        if (idx >= 0)
+            current.splice(idx, 1);
+        else
+            current.push(screenName);
+        BarConfig.writeEnabledMonitors(current);
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -47,7 +63,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: UIScale.spacingSm
                     Repeater {
-                        model: ["Top", "Bottom", "Left", "Right"]
+                        model: ["Top", "Bottom"]
                         delegate: Rectangle {
                             id: sideBtn
                             required property string modelData
@@ -68,6 +84,46 @@ Item {
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: BarConfig.write(sideBtn.modelData.toLowerCase())
                             }
+                        }
+                    }
+                }
+
+                Divider {
+                    color: Colors.withAlpha(Colors.accent, 0.1)
+                }
+
+                // Monitors
+                Text {
+                    text: "Monitors"
+                    color: Colors.text
+                    font.bold: true
+                    font.pixelSize: UIScale.fontBody
+                }
+                Text {
+                    text: "Which screens show the bar. Off by default = all of them."
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontCaption
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
+                }
+
+                Repeater {
+                    model: Quickshell.screens
+                    delegate: RowLayout {
+                        id: monRow
+                        required property var modelData
+                        Layout.fillWidth: true
+
+                        Text {
+                            text: monRow.modelData.name + (monRow.modelData.model ? " (" + monRow.modelData.model + ")" : "")
+                            color: Colors.text
+                            font.pixelSize: UIScale.fontBody
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+                        ToggleSwitch {
+                            checked: root._isMonitorEnabled(monRow.modelData.name)
+                            onToggled: root._toggleMonitor(monRow.modelData.name)
                         }
                     }
                 }
@@ -140,12 +196,68 @@ Item {
                     color: Colors.withAlpha(Colors.accent, 0.1)
                 }
 
+                // Taskbar icons
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: "Monochrome taskbar icons"
+                        color: Colors.text
+                        font.bold: true
+                        font.pixelSize: UIScale.fontBody
+                        Layout.fillWidth: true
+                    }
+                    ToggleSwitch {
+                        checked: TaskbarService.monochrome
+                        onToggled: TaskbarService.setMonochrome(!TaskbarService.monochrome)
+                    }
+                }
+                Text {
+                    text: "Uses each app's symbolic icon, tinted to match the bar (AGS's bar.taskbar.monochrome). Apps without one keep their full-color icon."
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontCaption
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
+                }
+
+                Divider {
+                    color: Colors.withAlpha(Colors.accent, 0.1)
+                }
+
                 // Bar items
                 Text {
                     text: "Bar items"
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
+                }
+                Text {
+                    text: "\"Collapse\" tucks the item behind the »  toggle, regardless of space."
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontCaption
+                    wrapMode: Text.WordWrap
+                    Layout.fillWidth: true
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: ""
+                        Layout.fillWidth: true
+                    }
+                    Text {
+                        text: "Visible"
+                        color: Colors.muted
+                        font.pixelSize: UIScale.fontCaption
+                        Layout.preferredWidth: Math.round(50 * UIScale.value)
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                    Text {
+                        text: "Collapse"
+                        color: Colors.muted
+                        font.pixelSize: UIScale.fontCaption
+                        Layout.preferredWidth: Math.round(60 * UIScale.value)
+                        horizontalAlignment: Text.AlignHCenter
+                    }
                 }
 
                 Repeater {
@@ -162,8 +274,16 @@ Item {
                             Layout.fillWidth: true
                         }
                         ToggleSwitch {
+                            Layout.preferredWidth: Math.round(50 * UIScale.value)
                             checked: BarItemsService.isEnabled(itemRow.modelData.id)
                             onToggled: BarItemsService.toggle(itemRow.modelData.id)
+                        }
+                        ToggleSwitch {
+                            Layout.preferredWidth: Math.round(60 * UIScale.value)
+                            enabled: BarItemsService.isEnabled(itemRow.modelData.id)
+                            opacity: enabled ? 1.0 : 0.4
+                            checked: BarItemsService.isCollapsed(itemRow.modelData.id)
+                            onToggled: BarItemsService.toggleCollapsed(itemRow.modelData.id)
                         }
                     }
                 }

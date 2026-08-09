@@ -4,10 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Services.Mpris
 import "Widgets/Bar"
-import "Widgets/WorkspaceIndicator"
-import "Widgets/Music"
 import "Widgets/Notifications"
 import "Widgets/LockScreen"
 import "Widgets/Keybinds"
@@ -26,6 +23,7 @@ import "Widgets/PumpPanel"
 import "Widgets/Clock"
 import "Widgets/Desktop"
 import "Widgets/Taskbar"
+import "Widgets/Launcher"
 // These imports are needed for BarItemsService to function correctly
 import "Widgets/Brightness"
 import "Widgets/Mic"
@@ -39,37 +37,40 @@ Scope {
     property bool _locationSharingInit: LocationSharingService.ready
 
     Variants {
-        model: Quickshell.screens
+        // Empty BarConfig.enabledMonitors = show on every monitor (default).
+        model: BarConfig.enabledMonitors.length === 0 ? Quickshell.screens : Quickshell.screens.filter(s => BarConfig.enabledMonitors.includes(s.name))
         delegate: PanelWindow {
             id: root
 
             required property ShellScreen modelData
 
+            // Don't map the surface until the persisted edgeGap/side have actually
+            // loaded - mapping with the compiled-in defaults first means the real
+            // margin never gets committed to the compositor (see BarConfig.ready).
+            visible: BarConfig.ready
+
             WlrLayershell.layer: WlrLayer.Top
             WlrLayershell.margins {
                 top: BarConfig.side === "top" ? BarConfig.edgeGap : 0
                 bottom: BarConfig.side === "bottom" ? BarConfig.edgeGap : 0
-                left: BarConfig.side === "left" ? BarConfig.edgeGap : 0
-                right: BarConfig.side === "right" ? BarConfig.edgeGap : 0
             }
             screen: modelData
 
             // Strip = pill thickness on the short axis, full-edge span on the long axis.
             // This avoids any centering math, edgeGap is the only outer-gap knob.
-            implicitHeight: BarConfig.isVertical ? 0 : Math.round(50 * UIScale.value)
-            implicitWidth: BarConfig.isVertical ? Math.round(50 * UIScale.value) : 0
+            implicitHeight: Math.round(34 * UIScale.value)
+            implicitWidth: 0
 
             anchors {
                 top: BarConfig.side !== "bottom"
                 bottom: BarConfig.side !== "top"
-                left: BarConfig.side !== "right"
-                right: BarConfig.side !== "left"
+                left: true
+                right: true
             }
 
-            color: "transparent"
-
-            readonly property bool _hasMusic: Mpris.players.values.length > 0
-            property bool wantsMusic: false
+            // A single continuous strip, like the AGS bar's flat `.bar { background-color: $bg }` -
+            // individual widgets sit directly on it rather than floating in separate group pills.
+            color: Colors.barBg
 
             // Gap kept between the taskbar/music island and the systray pill before the
             // tray starts collapsing
@@ -77,87 +78,53 @@ Scope {
 
             SysTray {
                 id: trayWidget
-                x: BarConfig.isVertical ? 0 : (parent.width - width - BarConfig.endGap)
-                y: BarConfig.isVertical ? (parent.height - height - BarConfig.endGap) : 0
+                x: parent.width - width - BarConfig.endGap
+                y: 0
                 // Budget = space from the island's right edge to the tray's own right
                 // boundary. Depends only on islandRow's geometry, never trayWidget's own
                 // width/x, so it can't be circular.
-                maxWidth: BarConfig.isVertical ? -1 : Math.max(0, (root.width - BarConfig.endGap) - (islandRow.x + islandRow.width) - root._islandGap)
+                maxWidth: Math.max(0, (root.width - BarConfig.endGap) - (islandRow.x + islandRow.width) - root._islandGap)
             }
 
-            Row {
-                id: islandRow
-                anchors.centerIn: parent
-                spacing: Math.round(6 * UIScale.value)
+            // No background/radius of its own - sits flush on the bar's continuous
+            // surface, like AGS's start box (launcher + workspaces + media).
+            Item {
+                id: startPill
+                readonly property real _pad: Math.round(10 * UIScale.value)
 
-                MusicChip {
-                    id: musicChip
-                    visible: root._hasMusic && !BarConfig.isVertical
-                    onIsHoveredChanged: {
-                        if (isHovered) {
-                            root.wantsMusic = true;
-                            musicHideTimer.stop();
-                        } else if (!popupHover.hovered) {
-                            musicHideTimer.restart();
-                        }
+                x: BarConfig.endGap
+                y: 0
+                implicitWidth: startRow.implicitWidth + _pad
+                implicitHeight: Math.round(34 * UIScale.value)
+
+                Grid {
+                    id: startRow
+                    anchors.centerIn: parent
+                    spacing: Math.round(4 * UIScale.value)
+                    rows: 1
+                    columns: -1
+
+                    LauncherButton {
+                        active: HomePanelService.open
+                        onClicked: HomePanelService.open = !HomePanelService.open
+                    }
+
+                    Workspaces {
+                        id: workspacesWidget
                     }
                 }
+            }
+
+            // No background/radius of its own - sits flush on the bar's continuous
+            // surface, like AGS's taskbar (each icon carries its own panel-button tint).
+            Item {
+                id: islandRow
+                anchors.centerIn: parent
+                implicitWidth: taskbarPill.implicitWidth
+                implicitHeight: taskbarPill.implicitHeight
 
                 Taskbar {
                     id: taskbarPill
-                }
-            }
-
-            Timer {
-                id: musicHideTimer
-                interval: 300
-                onTriggered: root.wantsMusic = false
-            }
-
-            PopupWindow {
-                id: musicPopup
-                visible: root.wantsMusic && root._hasMusic
-                grabFocus: false
-                color: "transparent"
-                implicitWidth: 400
-                implicitHeight: 260
-
-                anchor {
-                    window: root
-                    rect.x: {
-                        if (BarConfig.side === "left")
-                            return root.width;
-                        if (BarConfig.side === "right")
-                            return -musicPopup.implicitWidth;
-                        return islandRow.x + musicChip.implicitWidth / 2 - musicPopup.implicitWidth / 2;
-                    }
-                    rect.y: {
-                        if (BarConfig.side === "bottom")
-                            return -musicPopup.implicitHeight;
-                        if (BarConfig.isVertical)
-                            return islandRow.y + musicChip.implicitHeight / 2 - musicPopup.implicitHeight / 2;
-                        return islandRow.y + islandRow.height;
-                    }
-                }
-
-                HoverHandler {
-                    id: popupHover
-                    onHoveredChanged: {
-                        if (hovered) {
-                            musicHideTimer.stop();
-                            root.wantsMusic = true;
-                        } else if (!musicChip.isHovered) {
-                            musicHideTimer.restart();
-                        }
-                    }
-                }
-
-                Loader {
-                    anchors.fill: parent
-                    active: root._hasMusic
-                    sourceComponent: MusicController {
-                        popupVisible: musicPopup.visible
-                    }
                 }
             }
 
@@ -166,40 +133,6 @@ Scope {
                 function onLockRequested() {
                     lockScreen.triggerLock();
                 }
-            }
-        }
-    }
-
-    PanelWindow {
-        WlrLayershell.layer: WlrLayer.Top
-        anchors {
-            top: BarConfig.side !== "bottom"
-            bottom: BarConfig.side === "bottom"
-            left: BarConfig.side !== "right"
-            right: BarConfig.side === "right"
-        }
-        exclusiveZone: -1
-        implicitWidth: indicator.implicitWidth
-        implicitHeight: indicator.implicitHeight
-        color: "transparent"
-
-        mask: Region {
-            shape: indicator.maskShape
-            x: indicator.maskX
-            y: indicator.maskY
-            width: indicator.maskWidth
-            height: indicator.maskHeight
-        }
-
-        WorkspaceIndicator {
-            id: indicator
-            anchors.fill: parent
-            corner: {
-                if (BarConfig.side === "bottom")
-                    return "bottomLeft";
-                if (BarConfig.side === "right")
-                    return "topRight";
-                return "topLeft";
             }
         }
     }
@@ -277,6 +210,15 @@ Scope {
         target: "home"
         function toggle() {
             HomePanelService.open = !HomePanelService.open;
+        }
+    }
+
+    Launcher {}
+
+    IpcHandler {
+        target: "launcher"
+        function toggle() {
+            LauncherService.toggle();
         }
     }
 

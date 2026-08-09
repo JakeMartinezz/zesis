@@ -6,8 +6,20 @@ import "../Shared"
 
 Item {
     id: root
-    implicitWidth: Math.round(30 * UIScale.value)
-    implicitHeight: Math.round(30 * UIScale.value)
+    implicitWidth: Math.round(26 * UIScale.value)
+    implicitHeight: Math.round(26 * UIScale.value)
+
+    // Resting tint - persistent panel-button box (AGS flatButtons:false parity)
+    Rectangle {
+        anchors.fill: parent
+        radius: UIScale.radiusMd
+        color: Colors.withAlpha(Colors.text, ma.containsMouse ? 0.14 : 0.05)
+        Behavior on color {
+            ColorAnimation {
+                duration: Anim.fast
+            }
+        }
+    }
 
     MouseArea {
         id: ma
