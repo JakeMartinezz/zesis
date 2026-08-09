@@ -194,8 +194,8 @@ Rectangle {
 
     // The inner Loader stays active/visible unconditionally. The wrapper's own
     // visible is the hard mount/unmount gate (disabled or unavailable ids take
-    // no space at all, no animation). Layout.preferredWidth is the SOFT gate -
-    // it slides between 0 and the item's natural width, like AGS's
+    // no space at all, no animation). _reveal is the SOFT gate - it slides the
+    // slot between 0 and the item's natural width, like AGS's
     // Revealer(transition: "slide_left") on SysTrayToggle, so overflow/collapse
     // reveals smoothly instead of popping in/out. See docs/qml-patterns.md #1.
     component TrayItemSlot: Item {
@@ -222,12 +222,22 @@ Rectangle {
         Layout.row: 0
         Layout.column: root._columnFor(slot.itemData.id)
         visible: root._enabledIds.indexOf(slot.itemData.id) >= 0
-        Layout.preferredWidth: slot._rowVisible ? slot.itemWidth : 0
+        Layout.preferredWidth: slot.itemWidth * slot._reveal
         Layout.preferredHeight: slot.itemHeight
         implicitWidth: Layout.preferredWidth
         implicitHeight: Layout.preferredHeight
 
-        Behavior on Layout.preferredWidth {
+        // Animate how MUCH of the item is revealed, never the item's width
+        // itself. A Behavior on the width would also fire for widgets that
+        // animate their own width (the battery percentage reveal, the music
+        // chip): a Behavior's animation restarts from scratch whenever its
+        // target moves, so against a target that moves every frame it makes no
+        // progress at all until the inner animation stops - the slot stayed at
+        // its old width for the whole reveal, then jumped to the new one
+        // afterwards, dragging the right-anchored tray sideways with it.
+        property real _reveal: slot._rowVisible ? 1 : 0
+
+        Behavior on _reveal {
             NumberAnimation {
                 duration: Anim.medium
                 easing.type: Easing.InOutCubic

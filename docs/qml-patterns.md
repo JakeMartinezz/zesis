@@ -68,6 +68,20 @@ Make whatever decides the outer wrapper's `visible` either the single source of 
 ALL exclusion reasons, or keep it reliably in sync with the loaded item's own
 self-reported state.
 
+### Never put a `Behavior` on a value another animation is already driving
+
+A `Behavior`'s animation restarts from the current value every time its target changes.
+Against a target that moves every frame - because an inner widget animates its own
+`implicitWidth` - it never gets anywhere: measured on a 200ms `InOutCubic` pair, the
+outer value did not move AT ALL for the inner animation's full 200ms, then took another
+200ms to catch up once the inner one stopped. The visible result is a widget that
+animates against a stale container and then jumps when the container finally converges
+(and in a right-anchored container, the jump drags everything sideways).
+
+Animate a value nothing else writes to. For a reveal, animate a `0..1` factor and
+multiply: `Layout.preferredWidth: itemWidth * _reveal`. The container's own transitions
+stay animated, and a child's self-animated size passes straight through.
+
 ---
 
 ## 2. Container-aware (responsive) widgets
