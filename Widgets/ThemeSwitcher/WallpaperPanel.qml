@@ -12,6 +12,19 @@ Item {
 
     readonly property string _wallpapersDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
 
+    // "" means the wallpaper grid below applies to every monitor.
+    // Otherwise it's a ShellScreen.name and clicks only retarget that one output.
+    property string targetMonitor: ""
+    readonly property string _displayedWallpaper: root.targetMonitor === "" ? ThemeState.lastWallpaper : (ThemeState.perMonitorWallpaper[root.targetMonitor] || ThemeState.lastWallpaper)
+
+    readonly property bool _currentBackendHasDaemon: {
+        for (var i = 0; i < ThemeState.wallpaperBackends.length; i++) {
+            if (ThemeState.wallpaperBackends[i].id === ThemeState.wallpaperBackend)
+                return !!ThemeState.wallpaperBackends[i].daemonProcess;
+        }
+        return false;
+    }
+
     readonly property real paneMargin: Math.round(28 * UIScale.value)
 
     // Container-aware split, see docs/qml-patterns.md #2. Both sides of the threshold are
@@ -72,7 +85,7 @@ Item {
     component WallpaperCell: Item {
         id: cell
         required property string path
-        readonly property bool selected: ThemeState.lastWallpaper === cell.path
+        readonly property bool selected: root._displayedWallpaper === cell.path
         readonly property string _baseName: cell.path.substring(cell.path.lastIndexOf("/") + 1)
         readonly property string _displayName: cell._baseName.replace(/\.[^.]+$/, "")
         readonly property string _thumbPath: ThemeState.thumbsDir + "/" + cell._baseName + ".jpg"
@@ -175,7 +188,7 @@ Item {
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
-            onClicked: ThemeState.apply(cell.path)
+            onClicked: root.targetMonitor === "" ? ThemeState.apply(cell.path) : ThemeState.applyToMonitor(cell.path, root.targetMonitor)
         }
 
         Process {
@@ -605,6 +618,7 @@ Item {
                         onChosen: value => {
                             ThemeState.wallpaperBackend = value;
                             ThemeState._persistState();
+                            ThemeState.ensureWallpaperDaemon();
                         }
                     }
 
@@ -626,6 +640,106 @@ Item {
                     }
                 }
 
+                // Whether to launch the backend's daemon on startup if it's not already running
+                RowLayout {
+                    id: daemonRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+                    visible: root._currentBackendHasDaemon
+
+                    Text {
+                        text: "Auto-start wallpaper daemon"
+                        color: Colors.text
+                        font.pixelSize: UIScale.fontBody
+                        Layout.fillWidth: true
+                    }
+
+                    ToggleSwitch {
+                        checked: ThemeState.autoStartWallpaperDaemon
+                        onToggled: {
+                            ThemeState.autoStartWallpaperDaemon = !ThemeState.autoStartWallpaperDaemon;
+                            ThemeState._persistState();
+                            if (ThemeState.autoStartWallpaperDaemon)
+                                ThemeState.ensureWallpaperDaemon();
+                        }
+                    }
+                }
+
+                // Which output the wallpaper grid below targets
+                RowLayout {
+                    id: targetRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+                    visible: Quickshell.screens.length > 1
+
+                    Text {
+                        text: "Apply to"
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    StyledComboBox {
+                        id: targetComboBox
+                        model: [
+                            {
+                                value: "",
+                                label: "All monitors"
+                            }
+                        ].concat(Quickshell.screens.map(s => ({
+                                    value: s.name,
+                                    label: s.name
+                                })))
+                        selectedValue: root.targetMonitor
+                        onChosen: value => root.targetMonitor = value
+                    }
+
+                    ActionButton {
+                        visible: root.targetMonitor !== "" && (root.targetMonitor in ThemeState.perMonitorWallpaper)
+                        label: "Reset to global"
+                        onActivated: ThemeState.resetMonitor(root.targetMonitor)
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Which monitor's wallpaper the color scheme (matugen) is computed from
+                RowLayout {
+                    id: colorSourceRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+                    visible: Quickshell.screens.length > 1
+
+                    Text {
+                        text: "Colors from"
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    StyledComboBox {
+                        id: colorSourceComboBox
+                        model: [
+                            {
+                                value: "",
+                                label: "All monitors"
+                            }
+                        ].concat(Quickshell.screens.map(s => ({
+                                    value: s.name,
+                                    label: s.name
+                                })))
+                        selectedValue: ThemeState.colorSourceMonitor
+                        onChosen: value => ThemeState.setColorSourceMonitor(value)
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
                 Text {
                     Layout.fillWidth: true
                     Layout.bottomMargin: UIScale.spacingSm
@@ -644,11 +758,11 @@ Item {
                     radius: UIScale.radiusMd
                     color: Colors.surface
                     clip: true
-                    visible: ThemeState.lastWallpaper !== ""
+                    visible: root._displayedWallpaper !== ""
 
                     Image {
                         anchors.fill: parent
-                        source: ThemeState.lastWallpaper !== "" ? ("file://" + ThemeState.lastWallpaper) : ""
+                        source: root._displayedWallpaper !== "" ? ("file://" + root._displayedWallpaper) : ""
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                     }
