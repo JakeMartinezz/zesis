@@ -17,6 +17,7 @@ QtObject {
     readonly property var workspaces: Hyprland.workspaces.values
     readonly property var toplevels: Hyprland.toplevels.values
     readonly property var focusedMonitor: Hyprland.focusedMonitor
+    readonly property bool focusedHasFullscreen: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.hasFullscreen : false
 
     function focusWorkspace(id) {
         Hyprland.dispatch("hl.dsp.focus({ workspace = " + id + " })");
@@ -73,6 +74,13 @@ QtObject {
 
     function refreshToplevels() {
         Hyprland.refreshToplevels();
+    }
+
+    // Same dispatch as this user's own "Toggle fullscreen" bind
+    // (hl.dsp.window.fullscreen({ mode = "maximized" }) in keybinds.lua) -
+    // fills the screen without hiding the bar, unlike true fullscreen.
+    function maximizeActive() {
+        Hyprland.dispatch("hl.dsp.window.fullscreen({ mode = \"maximized\" })");
     }
 
     function refreshWorkspaces() {

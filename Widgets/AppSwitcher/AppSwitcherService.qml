@@ -145,10 +145,15 @@ Singleton {
 
     function show() {
         // console.log("[AppSwitcher] show() called, windows =", windows.length);
-        if (windows.length === 0)
-            return;
+        // Refresh unconditionally, before the emptiness check - refreshing
+        // only on a non-empty list means a momentarily-stale/empty read (the
+        // Hyprland-side list not having caught up yet) short-circuits below
+        // and never asks for fresh data, so it stays stuck empty until
+        // something ELSE happens to trigger a refresh.
         WmService.refreshToplevels();
         WmService.refreshMonitors();
+        if (windows.length === 0)
+            return;
         // Start at 1: skip current window, land on last-used
         selectedIndex = windows.length > 1 ? 1 : 0;
         if (!root.rememberLastMode || !root._everOpened)
@@ -193,8 +198,21 @@ Singleton {
             var win = wins[idx];
             if (win && win.lastIpcObject) {
                 var addr = win.lastIpcObject["address"];
-                if (addr)
+                if (addr) {
+                    // Hyprland's own focuswindow drops the previously-focused
+                    // window out of fullscreen/maximize and lands on the
+                    // target tiled - if we were leaving one of those, restore
+                    // the same maximized (not true fullscreen, that would
+                    // hide the bar) look on whatever we land on, unless it's
+                    // already in that state itself (this dispatch toggles,
+                    // so re-firing it on an already-maximized target would
+                    // turn it back off).
+                    var wasFullscreen = WmService.focusedHasFullscreen;
+                    var targetAlreadyFullscreen = !!win.lastIpcObject["fullscreen"];
                     WmService.focusWindow(addr);
+                    if (wasFullscreen && !targetAlreadyFullscreen)
+                        WmService.maximizeActive();
+                }
             }
         }
     }

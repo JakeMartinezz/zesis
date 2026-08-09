@@ -18,6 +18,8 @@ Singleton {
     readonly property var toplevels: _backend.toplevels
     //current monitor ({ width, height, scale, x, y, activeWorkspace })
     readonly property var focusedMonitor: _backend.focusedMonitor
+    // whether the currently focused workspace has a fullscreen/maximized window on it
+    readonly property bool focusedHasFullscreen: _backend.focusedHasFullscreen
 
     // switch to workspace by numeric id
     function focusWorkspace(id) {
@@ -53,6 +55,11 @@ Singleton {
     }
     function refreshToplevels() {
         _backend.refreshToplevels();
+    }
+    // Maximizes whatever window currently has focus (keeps the bar visible,
+    // unlike true fullscreen).
+    function maximizeActive() {
+        _backend.maximizeActive();
     }
     function refreshWorkspaces() {
         _backend.refreshWorkspaces();

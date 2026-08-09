@@ -37,6 +37,7 @@ PanelWindow {
             overlayContent.opacity = 0;
             visible = true;
         }
+        unmapTimer.stop();
         hideAnim.stop();
         showAnim.start();
     }
@@ -46,6 +47,23 @@ PanelWindow {
             return;
         showAnim.stop();
         hideAnim.start();
+        unmapTimer.restart();
+    }
+
+    // Unmaps strictly Anim.medium after a close starts, on a plain clock
+    // instead of hideAnim's own running state - hideAnim.stop() (called by
+    // open() when a reopen races an in-flight close, e.g. rapid-fire
+    // Alt+Tab) fires the SAME `stopped` signal a natural completion would,
+    // so wiring `root.visible = false` to hideAnim.onStopped closed the
+    // window right back down the instant it tried to reopen, and knocked
+    // AppSwitcherService.open back to false via onVisibleChanged below -
+    // from the outside this just looked like the switcher had stopped
+    // responding. A Timer's own stop() doesn't fire `triggered`, so
+    // cancelling it here on every open() is immune to that.
+    Timer {
+        id: unmapTimer
+        interval: Anim.medium
+        onTriggered: root.visible = false
     }
 
     onVisibleChanged: {
@@ -105,7 +123,6 @@ PanelWindow {
             duration: Anim.fast
             easing.type: Easing.InCubic
         }
-        onStopped: root.visible = false
     }
 
     Rectangle {

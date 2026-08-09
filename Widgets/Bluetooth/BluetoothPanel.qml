@@ -391,7 +391,7 @@ Item {
 
                                         // Auto-connect (trust) toggle
                                         Rectangle {
-                                            implicitWidth: Math.round(44 * UIScale.value)
+                                            implicitWidth: Math.max(autoLabel.implicitWidth + Math.round(16 * UIScale.value), Math.round(44 * UIScale.value))
                                             implicitHeight: Math.round(30 * UIScale.value)
                                             radius: UIScale.radiusSm
                                             color: pairedItem.modelData.trusted ? (autoHover.hovered ? Colors.withAlpha(Colors.accent, 0.28) : Colors.withAlpha(Colors.accent, 0.18)) : (autoHover.hovered ? Colors.withAlpha(Colors.text, 0.08) : Colors.withAlpha(Colors.text, 0.04))
@@ -409,6 +409,7 @@ Item {
                                             }
 
                                             Text {
+                                                id: autoLabel
                                                 anchors.centerIn: parent
                                                 text: I18n.t("common.auto")
                                                 color: pairedItem.modelData.trusted ? Colors.accent : Colors.textDim
