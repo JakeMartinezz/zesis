@@ -17,6 +17,7 @@ Singleton {
     readonly property var _dev: UPower.displayDevice
 
     readonly property bool available: testMode ? true : _dev.ready && _dev.isPresent
+    // UPowerDevice.percentage is a 0.0-1.0 fraction (verified against energy/energyCapacity), not 0-100
     readonly property int percent: testMode ? testPercent : Math.round(_dev.percentage * 100)
     readonly property real powerW: testMode ? testPowerW : Math.abs(_dev.changeRate)
 
