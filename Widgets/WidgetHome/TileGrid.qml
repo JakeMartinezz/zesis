@@ -5,7 +5,6 @@ import "../Music"
 import "../Notifications"
 import "../Sound"
 import "../Config"
-import "../Network"
 import "../Home"
 import "../Storage"
 import "../../"
@@ -29,9 +28,9 @@ Item {
     readonly property real expandedH: contentArea.height
 
     // Each entry: [label, icon codepoint (Material Icons), widgetIndex]
-    readonly property var layout: [[["Music", "", 0], ["Notifs", "", 1]], [["Sound", "", 2], ["Scale", "", 3]], [["Network", "", 4], ["Storage", "", 5]]]
+    readonly property var layout: [[["Music", "", 0], ["Notifs", "", 1]], [["Sound", "", 2], ["Scale", "", 3]], [["Storage", "", 4]]]
 
-    readonly property var widgetComponents: [musicComp, notifComp, soundComp, configComp, networkComp, storageComp]
+    readonly property var widgetComponents: [musicComp, notifComp, soundComp, configComp, storageComp]
     Component {
         id: musicComp
         MusicController {}
@@ -47,10 +46,6 @@ Item {
     Component {
         id: configComp
         Config {}
-    }
-    Component {
-        id: networkComp
-        NetworkTile {}
     }
     Component {
         id: storageComp

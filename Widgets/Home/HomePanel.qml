@@ -5,12 +5,9 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../Calendar"
-import "../Community"
 import "../Globe3D"
-import "../Network"
 import "../Notifications"
 import "../SysMon"
-import "../NixPurity"
 import "../User"
 import "../Shared"
 import "../../"
@@ -296,25 +293,7 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root.searchText === "" || ["community", "network shares", "system monitor", "notifications", "calendar"].concat(NixPurityService.isNixOS ? ["nix purity"] : []).some(s => s.includes(root.searchText.toLowerCase()))
-                        }
-                        NavItem {
-                            navId: "community"
-                            navLabel: "Community"
-                            navIcon: ""
-                            isNavSelected: root.section === "community"
-                            visible: root.searchText === "" || "community".includes(root.searchText.toLowerCase())
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
-                        }
-                        NavItem {
-                            navId: "network"
-                            navLabel: "Network Shares"
-                            navIcon: ""
-                            isNavSelected: root.section === "network"
-                            visible: root.searchText === "" || "network shares".includes(root.searchText.toLowerCase())
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
+                            visible: root.searchText === "" || ["system monitor", "notifications", "calendar"].some(s => s.includes(root.searchText.toLowerCase()))
                         }
                         NavItem {
                             navId: "sysmon"
@@ -322,15 +301,6 @@ Item {
                             navIcon: ""
                             isNavSelected: root.section === "sysmon"
                             visible: root.searchText === "" || "system monitor".includes(root.searchText.toLowerCase())
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
-                        }
-                        NavItem {
-                            navId: "nixpurity"
-                            navLabel: "Nix Purity"
-                            navIcon: "󱄅"
-                            isNavSelected: root.section === "nixpurity"
-                            visible: NixPurityService.isNixOS && (root.searchText === "" || "nix purity".includes(root.searchText.toLowerCase()))
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
                         }
@@ -443,14 +413,8 @@ Item {
                 sourceComponent: {
                     if (root.section === "home")
                         return dashboardComp;
-                    if (root.section === "community")
-                        return communityPanelComp;
-                    if (root.section === "network")
-                        return networkExpandedComp;
                     if (root.section === "sysmon")
                         return sysMonPanelComp;
-                    if (root.section === "nixpurity")
-                        return nixPurityComp;
                     if (root.section === "notifs")
                         return notifHistComp;
                     if (root.section === "calendar")
@@ -468,20 +432,8 @@ Item {
                 DashboardPanel {}
             }
             Component {
-                id: communityPanelComp
-                CommunityPanel {}
-            }
-            Component {
-                id: networkExpandedComp
-                NetworkPanel {}
-            }
-            Component {
                 id: sysMonPanelComp
                 SysMonPanel {}
-            }
-            Component {
-                id: nixPurityComp
-                NixPurity {}
             }
             Component {
                 id: notifHistComp
