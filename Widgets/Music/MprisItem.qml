@@ -354,9 +354,9 @@ Rectangle {
         Text {
             text: {
                 if (mprisroot._is4AM)
-                    return "can't sleep?";
+                    return I18n.t("music.cantSleep");
                 if (mprisroot._toggleCount >= 8)
-                    return "make up your mind";
+                    return I18n.t("music.makeUpYourMind");
                 return mprisroot.player.trackArtist;
             }
             width: parent.width

@@ -15,7 +15,7 @@ Rectangle {
         anchors.rightMargin: UIScale.spacingMd
 
         Text {
-            text: "Credentials saved"
+            text: I18n.t("network.credentialsSaved")
             color: Colors.textDim
             font.pixelSize: UIScale.fontCaption
             Layout.fillWidth: true
@@ -32,7 +32,7 @@ Rectangle {
             Text {
                 id: forgetLabel
                 anchors.centerIn: parent
-                text: "Forget"
+                text: I18n.t("network.forget")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
             }
@@ -59,7 +59,7 @@ Rectangle {
             Text {
                 id: reconnectLabel
                 anchors.centerIn: parent
-                text: "Reconnect"
+                text: I18n.t("network.reconnect")
                 color: Colors.bg
                 font.pixelSize: UIScale.fontCaption
                 font.weight: Font.DemiBold

@@ -52,31 +52,31 @@ Item {
                 col: 1,
                 key: "lock",
                 icon: "󰌾",
-                label: "LOCK"
+                label: I18n.t("power.lock").toUpperCase()
             },
             {
                 row: 2,
                 col: 3,
                 key: "logout",
                 icon: "󰍃",
-                label: "LOG OUT"
+                label: I18n.t("power.logOut").toUpperCase()
             },
             {
                 row: 4,
                 col: 2,
                 key: "reboot",
                 icon: "󰜉",
-                label: "REBOOT"
+                label: I18n.t("power.reboot").toUpperCase()
             },
             {
                 row: 5,
                 col: 4,
                 key: "shutdown",
                 icon: "󰐥",
-                label: "SHUT DOWN"
+                label: I18n.t("power.shutDown").toUpperCase()
             }
         ];
-        var filler = ["CHIPS", "SODA", "GUM", "MINTS", "COCOA", "WATER", "TEA", "COOKIE", "JERKY", "PRETZEL", "PEANUTS", "CANDY", "JUICE", "COFFEE", "CRACKER", "TRAIL MIX"];
+        var filler = I18n.t("power.fillerItems").split("|");
         var out = [];
         var fi = 0;
         for (var r = 1; r <= root._gridRows; r++) {
@@ -159,12 +159,12 @@ Item {
         var slot = root._slotForCode(root.enteredCode);
         root.enteredCode = "";
         if (!slot) {
-            root.badCodeText = "INVALID CODE";
+            root.badCodeText = I18n.t("power.invalidCode");
             badCodeTimer.restart();
             return;
         }
         if (!slot.real) {
-            root.badCodeText = "SOLD OUT";
+            root.badCodeText = I18n.t("power.soldOut");
             badCodeTimer.restart();
             return;
         }
@@ -367,17 +367,17 @@ Item {
             return root.badCodeText;
         switch (root.phase) {
         case "idle":
-            return root.enteredCode.length > 0 ? "CODE: " + root.enteredCode.padEnd(4, "_") : "ENTER CODE";
+            return root.enteredCode.length > 0 ? I18n.t("power.codePrefix") + root.enteredCode.padEnd(4, "_") : I18n.t("power.enterCode");
         case "dispensing":
-            return "DISPENSING";
+            return I18n.t("power.dispensing");
         case "falling":
-            return "DROPPING...";
+            return I18n.t("power.dropping");
         case "stuck":
-            return "STUCK - TAP GLASS";
+            return I18n.t("power.stuckTapGlass");
         case "dispensed":
-            return "LIFT THE FLAP";
+            return I18n.t("power.liftTheFlap");
         case "lidOpen":
-            return "PRESS ITEM TO CONFIRM";
+            return I18n.t("power.pressItemToConfirm");
         }
         return "";
     }
@@ -403,7 +403,7 @@ Item {
             // Brand plate
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "ZESIS VENDING CORNER"
+                text: "ZESIS " + I18n.t("power.vendingCorner")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
                 font.weight: Font.Bold

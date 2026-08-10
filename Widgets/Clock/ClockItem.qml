@@ -73,7 +73,7 @@ Item {
                                 color: Colors.textDim
                             }
                             Text {
-                                text: "Open Calendar"
+                                text: I18n.t("clock.openCalendar")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }

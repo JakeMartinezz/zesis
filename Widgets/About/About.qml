@@ -15,7 +15,7 @@ Item {
     property string _osVersion: ""
     property int _quoteIndex: 0
 
-    readonly property var _quotes: ["made with questionable life choices", "it works on my machine", "we test in prod", "marvin was here", "check out my blog", "we are not finishing this storyline.\nwe are doing the side quests.", "because pain builds character"]
+    readonly property var _quotes: [I18n.t("about.quote0"), I18n.t("about.quote1"), I18n.t("about.quote2"), I18n.t("about.quote3"), I18n.t("about.quote4"), I18n.t("about.quote5"), I18n.t("about.quote6")]
 
     Component.onCompleted: _quoteIndex = Math.floor(Math.random() * _quotes.length)
 
@@ -78,8 +78,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SYSTEM / ABOUT"
-            title: "About"
+            breadcrumb: I18n.t("about.breadcrumb")
+            title: I18n.t("about.title")
         }
 
         Item {
@@ -167,7 +167,7 @@ Item {
                     spacing: UIScale.spacingXs
 
                     Text {
-                        text: "TIME WASTED THIS SESSION"
+                        text: I18n.t("about.timeWastedSection")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontTiny
                         font.weight: Font.Bold
@@ -190,7 +190,7 @@ Item {
                     spacing: UIScale.spacingXs
 
                     Text {
-                        text: "SYSTEM"
+                        text: I18n.t("about.systemSection")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontTiny
                         font.weight: Font.Bold
@@ -198,17 +198,17 @@ Item {
                     }
 
                     InfoRow {
-                        label: "Kernel"
+                        label: I18n.t("about.kernelLabel")
                         value: root._kernel
                     }
                     InfoRow {
-                        label: "OS"
+                        label: I18n.t("about.osLabel")
                         value: root._osVersion
                     }
 
                     Text {
                         visible: root._osVersion.toLowerCase().includes("arch")
-                        text: "have you considered nixos"
+                        text: I18n.t("about.nixosJoke")
                         color: Colors.withAlpha(Colors.textDim, 0.4)
                         font.pixelSize: UIScale.fontTiny
                         font.italic: true
@@ -226,7 +226,7 @@ Item {
                     visible: GitUpdateService.status !== "notGitRepo"
 
                     Text {
-                        text: "SOFTWARE"
+                        text: I18n.t("about.softwareSection")
                         color: Colors.muted
                         font.pixelSize: UIScale.fontTiny
                         font.weight: Font.Bold
@@ -242,25 +242,25 @@ Item {
                             text: {
                                 switch (GitUpdateService.status) {
                                 case "checking":
-                                    return "Checking for updates...";
+                                    return I18n.t("about.statusChecking");
                                 case "updatable":
-                                    return "Update available";
+                                    return I18n.t("about.statusUpdatable");
                                 case "blocked":
-                                    return "Update available (needs help - local changes present)";
+                                    return I18n.t("about.statusBlocked");
                                 case "pulling":
-                                    return "Updating...";
+                                    return I18n.t("about.statusPulling");
                                 case "pullFailed":
-                                    return "Update failed";
+                                    return I18n.t("about.statusPullFailed");
                                 case "offline":
-                                    return "Couldn't check (offline?)";
+                                    return I18n.t("about.statusOffline");
                                 case "noGit":
-                                    return "Git isn't installed, can't check";
+                                    return I18n.t("about.statusNoGit");
                                 case "noOrigin":
-                                    return "No 'origin' remote configured, can't check";
+                                    return I18n.t("about.statusNoOrigin");
                                 case "upToDate":
-                                    return "Up to date";
+                                    return I18n.t("about.statusUpToDate");
                                 default:
-                                    return "Not checked yet";
+                                    return I18n.t("about.statusDefault");
                                 }
                             }
                             color: (GitUpdateService.status === "updatable" || GitUpdateService.status === "blocked") ? "#e0a25c" : Colors.textDim
@@ -270,7 +270,7 @@ Item {
 
                         ActionButton {
                             visible: GitUpdateService.status !== "noGit"
-                            label: GitUpdateService.status === "updatable" ? "Update now" : "Check now"
+                            label: GitUpdateService.status === "updatable" ? I18n.t("about.updateNow") : I18n.t("about.checkNow")
                             onActivated: GitUpdateService.status === "updatable" ? GitUpdateService.updateNow() : GitUpdateService.checkNow()
                         }
                     }

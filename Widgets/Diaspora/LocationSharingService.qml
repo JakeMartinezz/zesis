@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../../"
 
 Singleton {
     id: root
@@ -39,23 +40,23 @@ Singleton {
 
     readonly property var activenessCadenceOptions: [
         {
-            label: "Every 5 minutes",
+            label: I18n.t("diaspora.cadence5Min"),
             secs: 300
         },
         {
-            label: "Every 15 minutes",
+            label: I18n.t("diaspora.cadence15Min"),
             secs: 900
         },
         {
-            label: "Every 30 minutes",
+            label: I18n.t("diaspora.cadence30Min"),
             secs: 1800
         },
         {
-            label: "Every hour",
+            label: I18n.t("diaspora.cadence1Hour"),
             secs: 3600
         },
         {
-            label: "Every 2 hours",
+            label: I18n.t("diaspora.cadence2Hours"),
             secs: 7200
         }
     ]

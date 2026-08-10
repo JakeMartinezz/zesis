@@ -306,7 +306,7 @@ Item {
                     Text {
                         id: cancelText
                         anchors.centerIn: parent
-                        text: "Cancel"
+                        text: I18n.t("common.cancel")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                     }
@@ -354,7 +354,7 @@ Item {
                     Text {
                         id: acceptText
                         anchors.centerIn: parent
-                        text: "Accept & Enable"
+                        text: I18n.t("community.acceptEnable")
                         color: Colors.onAccent
                         font.pixelSize: UIScale.fontBody
                         font.weight: Font.DemiBold
@@ -411,15 +411,15 @@ Item {
         function _errorText() {
             switch (LocationSharingService.captchaError) {
             case "incorrect_answer":
-                return LocationSharingService.captchaAttemptsRemaining >= 0 ? "Wrong answer - " + LocationSharingService.captchaAttemptsRemaining + " attempt(s) left." : "Wrong answer.";
+                return LocationSharingService.captchaAttemptsRemaining >= 0 ? I18n.t("community.errorIncorrectAnswerWithAttempts", [LocationSharingService.captchaAttemptsRemaining]) : I18n.t("community.errorIncorrectAnswer");
             case "no_active_challenge":
-                return "That challenge expired.";
+                return I18n.t("community.errorNoActiveChallenge");
             case "too_soon":
-                return "Requested too recently - wait a moment and try again.";
+                return I18n.t("community.errorTooSoon");
             case "unknown_token":
-                return "Your identity isn't registered yet - share your location first.";
+                return I18n.t("community.errorUnknownToken");
             case "request_failed":
-                return "Something went wrong - check your connection and try again.";
+                return I18n.t("community.errorRequestFailed");
             default:
                 return "";
             }
@@ -444,7 +444,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: "Verify you're human"
+                text: I18n.t("community.verifyHuman")
                 color: Colors.text
                 font.pixelSize: UIScale.fontSubhead
                 font.weight: Font.Bold
@@ -453,7 +453,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: "Type the characters shown below. Solving this once marks your dot as verified, so other people's clients can filter scripted noise out of what they render - it reveals nothing else about you, and never expires unless you remove your location entirely."
+                text: I18n.t("community.captchaExplanation")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
                 wrapMode: Text.WordWrap
@@ -481,12 +481,12 @@ Item {
 
             StyledTextInput {
                 id: answerField
-                placeholder: "Type what you see"
+                placeholder: I18n.t("community.captchaPlaceholder")
                 onAccepted: capDlg._submit()
             }
 
             Text {
-                text: "Request a new challenge"
+                text: I18n.t("community.requestNewChallenge")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
 
@@ -539,7 +539,7 @@ Item {
                     Text {
                         id: capCancelText
                         anchors.centerIn: parent
-                        text: "Cancel"
+                        text: I18n.t("common.cancel")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                     }
@@ -589,7 +589,7 @@ Item {
                     Text {
                         id: capSubmitText
                         anchors.centerIn: parent
-                        text: LocationSharingService.captchaBusy ? "Checking..." : "Submit"
+                        text: LocationSharingService.captchaBusy ? I18n.t("community.checking") : I18n.t("community.submit")
                         color: Colors.onAccent
                         font.pixelSize: UIScale.fontBody
                         font.weight: Font.DemiBold
@@ -723,7 +723,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "Location sharing"
+                    text: I18n.t("community.locationSharing")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.weight: Font.DemiBold
@@ -800,7 +800,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: LocationSharingService.optedIn ? "Sharing my approximate location" : "Share my approximate location"
+                            text: LocationSharingService.optedIn ? I18n.t("community.sharingLocation") : I18n.t("community.shareLocation")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             elide: Text.ElideRight
@@ -826,7 +826,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Also share when I'm active"
+                            text: I18n.t("community.alsoShareActive")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             elide: Text.ElideRight
@@ -858,7 +858,7 @@ Item {
                         spacing: UIScale.spacingSm
 
                         Text {
-                            text: "How often"
+                            text: I18n.t("community.howOften")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                         }
@@ -894,7 +894,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: LocationSharingService.verified ? "Verified" : "Not verified"
+                            text: LocationSharingService.verified ? I18n.t("community.verified") : I18n.t("community.notVerified")
                             color: LocationSharingService.verified ? Colors.text : Colors.textDim
                             font.pixelSize: UIScale.fontBody
                             elide: Text.ElideRight
@@ -902,7 +902,7 @@ Item {
 
                         Text {
                             visible: !LocationSharingService.verified
-                            text: LocationSharingService.captchaBusy ? "Checking..." : "Verify"
+                            text: LocationSharingService.captchaBusy ? I18n.t("community.checking") : I18n.t("community.verify")
                             color: LocationSharingService.captchaBusy ? Colors.textDim : Colors.accent
                             font.pixelSize: UIScale.fontSmall
 
@@ -920,7 +920,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Show only active dots"
+                            text: I18n.t("community.showOnlyActiveDots")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             elide: Text.ElideRight
@@ -938,7 +938,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Show only verified dots"
+                            text: I18n.t("community.showOnlyVerifiedDots")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             elide: Text.ElideRight
@@ -956,7 +956,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Show globe on dashboard"
+                            text: I18n.t("community.showGlobeOnDashboard")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             elide: Text.ElideRight
@@ -978,7 +978,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "3D globe"
+                            text: I18n.t("community.globe3DOption")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             elide: Text.ElideRight
@@ -997,7 +997,7 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: "Stress test (fake data)"
+                            text: I18n.t("community.stressTest")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             elide: Text.ElideRight
@@ -1020,13 +1020,13 @@ Item {
 
                         Text {
                             Layout.fillWidth: true
-                            text: root._stressTestPoints.length + " fake points"
+                            text: I18n.t("community.fakePointsCount", [root._stressTestPoints.length])
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                         }
 
                         Text {
-                            text: "Regenerate"
+                            text: I18n.t("community.regenerate")
                             color: Colors.accent
                             font.pixelSize: UIScale.fontSmall
 
@@ -1054,8 +1054,8 @@ Item {
 
     ConsentDialog {
         _shown: root._showConsentDialog
-        titleText: "Share your approximate location?"
-        bodyText: "Turning this on sends a check-in to the zesis network whenever the bar starts, and roughly once a day after that for as long as it's enabled.\n\nThe server resolves your location from your IP address (not GPS), then blurs it to a random point within about 10km - the same blurred point every time, not a new one on each check-in.\n\nThat blurred point becomes visible to anyone who queries the shared location list. That's what lets other people's globes show roughly where you are.\n\nEveryone's entry is cleared together once a week, all at the same moment - not individually timed to when you were actually using it. Turning this off removes your dot immediately, turning it back on later puts you right back at the same point.\n\nThis isn't fully anonymous: the server sees and stores your real IP address alongside your identity token, even though only the blurred location is ever shown to anyone else."
+        titleText: I18n.t("community.consentLocationTitle")
+        bodyText: I18n.t("community.consentLocationBody")
         onAccepted: {
             LocationSharingService.setOptedIn(true);
             root._showConsentDialog = false;
@@ -1065,8 +1065,8 @@ Item {
 
     ConsentDialog {
         _shown: root._showActivenessDialog
-        titleText: "Share when you're active?"
-        bodyText: "Unlike your location, this reveals timing: how recently you were last seen, at whatever cadence you pick below.\n\nThe server only ever exposes a coarse yes/no \"active\" flag on your dot - never a precise timestamp - but the cadence you choose is how coarse that flag is. 5 minutes means people can tell almost exactly when you're online: 2 hours means your activity blurs across most of a work session.\n\nOnly fixed cadence options are offered on purpose: a unique, custom interval would itself be a fingerprint that could help identify your dot across time, even with the location jitter intact.\n\nThis applies on top of location sharing, not instead of it - turning off location sharing turns this off too. Turning this off by itself is immediate, no confirmation needed."
+        titleText: I18n.t("community.consentActivenessTitle")
+        bodyText: I18n.t("community.consentActivenessBody")
         onAccepted: {
             if (root._activenessDialogMode === "enable")
                 LocationSharingService.setActivenessOptedIn(true);

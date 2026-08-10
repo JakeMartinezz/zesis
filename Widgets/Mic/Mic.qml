@@ -35,8 +35,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / SOUND"
-            title: "Microphone"
+            breadcrumb: I18n.t("mic.breadcrumb")
+            title: I18n.t("mic.title")
         }
 
         Flickable {
@@ -122,7 +122,7 @@ Item {
                             }
 
                             Text {
-                                text: "Input"
+                                text: I18n.t("mic.input")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontBody
                                 font.weight: Font.Bold
@@ -161,7 +161,7 @@ Item {
 
                 // Per-app capture streams
                 SectionLabel {
-                    text: "APPS"
+                    text: I18n.t("common.apps")
                     color: Colors.textDim
                     font.weight: Font.Medium
                     Layout.leftMargin: UIScale.spacingMd + UIScale.spacingXs
@@ -309,7 +309,7 @@ Item {
                                             }
 
                                             Text {
-                                                text: streamItem.streamMuted ? "muted" : (Math.round(streamItem.streamVol * 100) + "%")
+                                                text: streamItem.streamMuted ? I18n.t("mic.muted") : (Math.round(streamItem.streamVol * 100) + "%")
                                                 color: streamItem.streamMuted ? Colors.textDim : Colors.accent
                                                 font.pixelSize: UIScale.fontTiny
                                                 font.family: "monospace"
@@ -384,7 +384,7 @@ Item {
                             }
 
                             Text {
-                                text: "Input  ·  " + (root.source?.description || root.source?.name || "No input")
+                                text: I18n.t("mic.inputWithName", [root.source?.description || root.source?.name || I18n.t("mic.noInput")])
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontTiny
                                 font.weight: Font.DemiBold

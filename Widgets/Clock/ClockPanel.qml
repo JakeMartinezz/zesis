@@ -12,49 +12,49 @@ Item {
     readonly property var _colonOptions: [
         {
             value: "breathe",
-            label: "Breathing"
+            label: I18n.t("clock.colonBreathing")
         },
         {
             value: "on",
-            label: "Always on"
+            label: I18n.t("clock.colonAlwaysOn")
         },
         {
             value: "off",
-            label: "Always off"
+            label: I18n.t("clock.colonAlwaysOff")
         },
         {
             value: "hidden",
-            label: "Hidden"
+            label: I18n.t("clock.colonHidden")
         }
     ]
     readonly property var _widthOptions: [
         {
             value: "fixed",
-            label: "Fixed"
+            label: I18n.t("clock.widthFixed")
         },
         {
             value: "fluid",
-            label: "Fluid"
+            label: I18n.t("clock.widthFluid")
         }
     ]
     readonly property var _showDateOptions: [
         {
             value: false,
-            label: "Off"
+            label: I18n.t("common.off")
         },
         {
             value: true,
-            label: "On"
+            label: I18n.t("common.on")
         }
     ]
     readonly property var _formatOptions: [
         {
             value: false,
-            label: "24-hour"
+            label: I18n.t("clock.format24")
         },
         {
             value: true,
-            label: "12-hour"
+            label: I18n.t("clock.format12")
         }
     ]
 
@@ -64,8 +64,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / CLOCK"
-            title: "Clock"
+            breadcrumb: I18n.t("clock.breadcrumb")
+            title: I18n.t("clock.title")
         }
 
         Flickable {
@@ -105,7 +105,7 @@ Item {
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                         anchors.margins: UIScale.spacingSm
-                        text: "PREVIEW"
+                        text: I18n.t("clock.preview")
                         color: Colors.withAlpha(Colors.muted, 0.4)
                         font.pixelSize: UIScale.fontTiny
                         font.letterSpacing: 1.5
@@ -114,7 +114,7 @@ Item {
                 }
 
                 Text {
-                    text: "APPEARANCE"
+                    text: I18n.t("clock.appearanceSection")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontTiny
                     font.weight: Font.Bold
@@ -142,13 +142,13 @@ Item {
                         Column {
                             spacing: Math.round(2 * UIScale.value)
                             Text {
-                                text: "Colon"
+                                text: I18n.t("clock.colonLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "Style of the : separator"
+                                text: I18n.t("clock.colonHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -186,13 +186,13 @@ Item {
                         Column {
                             spacing: Math.round(2 * UIScale.value)
                             Text {
-                                text: "Width"
+                                text: I18n.t("clock.widthLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "Pill resize during animation"
+                                text: I18n.t("clock.widthHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -230,13 +230,13 @@ Item {
                         Column {
                             spacing: Math.round(2 * UIScale.value)
                             Text {
-                                text: "Show Date"
+                                text: I18n.t("clock.showDateLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "Prefix with day and date"
+                                text: I18n.t("clock.showDateHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -274,13 +274,13 @@ Item {
                         Column {
                             spacing: Math.round(2 * UIScale.value)
                             Text {
-                                text: "Hour Format"
+                                text: I18n.t("clock.hourFormatLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "12-hour or 24-hour time"
+                                text: I18n.t("clock.hourFormatHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -300,7 +300,7 @@ Item {
                 }
 
                 Text {
-                    text: "ANIMATION TEST"
+                    text: I18n.t("clock.animationTestSection")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontTiny
                     font.weight: Font.Bold
@@ -330,13 +330,13 @@ Item {
                             spacing: Math.round(2 * UIScale.value)
                             Layout.preferredWidth: Math.round(52 * UIScale.value)
                             Text {
-                                text: "Snap to"
+                                text: I18n.t("clock.snapToLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "No animation"
+                                text: I18n.t("clock.snapToHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -371,7 +371,7 @@ Item {
                         }
 
                         ActionButton {
-                            label: "Snap"
+                            label: I18n.t("clock.snapButton")
                             onActivated: preview.snapTo(snapH.value, snapM.value)
                         }
                     }
@@ -398,13 +398,13 @@ Item {
                             spacing: Math.round(2 * UIScale.value)
                             Layout.preferredWidth: Math.round(52 * UIScale.value)
                             Text {
-                                text: "Animate to"
+                                text: I18n.t("clock.animateToLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "Typewriter"
+                                text: I18n.t("clock.typewriterHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -439,7 +439,7 @@ Item {
                         }
 
                         ActionButton {
-                            label: "Go"
+                            label: I18n.t("clock.goButton")
                             onActivated: preview.simulateTo(animH.value, animM.value)
                         }
                     }
@@ -493,7 +493,7 @@ Item {
                 // }
 
                 Text {
-                    text: "DESKTOP CLOCK"
+                    text: I18n.t("clock.desktopClockSection")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontTiny
                     font.weight: Font.Bold
@@ -522,7 +522,7 @@ Item {
                         anchors.bottom: parent.bottom
                         anchors.right: parent.right
                         anchors.margins: UIScale.spacingSm
-                        text: "PREVIEW"
+                        text: I18n.t("clock.preview")
                         color: Qt.rgba(1, 1, 1, 0.18)
                         font.pixelSize: UIScale.fontTiny
                         font.letterSpacing: 1.5
@@ -551,13 +551,13 @@ Item {
                             spacing: Math.round(2 * UIScale.value)
                             Layout.preferredWidth: Math.round(52 * UIScale.value)
                             Text {
-                                text: "Midnight"
+                                text: I18n.t("clock.midnightLabel")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold
                             }
                             Text {
-                                text: "Rolls over to date"
+                                text: I18n.t("clock.midnightHint")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
@@ -592,7 +592,7 @@ Item {
                         }
 
                         ActionButton {
-                            label: "Go"
+                            label: I18n.t("clock.goButton")
                             onActivated: desktopPreview.simulateMidnight(dayMonth.value - 1, dayDay.value)
                         }
                     }

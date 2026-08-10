@@ -158,7 +158,7 @@ PanelWindow {
 
                     Text {
                         anchors.centerIn: parent
-                        text: "DEFLATE"
+                        text: I18n.t("pumppanel.deflate")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontCaption
                         font.letterSpacing: 1

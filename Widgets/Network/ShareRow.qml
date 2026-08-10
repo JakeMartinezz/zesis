@@ -83,7 +83,7 @@ Item {
             Text {
                 id: mountBtnText
                 anchors.centerIn: parent
-                text: "mount"
+                text: I18n.t("network.mountAction")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
             }
@@ -119,7 +119,7 @@ Item {
             Text {
                 id: openBtnText
                 anchors.centerIn: parent
-                text: "open"
+                text: I18n.t("network.openAction")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
             }
@@ -150,7 +150,7 @@ Item {
             Text {
                 id: unmountBtnText
                 anchors.centerIn: parent
-                text: "unmount"
+                text: I18n.t("network.unmountAction")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
             }
@@ -183,7 +183,7 @@ Item {
             Text {
                 id: retryBtnText
                 anchors.centerIn: parent
-                text: "retry"
+                text: I18n.t("network.retryAction")
                 color: Colors.accent
                 font.pixelSize: UIScale.fontCaption
             }

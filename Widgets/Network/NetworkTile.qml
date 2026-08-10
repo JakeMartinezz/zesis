@@ -58,7 +58,7 @@ Item {
                 visible: NetworkService.mountBackend === "smbnetfs" && NetworkService.smbnetfsConnected.length > 0
 
                 Text {
-                    text: "CONNECTED"
+                    text: I18n.t("network.connectedHeader")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                     font.letterSpacing: 1.5
@@ -116,7 +116,7 @@ Item {
                                 Text {
                                     id: disconnectLabel
                                     anchors.centerIn: parent
-                                    text: "disconnect"
+                                    text: I18n.t("network.disconnectAction")
                                     color: Colors.accent
                                     font.pixelSize: UIScale.fontCaption
                                 }
@@ -153,7 +153,7 @@ Item {
                 visible: NetworkService.mountBackend === "mountcifs" && NetworkService.mounts.length > 0
 
                 Text {
-                    text: "MOUNTED"
+                    text: I18n.t("network.mountedHeader")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                     font.letterSpacing: 1.5
@@ -211,7 +211,7 @@ Item {
                                 Text {
                                     id: unmountLabel
                                     anchors.centerIn: parent
-                                    text: "unmount"
+                                    text: I18n.t("network.unmountAction")
                                     color: Colors.accent
                                     font.pixelSize: UIScale.fontCaption
                                 }
@@ -248,7 +248,7 @@ Item {
                 Layout.rightMargin: UIScale.spacingMd
 
                 Text {
-                    text: "SERVERS"
+                    text: I18n.t("network.serversHeader")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                     font.letterSpacing: 1.5
@@ -308,7 +308,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: UIScale.spacingMd + Math.round(4 * UIScale.value)
                 visible: !NetworkService.scanning && NetworkService.servers.length === 0
-                text: "No SMB servers found on network"
+                text: I18n.t("network.noServersFoundOnNetwork")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
             }
@@ -317,7 +317,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: UIScale.spacingMd + Math.round(4 * UIScale.value)
                 visible: NetworkService.scanning && NetworkService.servers.length === 0
-                text: "Scanning..."
+                text: I18n.t("network.scanning")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
             }
@@ -402,7 +402,7 @@ Item {
 
                             Text {
                                 visible: serverRow.srvState.status === "listed" && NetworkService.mountBackend !== "mountcifs"
-                                text: serverRow.srvState.shares ? serverRow.srvState.shares.length + " share" + (serverRow.srvState.shares.length !== 1 ? "s" : "") : ""
+                                text: serverRow.srvState.shares ? I18n.t(serverRow.srvState.shares.length !== 1 ? "network.sharesCountPlural" : "network.sharesCountSingular", [serverRow.srvState.shares.length]) : ""
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontCaption
                             }
@@ -422,7 +422,7 @@ Item {
                                 Text {
                                     id: disconnectCifsLabel
                                     anchors.centerIn: parent
-                                    text: "disconnect"
+                                    text: I18n.t("network.disconnectAction")
                                     color: Colors.accent
                                     font.pixelSize: UIScale.fontCaption
                                 }
@@ -506,7 +506,7 @@ Item {
                             Text {
                                 width: parent.width
                                 visible: serverRow.srvState.status === "listing"
-                                text: "Listing shares..."
+                                text: I18n.t("network.listingShares")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontCaption
                                 leftPadding: UIScale.spacingSm

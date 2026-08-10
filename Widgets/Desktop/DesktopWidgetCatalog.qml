@@ -8,6 +8,7 @@ import "../Weather"
 import "../SysMon"
 import "../Globe2D"
 import "../Power"
+import "../../"
 
 Singleton {
     id: root
@@ -15,38 +16,38 @@ Singleton {
     readonly property var entries: [
         {
             key: "desktop-clock",
-            label: "Desktop Clock",
-            description: "Large typewriter date & time",
+            label: I18n.t("desktop.desktopClockLabel"),
+            description: I18n.t("desktop.desktopClockDescription"),
             component: _desktopClockComp
         },
         {
             key: "bar-clock",
-            label: "Bar Clock",
-            description: "Compact monospace clock pill",
+            label: I18n.t("desktop.barClockLabel"),
+            description: I18n.t("desktop.barClockDescription"),
             component: _barClockComp
         },
         {
             key: "weather",
-            label: "Weather",
-            description: "Current conditions display",
+            label: I18n.t("desktop.weatherLabel"),
+            description: I18n.t("desktop.weatherDescription"),
             component: _weatherComp
         },
         {
             key: "sysmon",
-            label: "System Stats",
-            description: "CPU, RAM, GPU, net & disk at a glance",
+            label: I18n.t("desktop.sysmonLabel"),
+            description: I18n.t("desktop.sysmonDescription"),
             component: _sysmonComp
         },
         {
             key: "globe2d",
-            label: "Globe",
-            description: "Spinning 2D shader globe with community locations",
+            label: I18n.t("desktop.globe2dLabel"),
+            description: I18n.t("desktop.globe2dDescription"),
             component: _globe2dComp
         },
         {
             key: "vending",
-            label: "Vending Machine",
-            description: "Dial a code to lock, log out, reboot, or shut down",
+            label: I18n.t("desktop.vendingLabel"),
+            description: I18n.t("desktop.vendingDescription"),
             component: _vendingComp
         }
     ]

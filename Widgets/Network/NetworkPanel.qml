@@ -36,8 +36,8 @@ Item {
         // Header
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / NETWORK"
-            title: "Network Shares"
+            breadcrumb: I18n.t("network.breadcrumb")
+            title: I18n.t("network.title")
 
             rightActions: Component {
                 RowLayout {
@@ -109,7 +109,7 @@ Item {
                                 }
                             }
                             Text {
-                                text: "Rescan"
+                                text: I18n.t("network.rescan")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontBody
                                 font.weight: Font.DemiBold
@@ -164,7 +164,7 @@ Item {
                                 }
                             }
                             Text {
-                                text: "Connected"
+                                text: I18n.t("network.connected")
                                 color: Colors.accent
                                 font.pixelSize: UIScale.fontBody
                                 font.weight: Font.Bold
@@ -196,7 +196,7 @@ Item {
                 }
 
                 Text {
-                    text: "Mount backend"
+                    text: I18n.t("network.mountBackendLabel")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -214,14 +214,14 @@ Item {
 
                 Text {
                     visible: NetworkService.mountBackend === "smbnetfs" && !NetworkService.smbnetfsAvailable
-                    text: "smbnetfs not installed"
+                    text: I18n.t("network.smbnetfsNotInstalled")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontCaption
                     Layout.leftMargin: UIScale.panelPad
                 }
                 Text {
                     visible: NetworkService.mountBackend === "mountcifs" && NetworkService.mountCifsPath === ""
-                    text: "mount.cifs not installed"
+                    text: I18n.t("network.mountCifsNotInstalled")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontCaption
                     Layout.leftMargin: UIScale.panelPad
@@ -239,7 +239,7 @@ Item {
                     visible: NetworkService.mountBackend === "smbnetfs"
 
                     Text {
-                        text: "Persist credentials"
+                        text: I18n.t("network.persistCredentials")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -257,7 +257,7 @@ Item {
                     visible: NetworkService.mountBackend === "smbnetfs" && NetworkService.persistCredentials && NetworkService.keychainAvailable
 
                     Text {
-                        text: "Use keyring"
+                        text: I18n.t("network.useKeyring")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -270,7 +270,7 @@ Item {
 
                 Text {
                     visible: NetworkService.mountBackend === "smbnetfs" && NetworkService.persistCredentials && (!NetworkService.useKeyring || !NetworkService.keychainAvailable)
-                    text: "Password stored in plain text in ~/.smb/smbnetfs.auth"
+                    text: I18n.t("network.plainTextWarning")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -290,7 +290,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Show warnings"
+                        text: I18n.t("network.showWarnings")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -425,7 +425,7 @@ Item {
                                     Text {
                                         id: shareChipTxt
                                         anchors.centerIn: parent
-                                        text: root.selectedSrvState.shares.length + (root.selectedSrvState.shares.length !== 1 ? " shares" : " share")
+                                        text: I18n.t(root.selectedSrvState.shares.length !== 1 ? "network.sharesCountPlural" : "network.sharesCountSingular", [root.selectedSrvState.shares.length])
                                         color: Colors.accent
                                         font.pixelSize: UIScale.fontCaption
                                         font.weight: Font.Bold
@@ -520,7 +520,7 @@ Item {
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 Text {
-                                    text: "Disconnect"
+                                    text: I18n.t("network.disconnect")
                                     color: Colors.text
                                     font.pixelSize: UIScale.fontBody
                                     font.weight: Font.Bold
@@ -558,7 +558,7 @@ Item {
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
 
                             SectionLabel {
-                                text: "DISCOVERED SERVERS"
+                                text: I18n.t("network.discoveredServers")
                                 Layout.fillWidth: true
                             }
                             Text {
@@ -572,7 +572,7 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             visible: !NetworkService.scanning && NetworkService.servers.length === 0
-                            text: "No SMB servers found"
+                            text: I18n.t("network.noServersFound")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontSmall
                             topPadding: UIScale.spacingSm
@@ -581,7 +581,7 @@ Item {
                         Text {
                             Layout.fillWidth: true
                             visible: NetworkService.scanning && NetworkService.servers.length === 0
-                            text: "Scanning..."
+                            text: I18n.t("network.scanning")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontSmall
                             topPadding: UIScale.spacingSm
@@ -606,7 +606,7 @@ Item {
                                 }
                                 readonly property string srvSubtitle: {
                                     var n = srvCard.srvState.shares.length;
-                                    return n > 0 ? srvCard.srvHostname + " · " + n + (n !== 1 ? " shares" : " share") : srvCard.srvHostname;
+                                    return n > 0 ? srvCard.srvHostname + " · " + I18n.t(n !== 1 ? "network.sharesCountPlural" : "network.sharesCountSingular", [n]) : srvCard.srvHostname;
                                 }
 
                                 Layout.fillWidth: true
@@ -770,7 +770,7 @@ Item {
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 Text {
-                                    text: "Add server"
+                                    text: I18n.t("network.addServer")
                                     color: Colors.textDim
                                     font.pixelSize: UIScale.fontBody
                                     font.weight: Font.DemiBold
@@ -805,7 +805,7 @@ Item {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "Select a server"
+                                    text: I18n.t("network.selectServer")
                                     color: Colors.muted
                                     font.pixelSize: UIScale.fontLead
                                 }
@@ -818,7 +818,7 @@ Item {
 
                                 SectionLabel {
                                     visible: root.selectedSrvState.status === "listed"
-                                    text: "SHARES ON " + root.selectedHost.split(".")[0].toUpperCase()
+                                    text: I18n.t("network.sharesOn", [root.selectedHost.split(".")[0].toUpperCase()])
                                 }
 
                                 ReconnectRow {
@@ -850,7 +850,7 @@ Item {
 
                                 Text {
                                     visible: root.selectedSrvState.status === "listing"
-                                    text: "Listing shares..."
+                                    text: I18n.t("network.listingShares")
                                     color: Colors.textDim
                                     font.pixelSize: UIScale.fontBody
                                 }
@@ -967,7 +967,7 @@ Item {
                                                                 anchors.verticalCenter: parent.verticalCenter
                                                             }
                                                             Text {
-                                                                text: "Open"
+                                                                text: I18n.t("network.open")
                                                                 color: Colors.accent
                                                                 font.pixelSize: UIScale.fontSmall
                                                                 font.weight: Font.Bold
@@ -1001,7 +1001,7 @@ Item {
 
                                                         Text {
                                                             anchors.centerIn: parent
-                                                            text: "Mount"
+                                                            text: I18n.t("network.mount")
                                                             color: Colors.accent
                                                             font.pixelSize: UIScale.fontSmall
                                                             font.weight: Font.Bold
@@ -1034,7 +1034,7 @@ Item {
                                                         Text {
                                                             id: unmountTxt
                                                             anchors.centerIn: parent
-                                                            text: "Unmount"
+                                                            text: I18n.t("network.unmount")
                                                             color: Colors.textDim
                                                             font.pixelSize: UIScale.fontSmall
                                                             font.weight: Font.DemiBold
@@ -1070,7 +1070,7 @@ Item {
 
                                                         Text {
                                                             anchors.centerIn: parent
-                                                            text: "Retry"
+                                                            text: I18n.t("network.retry")
                                                             color: Colors.accent
                                                             font.pixelSize: UIScale.fontSmall
                                                             font.weight: Font.Bold
@@ -1088,7 +1088,7 @@ Item {
 
                                                     Text {
                                                         visible: shareCard.shareState === "mounting"
-                                                        text: "Mounting..."
+                                                        text: I18n.t("network.mounting")
                                                         color: Colors.muted
                                                         font.pixelSize: UIScale.fontSmall
                                                     }

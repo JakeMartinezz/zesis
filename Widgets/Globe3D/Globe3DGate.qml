@@ -51,7 +51,7 @@ Item {
     Text {
         anchors.centerIn: parent
         visible: root.panelActive && !Globe3DService.starfieldReady
-        text: "Preparing star catalog..."
+        text: I18n.t("globe3d.preparingStarCatalog")
         color: Colors.textDim
         font.pixelSize: UIScale.fontBody
     }
@@ -129,7 +129,7 @@ Item {
         }
         Text {
             width: parent.width
-            text: "This feature needs the Congeries QtQuick3D plugin, which isn't installed on this system. See the README's 3D globe section."
+            text: I18n.t("globe3d.missingPlugin")
             color: Colors.textDim
             font.pixelSize: UIScale.fontBody
             wrapMode: Text.WordWrap

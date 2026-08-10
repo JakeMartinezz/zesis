@@ -41,7 +41,7 @@ Item {
 
             // Bar side
             Text {
-                text: "Bar side"
+                text: I18n.t("bar.side")
                 color: Colors.text
                 font.bold: true
                 font.pixelSize: UIScale.fontBody
@@ -50,26 +50,38 @@ Item {
                 Layout.fillWidth: true
                 spacing: UIScale.spacingSm
                 Repeater {
-                    model: ["Top", "Bottom", "Left", "Right"]
+                    model: [{
+                            value: "top",
+                            label: I18n.t("bar.top")
+                        }, {
+                            value: "bottom",
+                            label: I18n.t("bar.bottom")
+                        }, {
+                            value: "left",
+                            label: I18n.t("bar.left")
+                        }, {
+                            value: "right",
+                            label: I18n.t("bar.right")
+                        }]
                     delegate: Rectangle {
                         id: sideBtn
-                        required property string modelData
+                        required property var modelData
                         Layout.fillWidth: true
                         implicitHeight: Math.round(28 * UIScale.value)
                         radius: UIScale.radiusSm
-                        color: BarConfig.side === sideBtn.modelData.toLowerCase() ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
-                        border.color: BarConfig.side === sideBtn.modelData.toLowerCase() ? Colors.accent : "transparent"
+                        color: BarConfig.side === sideBtn.modelData.value ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
+                        border.color: BarConfig.side === sideBtn.modelData.value ? Colors.accent : "transparent"
                         border.width: 1
                         Text {
                             anchors.centerIn: parent
-                            text: parent.modelData
+                            text: parent.modelData.label
                             color: Colors.text
                             font.pixelSize: UIScale.fontCaption
                         }
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: BarConfig.write(sideBtn.modelData.toLowerCase())
+                            onClicked: BarConfig.write(sideBtn.modelData.value)
                         }
                     }
                 }
@@ -83,7 +95,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Text {
-                    text: "Edge gap"
+                    text: I18n.t("bar.edgeGap")
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
@@ -115,7 +127,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Text {
-                    text: "End gap"
+                    text: I18n.t("bar.endGap")
                     color: Colors.text
                     font.bold: true
                     font.pixelSize: UIScale.fontBody
@@ -145,7 +157,7 @@ Item {
 
             // Bar items
             Text {
-                text: "Bar items"
+                text: I18n.t("bar.items")
                 color: Colors.text
                 font.bold: true
                 font.pixelSize: UIScale.fontBody

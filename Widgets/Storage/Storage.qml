@@ -46,8 +46,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "WIDGET HOME / STORAGE"
-            title: "Storage"
+            breadcrumb: I18n.t("storage.breadcrumb")
+            title: I18n.t("storage.title")
         }
 
         Flickable {
@@ -100,7 +100,7 @@ Item {
                 }
 
                 SectionLabel {
-                    text: "MOUNTS"
+                    text: I18n.t("storage.mountsSection")
                     color: Colors.accent
                     font.weight: Font.Medium
                     Layout.leftMargin: UIScale.spacingMd

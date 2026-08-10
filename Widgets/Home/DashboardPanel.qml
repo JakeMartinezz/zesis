@@ -24,18 +24,18 @@ Item {
         var h = new Date().getHours();
         var opts;
         if (h >= 5 && h < 12)
-            opts = ["Good morning,", "Mornin',", "Early bird,", "Rise and shine,"];
+            opts = I18n.t("home.greetingsMorning").split("|");
         else if (h >= 12 && h < 17)
-            opts = ["Good afternoon,", "Afternoon,", "Hey there,"];
+            opts = I18n.t("home.greetingsAfternoon").split("|");
         else if (h >= 17 && h < 22)
-            opts = ["Good evening,", "Evenin',", "Good evening!", "Evening,"];
+            opts = I18n.t("home.greetingsEvening").split("|");
         else
-            opts = ["Go to bed,", "Up late?", "Go - wow, you're up late,", "Still going?"];
+            opts = I18n.t("home.greetingsNight").split("|");
         root._greeting = opts[Math.floor(Math.random() * opts.length)];
     }
 
-    readonly property var _dayNames: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    readonly property var _monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    readonly property var _dayNames: I18n.t("home.dayNames").split("|")
+    readonly property var _monthNames: I18n.t("home.monthNames").split("|")
 
     readonly property string _dateStr: {
         var d = root._now;
@@ -66,7 +66,7 @@ Item {
 
     function _fmtTime(ev) {
         if (ev.allDay)
-            return "All day";
+            return I18n.t("home.allDay");
         return ev.start.substring(11, 16);
     }
 
@@ -122,7 +122,7 @@ Item {
                     }
                     Text {
                         width: parent.width
-                        text: UserService.name !== "" ? UserService.name : "Welcome"
+                        text: UserService.name !== "" ? UserService.name : I18n.t("home.welcome")
                         color: Colors.text
                         font.pixelSize: Math.round(30 * UIScale.value * UIScale.fontScale)
                         font.weight: Font.ExtraBold
@@ -172,7 +172,7 @@ Item {
                         spacing: UIScale.spacingSm
 
                         Text {
-                            text: "TODAY"
+                            text: I18n.t("home.today")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -229,7 +229,7 @@ Item {
                                     }
                                     Text {
                                         anchors.horizontalCenter: parent.horizontalCenter
-                                        text: "Nothing scheduled for today"
+                                        text: I18n.t("home.nothingScheduledToday")
                                         color: Colors.muted
                                         font.pixelSize: UIScale.fontSmall
                                     }
@@ -378,7 +378,7 @@ Item {
                                 color: Colors.accent
                             }
                             Text {
-                                text: "Open Calendar"
+                                text: I18n.t("home.openCalendar")
                                 color: Colors.accent
                                 font.pixelSize: UIScale.fontSmall
                                 font.weight: Font.DemiBold

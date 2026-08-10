@@ -23,27 +23,27 @@ Item {
                     var w = [];
                     if (!NetworkService.smbAvailable)
                         w.push({
-                            msg: "smbclient not found - add pkgs.samba to systemPackages"
+                            msg: I18n.t("network.warnSmbclientMissing")
                         });
                     if (NetworkService.mountBackend === "smbnetfs" && !NetworkService.smbnetfsAvailable)
                         w.push({
-                            msg: "smbnetfs not found - add pkgs.smbnetfs to systemPackages"
+                            msg: I18n.t("network.warnSmbnetfsMissing")
                         });
                     if (NetworkService.mountBackend === "smbnetfs" && !NetworkService.fusermountAvailable)
                         w.push({
-                            msg: "fusermount not found - add pkgs.fuse to systemPackages"
+                            msg: I18n.t("network.warnFusermountMissing")
                         });
                     if (NetworkService.mountBackend === "mountcifs" && NetworkService.mountCifsPath === "")
                         w.push({
-                            msg: "mount.cifs not found - add pkgs.cifs-utils to systemPackages"
+                            msg: I18n.t("network.warnMountCifsMissing")
                         });
                     if (NetworkService.mountBackend === "smbnetfs" && !NetworkService.keychainAvailable)
                         w.push({
-                            msg: "secret-tool not found - credentials temporarily in plain text. Add pkgs.libsecret."
+                            msg: I18n.t("network.warnSecretToolMissing")
                         });
                     if (KeychainService.tool === "oo7-cli" && KeychainService.promptChecked && !KeychainService.promptAvailable)
                         w.push({
-                            msg: "No unlock prompt registered for the oo7 keyring - add pkgs.gcr to services.dbus.packages."
+                            msg: I18n.t("network.warnNoUnlockPrompt")
                         });
                     return w;
                 }
@@ -136,7 +136,7 @@ Item {
                 }
 
                 Text {
-                    text: keychainBanner.showLocked ? (KeychainService.unlocking ? "Unlocking keyring…" : "Keyring is locked") : "Keyring locked or unavailable"
+                    text: keychainBanner.showLocked ? (KeychainService.unlocking ? I18n.t("network.unlockingKeyring") : I18n.t("network.keyringLocked")) : I18n.t("network.keyringLockedOrUnavailable")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                     Layout.fillWidth: true
@@ -157,7 +157,7 @@ Item {
                     Text {
                         id: retryLabel
                         anchors.centerIn: parent
-                        text: keychainBanner.showLocked ? "Unlock" : "Retry"
+                        text: keychainBanner.showLocked ? I18n.t("network.unlock") : I18n.t("network.retry")
                         color: Colors.accent
                         font.pixelSize: UIScale.fontCaption
                     }

@@ -29,7 +29,7 @@ Rectangle {
         spacing: UIScale.spacingSm
 
         Text {
-            text: "Trend"
+            text: I18n.t("diaspora.trend")
             color: Colors.accent
             font.pixelSize: UIScale.fontTiny
             font.capitalization: Font.AllUppercase

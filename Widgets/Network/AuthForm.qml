@@ -38,7 +38,7 @@ Rectangle {
 
         StyledTextInput {
             id: userField
-            placeholder: "user"
+            placeholder: I18n.t("network.userPlaceholder")
             text: authUser
             onTextChanged: authUserEdited(userField.text)
             onAccepted: passField.field.forceActiveFocus()
@@ -62,7 +62,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.leftMargin: Math.round(10 * UIScale.value)
-                text: "password"
+                text: I18n.t("network.passwordPlaceholder")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
                 visible: passField.text.length === 0 && !passField.activeFocus
@@ -138,7 +138,7 @@ Rectangle {
                 Text {
                     id: connectLabel
                     anchors.centerIn: parent
-                    text: "Connect"
+                    text: I18n.t("network.connect")
                     color: Colors.bg
                     font.pixelSize: UIScale.fontCaption
                     font.weight: Font.DemiBold

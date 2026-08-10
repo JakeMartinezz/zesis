@@ -382,7 +382,7 @@ Item {
                 Layout.leftMargin: Math.round(16 * UIScale.value)
                 Layout.rightMargin: Math.round(16 * UIScale.value)
                 showClearButton: true
-                placeholder: "Search wallpapers..."
+                placeholder: I18n.t("wallpaper.searchPlaceholder")
                 onTextChanged: root._updateFilter(text)
             }
 
@@ -418,7 +418,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: filteredWallpapers.count === 0 && !scanner.running
-                    text: wallpapers.count === 0 ? "No wallpapers found in\n" + ThemeState.wallpapersDir : "No results"
+                    text: wallpapers.count === 0 ? I18n.t("wallpaper.noneFoundIn", [ThemeState.wallpapersDir]) : I18n.t("wallpaper.noResults")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -460,7 +460,7 @@ Item {
                 spacing: 0
 
                 Text {
-                    text: "SETTINGS / WALLPAPER"
+                    text: I18n.t("wallpaper.breadcrumb")
                     color: Colors.accent
                     font.pixelSize: UIScale.fontCaption
                     font.weight: Font.Bold
@@ -476,7 +476,7 @@ Item {
                     spacing: UIScale.spacingSm
 
                     Text {
-                        text: "Wallpaper & Theme"
+                        text: I18n.t("wallpaper.title")
                         color: Colors.text
                         font.pixelSize: UIScale.fontTitle
                         font.weight: Font.ExtraBold
@@ -565,7 +565,7 @@ Item {
                             spacing: 0
                             Text {
                                 Layout.fillWidth: true
-                                text: "Dark"
+                                text: I18n.t("wallpaper.dark")
                                 color: ThemeState.palette === "dark" ? Colors.bg : Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                                 font.weight: Font.Medium
@@ -578,7 +578,7 @@ Item {
                             }
                             Text {
                                 Layout.fillWidth: true
-                                text: "Light"
+                                text: I18n.t("wallpaper.light")
                                 color: ThemeState.palette === "light" ? Colors.bg : Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                                 font.weight: Font.Medium
@@ -607,7 +607,7 @@ Item {
                     spacing: UIScale.spacingSm
 
                     Text {
-                        text: "Wallpapers folder"
+                        text: I18n.t("wallpaper.wallpapersFolderLabel")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -622,7 +622,7 @@ Item {
 
                     ActionButton {
                         visible: ThemeState.wallpapersDirOverride !== ""
-                        label: "Reset to default"
+                        label: I18n.t("wallpaper.resetToDefault")
                         onActivated: ThemeState.setWallpapersDirOverride("")
                     }
                 }
@@ -635,7 +635,7 @@ Item {
                     spacing: UIScale.spacingSm
 
                     Text {
-                        text: "Wallpaper backend"
+                        text: I18n.t("wallpaper.backendLabel")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -658,7 +658,7 @@ Item {
                         id: customCmdField
                         visible: ThemeState.wallpaperBackend === "custom"
                         Layout.fillWidth: true
-                        placeholder: "e.g. swww img \"$1\" --transition-type fade"
+                        placeholder: I18n.t("wallpaper.customCommandPlaceholder")
                         text: ThemeState.customWallpaperCommand
                         onAccepted: {
                             ThemeState.customWallpaperCommand = customCmdField.text;
@@ -681,7 +681,7 @@ Item {
                     visible: root._currentBackendHasDaemon
 
                     Text {
-                        text: "Auto-start wallpaper daemon"
+                        text: I18n.t("wallpaper.autoStartDaemon")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         Layout.fillWidth: true
@@ -707,7 +707,7 @@ Item {
                     visible: Quickshell.screens.length > 1
 
                     Text {
-                        text: "Apply to"
+                        text: I18n.t("wallpaper.applyTo")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -717,7 +717,7 @@ Item {
                         model: [
                             {
                                 value: "",
-                                label: "All monitors"
+                                label: I18n.t("wallpaper.allMonitors")
                             }
                         ].concat(Quickshell.screens.map(s => ({
                                     value: s.name,
@@ -729,7 +729,7 @@ Item {
 
                     ActionButton {
                         visible: root.targetMonitor !== "" && (root.targetMonitor in ThemeState.perMonitorWallpaper)
-                        label: "Reset to global"
+                        label: I18n.t("wallpaper.resetToGlobal")
                         onActivated: ThemeState.resetMonitor(root.targetMonitor)
                     }
 
@@ -747,7 +747,7 @@ Item {
                     visible: Quickshell.screens.length > 1
 
                     Text {
-                        text: "Colors from"
+                        text: I18n.t("wallpaper.colorsFromLabel")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -757,7 +757,7 @@ Item {
                         model: [
                             {
                                 value: "",
-                                label: "All monitors"
+                                label: I18n.t("wallpaper.allMonitors")
                             }
                         ].concat(Quickshell.screens.map(s => ({
                                     value: s.name,
@@ -807,7 +807,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Applying..."
+                            text: I18n.t("wallpaper.applying")
                             color: "white"
                             font.pixelSize: UIScale.fontSmall
                             font.weight: Font.Medium
@@ -816,7 +816,7 @@ Item {
                 }
 
                 Text {
-                    text: "Color Palette"
+                    text: I18n.t("wallpaper.colorPalette")
                     color: Colors.text
                     font.pixelSize: UIScale.fontLead
                     font.weight: Font.DemiBold
@@ -825,13 +825,13 @@ Item {
 
                 PaletteRow {
                     Layout.fillWidth: true
-                    rowLabel: "Dark"
+                    rowLabel: I18n.t("wallpaper.dark")
                     swatches: root._darkSwatches
                 }
                 PaletteRow {
                     Layout.fillWidth: true
                     Layout.topMargin: UIScale.radiusMd
-                    rowLabel: "Light"
+                    rowLabel: I18n.t("wallpaper.light")
                     swatches: root._lightSwatches
                 }
             }
