@@ -16,6 +16,9 @@ Singleton {
     property string schemeType: "scheme-tonal-spot"
     property string wallpaperBackend: "awww"
     property string customWallpaperCommand: ""
+    // "" means the default, ~/Pictures/Wallpapers.
+    property string wallpapersDirOverride: ""
+    readonly property string wallpapersDir: root.wallpapersDirOverride !== "" ? root.wallpapersDirOverride : (root._home + "/Pictures/Wallpapers")
     property bool autoStartWallpaperDaemon: true
     property bool applying: false
     property string lastError: ""
@@ -89,6 +92,7 @@ Singleton {
         property string schemeType: "scheme-tonal-spot"
         property string wallpaperBackend: "awww"
         property string customWallpaperCommand: ""
+        property string wallpapersDirOverride: ""
         property bool autoStartWallpaperDaemon: true
         property var perMonitorWallpaper: ({})
         property string colorSourceMonitor: ""
@@ -103,6 +107,7 @@ Singleton {
             root.schemeType = stateData.schemeType;
             root.wallpaperBackend = stateData.wallpaperBackend;
             root.customWallpaperCommand = stateData.customWallpaperCommand;
+            root.wallpapersDirOverride = stateData.wallpapersDirOverride;
             root.autoStartWallpaperDaemon = stateData.autoStartWallpaperDaemon;
             root.perMonitorWallpaper = stateData.perMonitorWallpaper;
             root.colorSourceMonitor = stateData.colorSourceMonitor;
@@ -212,6 +217,11 @@ Singleton {
         applyProcess.running = true;
     }
 
+    function setWallpapersDirOverride(dir) {
+        root.wallpapersDirOverride = dir;
+        root._persistState();
+    }
+
     function togglePalette() {
         root.palette = (root.palette === "dark" ? "light" : "dark");
         root._persistState();
@@ -271,6 +281,7 @@ Singleton {
             schemeType: root.schemeType,
             wallpaperBackend: root.wallpaperBackend,
             customWallpaperCommand: root.customWallpaperCommand,
+            wallpapersDirOverride: root.wallpapersDirOverride,
             autoStartWallpaperDaemon: root.autoStartWallpaperDaemon,
             perMonitorWallpaper: root.perMonitorWallpaper,
             colorSourceMonitor: root.colorSourceMonitor

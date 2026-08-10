@@ -13,8 +13,12 @@ Item {
     focus: true
 
     Component.onCompleted: scanner.running = true
-
-    readonly property string _wallpapersDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+    Connections {
+        target: ThemeState // qmllint disable incompatible-type
+        function onWallpapersDirChanged() {
+            scanner.running = true;
+        }
+    }
 
     ListModel {
         id: wallpapers
@@ -22,7 +26,7 @@ Item {
 
     Process {
         id: scanner
-        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
+        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", ThemeState.wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
         stdout: StdioCollector {}
         onExited: () => listReader.reload()
     }
@@ -177,7 +181,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 visible: wallpapers.count === 0 && !scanner.running
-                text: "No wallpapers found in\n~/Pictures/Wallpapers"
+                text: "No wallpapers found in\n" + ThemeState.wallpapersDir
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
                 horizontalAlignment: Text.AlignHCenter

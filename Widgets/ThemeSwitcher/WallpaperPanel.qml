@@ -10,8 +10,6 @@ import "../Shared"
 Item {
     id: root
 
-    readonly property string _wallpapersDir: Quickshell.env("HOME") + "/Pictures/Wallpapers"
-
     // "" means the wallpaper grid below applies to every monitor.
     // Otherwise it's a ShellScreen.name and clicks only retarget that one output.
     property string targetMonitor: ""
@@ -39,6 +37,12 @@ Item {
     readonly property real stackedGridHeight: Math.max(Math.round(240 * UIScale.value), Math.round(root.height * 0.4))
 
     Component.onCompleted: scanner.running = true
+    Connections {
+        target: ThemeState // qmllint disable incompatible-type
+        function onWallpapersDirChanged() {
+            scanner.running = true;
+        }
+    }
 
     ListModel {
         id: wallpapers
@@ -60,7 +64,7 @@ Item {
 
     Process {
         id: scanner
-        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
+        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", ThemeState.wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
         stdout: StdioCollector {}
         onExited: () => listReader.reload()
     }
@@ -414,7 +418,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: filteredWallpapers.count === 0 && !scanner.running
-                    text: wallpapers.count === 0 ? "No wallpapers found in\n~/Pictures/Wallpapers" : "No results"
+                    text: wallpapers.count === 0 ? "No wallpapers found in\n" + ThemeState.wallpapersDir : "No results"
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -592,6 +596,34 @@ Item {
                             cursorShape: Qt.PointingHandCursor
                             onClicked: ThemeState.togglePalette()
                         }
+                    }
+                }
+
+                // Which folder the wallpaper grid is scanned from
+                RowLayout {
+                    id: wallpapersDirRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+
+                    Text {
+                        text: "Wallpapers folder"
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    StyledTextInput {
+                        id: wallpapersDirField
+                        Layout.fillWidth: true
+                        placeholder: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+                        text: ThemeState.wallpapersDir
+                        onAccepted: ThemeState.setWallpapersDirOverride(wallpapersDirField.text.trim())
+                    }
+
+                    ActionButton {
+                        visible: ThemeState.wallpapersDirOverride !== ""
+                        label: "Reset to default"
+                        onActivated: ThemeState.setWallpapersDirOverride("")
                     }
                 }
 
