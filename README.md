@@ -314,6 +314,10 @@ touch .qmlls.ini
 
 Enable `qt-qml.qmlls.useQmlImportPathEnvVar` in your workspace settings so `qmlls` picks up `QML_IMPORT_PATH` from the devshell. `.vscode/` is gitignored; manage your own local workspace settings.
 
+## Cool forks
+
+- [JakeMartinezz/zesis](https://github.com/JakeMartinezz/zesis) - modelled to mirror parts of AGS
+
 ## Contributing
 
 PRs and issues are welcome - especially for portability improvements (new compositor backends, distro packaging, etc).
