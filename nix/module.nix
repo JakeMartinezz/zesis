@@ -78,9 +78,10 @@ in {
           Put the full set of optional runtime tools zesis's widgets can
           shell out to on the service's PATH outright, regardless of whether
           your system already has them. Off by default. The service already
-          inherits your normal desktop PATH (/run/current-system/sw/bin plus
-          your per-user profile), so this only matters if you want the complete
-          zesis experience without having installed these yourself.
+          inherits your normal desktop PATH (/run/current-system/sw/bin, your
+          home-manager per-user profile, and ~/.nix-profile/bin), so this only
+          matters if you want the complete zesis experience without having
+          installed these yourself.
         '';
       };
       packages = lib.mkOption {
@@ -106,8 +107,9 @@ in {
       type = lib.types.bool;
       default = true;
       description = ''
-        Append the user's normal desktop PATH (/run/current-system/sw/bin
-        plus their per-user profile) to the service's PATH. Disable for a fully
+        Append the user's normal desktop PATH (/run/current-system/sw/bin,
+        their home-manager per-user profile, and ~/.nix-profile/bin) to the
+        service's PATH. Disable for a fully
         self-contained, explicit PATH instead of inheriting whatever
         happens to be installed. You'll likely also want
         `batteriesIncluded.enable = true;` in that case, to still cover the
@@ -154,7 +156,7 @@ in {
             ["${cfg.python}/bin"]
             ++ lib.optional cfg.athroisma.enable "${cfg.athroisma.package}/bin"
             ++ lib.optionals cfg.batteriesIncluded.enable (map (p: "${p}/bin") cfg.batteriesIncluded.packages)
-            ++ lib.optionals cfg.inheritPath ["/run/current-system/sw/bin" "/etc/profiles/per-user/%u/bin"]
+            ++ lib.optionals cfg.inheritPath ["/run/current-system/sw/bin" "/etc/profiles/per-user/%u/bin" "%h/.nix-profile/bin"]
           );
         }
         // lib.optionalAttrs cfg.congeries.enable {

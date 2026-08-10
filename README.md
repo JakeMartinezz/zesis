@@ -116,7 +116,7 @@ services.zesis = {
 };
 ```
 
-Beyond athroisma/congeries, plenty of widgets shell out to ordinary desktop tools - matugen, awww, bluetoothctl, curl, notify-send, and so on. By default the service just inherits your normal desktop `PATH` (system-wide installs plus your own per-user profile) for those, so if your system already has them, there's nothing to do. If it doesn't, like a minimal box, or you just want zesis working with zero prior setup, then set `services.zesis.batteriesIncluded.enable = true;` to put the whole set on the service's `PATH` outright:
+Beyond athroisma/congeries, plenty of widgets shell out to ordinary desktop tools - matugen, awww, bluetoothctl, curl, notify-send, and so on. By default the service just inherits your normal desktop `PATH` (system-wide installs, your home-manager per-user profile, and `~/.nix-profile/bin` for imperative `nix profile`/`nix-env` installs) for those, so if your system already has them, there's nothing to do. If it doesn't, like a minimal box, or you just want zesis working with zero prior setup, then set `services.zesis.batteriesIncluded.enable = true;` to put the whole set on the service's `PATH` outright:
 
 ```nix
 services.zesis = {
