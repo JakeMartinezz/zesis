@@ -38,7 +38,16 @@ Scope {
 
     Variants {
         // Empty BarConfig.enabledMonitors = show on every monitor (default).
-        model: BarConfig.enabledMonitors.length === 0 ? Quickshell.screens : Quickshell.screens.filter(s => BarConfig.enabledMonitors.includes(s.name))
+        // If none of the configured monitors are currently connected (e.g. the
+        // laptop was undocked), fall back to showing on every monitor instead
+        // of vanishing entirely - the saved preference is kept as-is and takes
+        // effect again once a matching monitor reconnects.
+        model: {
+            if (BarConfig.enabledMonitors.length === 0)
+                return Quickshell.screens;
+            const matched = Quickshell.screens.filter(s => BarConfig.enabledMonitors.includes(s.name));
+            return matched.length > 0 ? matched : Quickshell.screens;
+        }
         delegate: PanelWindow {
             id: root
 
