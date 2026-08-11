@@ -24,8 +24,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / SYSTEM"
-            title: "Battery"
+            breadcrumb: I18n.t("battery.breadcrumb")
+            title: I18n.t("battery.title")
         }
 
         ColumnLayout {
@@ -77,7 +77,7 @@ Item {
                             spacing: Math.round(2 * UIScale.value)
 
                             Text {
-                                text: BatteryService.available ? BatteryService.percent + "%" : "No battery"
+                                text: BatteryService.available ? BatteryService.percent + "%" : I18n.t("battery.noBattery")
                                 color: Colors.text
                                 font.pixelSize: UIScale.fontHero
                                 font.weight: Font.ExtraBold
@@ -86,13 +86,13 @@ Item {
                             Text {
                                 text: {
                                     if (!BatteryService.available)
-                                        return "Not detected";
+                                        return I18n.t("battery.notDetected");
                                     if (BatteryService.full)
-                                        return "Fully charged";
+                                        return I18n.t("battery.fullyCharged");
                                     var t = root._timeStr(BatteryService.hoursRemaining);
                                     if (BatteryService.charging)
-                                        return t ? t + " until full" : "Charging";
-                                    return t ? t + " remaining" : BatteryService.status;
+                                        return t ? I18n.t("battery.untilFull", [t]) : I18n.t("battery.charging");
+                                    return t ? I18n.t("battery.remaining", [t]) : BatteryService.status;
                                 }
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
@@ -151,7 +151,7 @@ Item {
                     anchors.rightMargin: UIScale.spacingMd
 
                     Text {
-                        text: "Status"
+                        text: I18n.t("battery.statusLabel")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontTiny
                         font.weight: Font.Medium
@@ -180,7 +180,7 @@ Item {
                     anchors.rightMargin: UIScale.spacingMd
 
                     Text {
-                        text: BatteryService.charging ? "Charging rate" : "Power draw"
+                        text: BatteryService.charging ? I18n.t("battery.chargingRate") : I18n.t("battery.powerDraw")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontTiny
                         font.weight: Font.Medium

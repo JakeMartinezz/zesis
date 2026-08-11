@@ -36,7 +36,7 @@ Item {
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "CPU"
+                text: I18n.t("sysmon.cpu")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
                 font.weight: Font.Medium
@@ -114,7 +114,7 @@ Item {
 
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "Memory"
+                text: I18n.t("sysmon.memory")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontCaption
                 font.weight: Font.Medium
@@ -126,7 +126,7 @@ Item {
                 spacing: Math.round(6 * UIScale.value)
 
                 Text {
-                    text: "Swap"
+                    text: I18n.t("sysmon.swap")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                     font.weight: Font.Medium
@@ -274,7 +274,7 @@ Item {
                     }
                     Text {
                         Layout.alignment: Qt.AlignHCenter
-                        text: "Compute"
+                        text: I18n.t("sysmon.compute")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontCaption
                         font.weight: Font.Medium
@@ -294,7 +294,7 @@ Item {
                     }
                     Text {
                         Layout.alignment: Qt.AlignHCenter
-                        text: "VRAM"
+                        text: I18n.t("sysmon.vram")
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontCaption
                         font.weight: Font.Medium
@@ -364,7 +364,7 @@ Item {
             Text {
                 Layout.alignment: Qt.AlignHCenter
                 visible: SysMonService.gpu.length === 0
-                text: "No GPU detected"
+                text: I18n.t("sysmon.noGpuDetected")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
             }

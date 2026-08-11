@@ -1,4 +1,5 @@
 import QtQuick
+import "../../"
 
 // General-purpose Earth globe: perspective ray-sphere camera, quaternion Arcball
 // drag-rotation, scroll-zoom, and a spatial-grid-accelerated point-marker
@@ -717,7 +718,7 @@ Item {
 
             Text {
                 width: parent.width
-                text: "Globe shader failed to load"
+                text: I18n.t("globe2d.shaderFailedTitle")
                 color: "#f0d0d0"
                 font.bold: true
                 horizontalAlignment: Text.AlignHCenter
@@ -725,7 +726,7 @@ Item {
             }
             Text {
                 width: parent.width
-                text: "GlobeShader/globe.qsb is missing or invalid - run `nix run .#compile-shaders` if using Nix, otherwise see the README's shader-compiling section." + (globe.log !== "" ? "\n" + globe.log : "")
+                text: I18n.t("globe2d.shaderFailedDetail", [globe.log !== "" ? "\n" + globe.log : ""])
                 color: "#d0a0a0"
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter

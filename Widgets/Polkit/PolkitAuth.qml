@@ -72,7 +72,7 @@ Item {
                         color: Colors.accent
                     }
                     Text {
-                        text: "Authentication Required"
+                        text: I18n.t("polkit.authRequired")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.weight: Font.DemiBold
@@ -129,7 +129,7 @@ Item {
                         Text {
                             id: cancelLabel
                             anchors.centerIn: parent
-                            text: "Cancel"
+                            text: I18n.t("common.cancel")
                             color: Colors.accent
                             font.pixelSize: UIScale.fontCaption
                         }
@@ -158,7 +158,7 @@ Item {
                         Text {
                             id: authLabel
                             anchors.centerIn: parent
-                            text: "Authenticate"
+                            text: I18n.t("polkit.authenticate")
                             color: Colors.bg
                             font.pixelSize: UIScale.fontCaption
                             font.weight: Font.DemiBold

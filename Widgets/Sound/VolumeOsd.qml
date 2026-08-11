@@ -194,7 +194,7 @@ PanelWindow {
                 }
 
                 Text {
-                    text: volumeOSD.osdMuted ? "muted" : (Math.round(volumeOSD.osdVol * 100) + "%")
+                    text: volumeOSD.osdMuted ? I18n.t("sound.muted") : (Math.round(volumeOSD.osdVol * 100) + "%")
                     color: volumeOSD.osdMuted ? Colors.muted : Colors.text
                     font.pixelSize: Math.round(13 * UIScale.value)
                     font.family: "monospace"

@@ -1,0 +1,12 @@
+{
+  "breadcrumb": "INTERFACE",
+  "title": "Appearance",
+  "interfaceScale": "Interface scale",
+  "multiplier": "%1x",
+  "small": "Small",
+  "normal": "Normal",
+  "large": "Large",
+  "fontSize": "Font size",
+  "spacing": "Spacing",
+  "radius": "Radius"
+}

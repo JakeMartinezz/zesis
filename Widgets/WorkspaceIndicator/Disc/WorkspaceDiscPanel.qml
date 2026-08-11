@@ -63,7 +63,7 @@ Item {
 
                 // Workspace count
                 Text {
-                    text: "Workspaces"
+                    text: I18n.t("workspaceindicator.workspaces")
                     color: WorkspaceDiscService.expressive ? Colors.muted : Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -171,13 +171,13 @@ Item {
                         spacing: Math.round(2 * UIScale.value)
 
                         Text {
-                            text: "Expressive"
+                            text: I18n.t("workspaceindicator.expressive")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
                         }
                         Text {
-                            text: "Teeth follow active workspace count"
+                            text: I18n.t("workspaceindicator.expressiveHint")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontCaption
                         }
@@ -191,7 +191,7 @@ Item {
 
                 // Minimum (expressive only)
                 Text {
-                    text: "Minimum"
+                    text: I18n.t("workspaceindicator.minimum")
                     color: WorkspaceDiscService.expressive ? Colors.text : Colors.muted
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -300,7 +300,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Disc radius"
+                        text: I18n.t("workspaceindicator.discRadius")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
@@ -332,7 +332,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Tooth width"
+                        text: I18n.t("workspaceindicator.toothWidth")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
@@ -364,7 +364,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Valley depth"
+                        text: I18n.t("workspaceindicator.valleyDepth")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
@@ -396,7 +396,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Dot size"
+                        text: I18n.t("workspaceindicator.dotSize")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
@@ -433,7 +433,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Dot orbit"
+                        text: I18n.t("workspaceindicator.dotOrbit")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
@@ -465,7 +465,7 @@ Item {
                     Layout.rightMargin: UIScale.panelPad
 
                     Text {
-                        text: "Corner peek"
+                        text: I18n.t("workspaceindicator.cornerPeek")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
@@ -506,13 +506,13 @@ Item {
                         spacing: Math.round(2 * UIScale.value)
 
                         Text {
-                            text: "Skin"
+                            text: I18n.t("workspaceindicator.skin")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
                         }
                         Text {
-                            text: "Visual style of the indicator"
+                            text: I18n.t("workspaceindicator.skinHint")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontCaption
                         }
@@ -537,7 +537,7 @@ Item {
                 // Monitors
                 Text {
                     visible: Quickshell.screens.length > 1
-                    text: "Monitors"
+                    text: I18n.t("workspaceindicator.monitors")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.bold: true
@@ -548,7 +548,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.leftMargin: UIScale.panelPad
                     Layout.rightMargin: UIScale.panelPad
-                    text: "Choose which connected displays show the indicator. Leave every monitor on to show it everywhere."
+                    text: I18n.t("workspaceindicator.monitorsDescription")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontCaption
                     wrapMode: Text.WordWrap
@@ -615,7 +615,7 @@ Item {
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.topMargin: UIScale.spacingMd
-                text: "PREVIEW"
+                text: I18n.t("workspaceindicator.preview")
                 color: Colors.muted
                 font.pixelSize: UIScale.fontTiny
                 font.letterSpacing: 1.5

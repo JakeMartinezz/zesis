@@ -13,8 +13,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / SYSTEM"
-            title: "Wi-Fi"
+            breadcrumb: I18n.t("wifi.breadcrumb")
+            title: I18n.t("wifi.title")
             rightActions: Component {
                 ToggleSwitch {
                     visible: WifiService.available
@@ -44,7 +44,7 @@ Item {
 
                 // No adapter empty state
                 Text {
-                    text: "No Wi-Fi adapter found"
+                    text: I18n.t("wifi.noAdapterFound")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -104,13 +104,13 @@ Item {
                             Layout.fillWidth: true
                             spacing: Math.round(3 * UIScale.value)
                             Text {
-                                text: "Ethernet"
+                                text: I18n.t("wifi.ethernet")
                                 color: Colors.text
                                 font.pixelSize: Math.round(16 * UIScale.value)
                                 font.weight: Font.ExtraBold
                             }
                             Text {
-                                text: "Connected"
+                                text: I18n.t("wifi.connected")
                                 color: Colors.accent
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -120,7 +120,7 @@ Item {
 
                 // Wi-Fi off notice
                 Text {
-                    text: "Wi-Fi is off"
+                    text: I18n.t("wifi.off")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -246,7 +246,7 @@ Item {
                                     Text {
                                         id: secChipTxt
                                         anchors.centerIn: parent
-                                        text: "secured"
+                                        text: I18n.t("wifi.secured")
                                         color: Colors.accent
                                         font.pixelSize: UIScale.fontTiny
                                         font.weight: Font.Bold
@@ -283,7 +283,7 @@ Item {
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 Text {
-                                    text: "Disconnect"
+                                    text: I18n.t("wifi.disconnect")
                                     color: Colors.text
                                     font.pixelSize: UIScale.fontBody
                                     font.weight: Font.Bold
@@ -312,7 +312,7 @@ Item {
                     visible: WifiService.available && WifiService.enabled
 
                     SectionLabel {
-                        text: "AVAILABLE NETWORKS"
+                        text: I18n.t("wifi.availableNetworksSection")
                         Layout.fillWidth: true
                     }
                     Text {
@@ -445,12 +445,12 @@ Item {
                                             anchors.verticalCenter: parent.verticalCenter
                                             text: {
                                                 if (netItem.isConnected)
-                                                    return Math.round(netItem.modelData.signalStrength * 100) + "%  ·  Connected";
+                                                    return I18n.t("wifi.connectedWithPercent", [Math.round(netItem.modelData.signalStrength * 100)]);
                                                 if (netItem.modelData.known)
-                                                    return "Saved";
+                                                    return I18n.t("wifi.savedStatus");
                                                 if (WifiService.needsPsk(netItem.modelData))
-                                                    return "secured";
-                                                return "open";
+                                                    return I18n.t("wifi.secured");
+                                                return I18n.t("wifi.open");
                                             }
                                             color: netItem.isConnected ? Colors.accent : Colors.textDim
                                             font.pixelSize: UIScale.fontSmall
@@ -483,7 +483,7 @@ Item {
                                         Text {
                                             id: forgetTxt
                                             anchors.centerIn: parent
-                                            text: "Forget"
+                                            text: I18n.t("wifi.forget")
                                             color: forgetHov.hovered ? "#e05c5c" : Colors.withAlpha("#e05c5c", 0.5)
                                             font.pixelSize: UIScale.fontSmall
                                             font.weight: Font.DemiBold
@@ -520,7 +520,7 @@ Item {
                                         Text {
                                             id: connTxt
                                             anchors.centerIn: parent
-                                            text: netItem.isConnected ? "Disconnect" : (netItem.isPending ? "Cancel" : "Connect")
+                                            text: netItem.isConnected ? I18n.t("wifi.disconnect") : (netItem.isPending ? I18n.t("common.cancel") : I18n.t("wifi.connect"))
                                             color: netItem.isConnected ? "#e05c5c" : (netItem.isPending ? Colors.textDim : Colors.accent)
                                             font.pixelSize: UIScale.fontSmall
                                             font.weight: Font.DemiBold

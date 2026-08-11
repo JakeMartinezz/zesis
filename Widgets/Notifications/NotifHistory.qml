@@ -24,7 +24,7 @@ Item {
             Layout.fillWidth: true
 
             Text {
-                text: "Notifications"
+                text: I18n.t("notifications.title")
                 color: Colors.text
                 font.bold: true
                 font.pixelSize: UIScale.fontBody
@@ -35,7 +35,7 @@ Item {
             }
 
             Text {
-                text: "Mute"
+                text: I18n.t("notifications.mute")
                 color: muteMouseArea.containsMouse ? Colors.accent : (NotifServer.muted ? Colors.accent : Colors.muted)
                 font.pixelSize: UIScale.fontBody
                 opacity: muteMouseArea.containsMouse || NotifServer.muted ? 1.0 : 0.5
@@ -60,7 +60,7 @@ Item {
 
             Text {
                 visible: NotifServer.history.count > 0
-                text: "Clear all"
+                text: I18n.t("notifications.clearAll")
                 color: clearMouseArea.containsMouse ? Colors.accent : Colors.muted
                 font.pixelSize: UIScale.fontCaption
                 Behavior on color {
@@ -92,7 +92,7 @@ Item {
 
             Text {
                 anchors.centerIn: parent
-                text: "No notifications"
+                text: I18n.t("notifications.noNotifications")
                 color: Colors.muted
                 font.pixelSize: UIScale.fontSmall
             }

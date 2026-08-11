@@ -12,8 +12,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / DISPLAY"
-            title: "Brightness"
+            breadcrumb: I18n.t("brightness.breadcrumb")
+            title: I18n.t("brightness.title")
         }
 
         ColumnLayout {
@@ -58,7 +58,7 @@ Item {
                         }
 
                         Text {
-                            text: "Brightness"
+                            text: I18n.t("brightness.title")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.weight: Font.Bold
@@ -92,7 +92,7 @@ Item {
             }
 
             Text {
-                text: "No backlight device found"
+                text: I18n.t("brightness.noBacklightDevice")
                 color: Colors.textDim
                 font.pixelSize: UIScale.fontSmall
                 horizontalAlignment: Text.AlignHCenter

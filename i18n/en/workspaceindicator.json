@@ -1,0 +1,19 @@
+{
+  "breadcrumb": "SETTINGS / WORKSPACE INDICATOR",
+  "title": "Workspace Indicator",
+  "workspaces": "Workspaces",
+  "expressive": "Expressive",
+  "expressiveHint": "Teeth follow active workspace count",
+  "minimum": "Minimum",
+  "discRadius": "Disc radius",
+  "toothWidth": "Tooth width",
+  "valleyDepth": "Valley depth",
+  "dotSize": "Dot size",
+  "dotOrbit": "Dot orbit",
+  "cornerPeek": "Corner peek",
+  "skin": "Skin",
+  "skinHint": "Visual style of the indicator",
+  "monitors": "Monitors",
+  "monitorsDescription": "Choose which connected displays show the indicator. Leave every monitor on to show it everywhere.",
+  "preview": "PREVIEW"
+}

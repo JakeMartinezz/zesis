@@ -238,7 +238,7 @@ PanelWindow {
                     item.open();
                 }
                 sourceComponent: FileDialog {
-                    title: "Choose background image"
+                    title: I18n.t("desktop.chooseBackgroundImageDialogTitle")
                     nameFilters: ["Images (*.png *.jpg *.jpeg *.webp *.svg *.gif *.bmp)", "All files (*)"]
                     onAccepted: {
                         var path = selectedFile.toString();
@@ -265,7 +265,7 @@ PanelWindow {
                     item.open();
                 }
                 sourceComponent: FileDialog {
-                    title: "Choose mask image"
+                    title: I18n.t("desktop.chooseMaskImageDialogTitle")
                     nameFilters: ["Images (*.png *.svg)", "All files (*)"]
                     onAccepted: {
                         var path = selectedFile.toString();
@@ -521,7 +521,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Size"
+                                text: I18n.t("desktop.size")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -610,7 +610,7 @@ PanelWindow {
                                 Text {
                                     id: sizeAutoLabel
                                     anchors.centerIn: parent
-                                    text: "Auto"
+                                    text: I18n.t("common.auto")
                                     color: Colors.muted
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -634,7 +634,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Background"
+                                text: I18n.t("desktop.background")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -659,7 +659,7 @@ PanelWindow {
                                 Text {
                                     id: bgToggleLabel
                                     anchors.centerIn: parent
-                                    text: bgToggle._on ? "On" : "Off"
+                                    text: bgToggle._on ? I18n.t("common.on") : I18n.t("common.off")
                                     color: bgToggle._on ? Colors.accent : Colors.muted
                                     font.pixelSize: UIScale.fontSmall
                                     font.weight: Font.Medium
@@ -689,7 +689,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Type"
+                                text: I18n.t("desktop.type")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -707,7 +707,7 @@ PanelWindow {
                                 Text {
                                     id: colorTypeLabel
                                     anchors.centerIn: parent
-                                    text: "Color"
+                                    text: I18n.t("desktop.color")
                                     color: parent._active ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -735,7 +735,7 @@ PanelWindow {
                                 Text {
                                     id: imageTypeLabel
                                     anchors.centerIn: parent
-                                    text: "Image"
+                                    text: I18n.t("desktop.image")
                                     color: parent._active ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -779,7 +779,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Image"
+                                text: I18n.t("desktop.image")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -820,7 +820,7 @@ PanelWindow {
                                 Text {
                                     id: imgBrowseLabel
                                     anchors.centerIn: parent
-                                    text: "Browse"
+                                    text: I18n.t("desktop.browse")
                                     color: Colors.textDim
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -844,7 +844,7 @@ PanelWindow {
                                 Text {
                                     id: imgClearLabel
                                     anchors.centerIn: parent
-                                    text: "Clear"
+                                    text: I18n.t("desktop.clear")
                                     color: Colors.muted
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -869,7 +869,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Overlay"
+                                text: I18n.t("desktop.overlay")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -936,7 +936,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Mask"
+                                text: I18n.t("desktop.mask")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -977,7 +977,7 @@ PanelWindow {
                                 Text {
                                     id: maskBrowseLabel
                                     anchors.centerIn: parent
-                                    text: "Browse"
+                                    text: I18n.t("desktop.browse")
                                     color: Colors.textDim
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -1001,7 +1001,7 @@ PanelWindow {
                                 Text {
                                     id: maskClearLabel
                                     anchors.centerIn: parent
-                                    text: "Clear"
+                                    text: I18n.t("desktop.clear")
                                     color: Colors.muted
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -1027,7 +1027,7 @@ PanelWindow {
 
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Rotation"
+                                text: I18n.t("desktop.rotation")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontSmall
                             }
@@ -1045,7 +1045,7 @@ PanelWindow {
                                 Text {
                                     id: autoModeLabel
                                     anchors.centerIn: parent
-                                    text: "Auto"
+                                    text: I18n.t("common.auto")
                                     color: parent._active ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -1069,7 +1069,7 @@ PanelWindow {
                                 Text {
                                     id: manualModeLabel
                                     anchors.centerIn: parent
-                                    text: "Manual"
+                                    text: I18n.t("desktop.manual")
                                     color: parent._active ? Colors.accent : Colors.textDim
                                     font.pixelSize: UIScale.fontSmall
                                 }
@@ -1194,7 +1194,7 @@ PanelWindow {
         Text {
             id: modeLabel
             anchors.centerIn: parent
-            text: "Widget config mode"
+            text: I18n.t("desktop.widgetConfigMode")
             color: Colors.textDim
             font.pixelSize: UIScale.fontSmall
         }
@@ -1224,7 +1224,7 @@ PanelWindow {
             Text {
                 id: snapLabel
                 anchors.centerIn: parent
-                text: "Snap"
+                text: I18n.t("desktop.snap")
                 color: root.snapEnabled ? Colors.accent : Colors.textDim
                 font.pixelSize: UIScale.fontSmall
 
@@ -1256,7 +1256,7 @@ PanelWindow {
             Text {
                 id: doneLabel
                 anchors.centerIn: parent
-                text: "Done"
+                text: I18n.t("desktop.done")
                 color: doneHover.hovered ? Colors.bg : Colors.text
                 font.pixelSize: UIScale.fontSmall
                 font.weight: Font.Medium

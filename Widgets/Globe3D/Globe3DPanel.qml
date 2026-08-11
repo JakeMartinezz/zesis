@@ -89,7 +89,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "Globe 3D"
+                    text: I18n.t("globe3d.title")
                     color: Colors.text
                     font.pixelSize: UIScale.fontBody
                     font.weight: Font.DemiBold
@@ -159,7 +159,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: engine.rodCount + " instanced rods"
+                        text: I18n.t("globe3d.instancedRods", [engine.rodCount])
                         color: Colors.textDim
                         font.pixelSize: UIScale.fontCaption
                     }
@@ -170,23 +170,23 @@ Item {
                         spacing: UIScale.spacingSm
 
                         ActionButton {
-                            label: "Scatter"
+                            label: I18n.t("globe3d.scatter")
                             onActivated: engine.triggerScatter()
                         }
                         ActionButton {
-                            label: "Assemble"
+                            label: I18n.t("globe3d.assemble")
                             onActivated: engine.triggerAssemble()
                         }
                         ActionButton {
-                            label: "Re-scatter"
+                            label: I18n.t("globe3d.rescatter")
                             onActivated: engine.triggerReScatter()
                         }
                         ActionButton {
-                            label: "Blow up"
+                            label: I18n.t("globe3d.blowUp")
                             onActivated: engine.triggerBlowUp()
                         }
                         ActionButton {
-                            label: engine.flattenT > 0.5 ? "Globe-ify" : "Flatten"
+                            label: engine.flattenT > 0.5 ? I18n.t("globe3d.globeify") : I18n.t("globe3d.flatten")
                             onActivated: engine.triggerFlattenToggle()
                         }
                     }
@@ -203,7 +203,7 @@ Item {
                         Layout.fillWidth: true
 
                         Text {
-                            text: "Rod count"
+                            text: I18n.t("globe3d.rodCount")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -232,7 +232,7 @@ Item {
                         Layout.fillWidth: true
 
                         Text {
-                            text: "Height"
+                            text: I18n.t("globe3d.height")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -258,7 +258,7 @@ Item {
                         Layout.fillWidth: true
 
                         Text {
-                            text: "Drift"
+                            text: I18n.t("globe3d.drift")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -283,14 +283,14 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         Layout.topMargin: UIScale.spacingXs
-                        text: "Effect"
+                        text: I18n.t("globe3d.effect")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.bold: true
                     }
                     OptionRow {
                         Layout.fillWidth: true
-                        model: ["None", "Scanner", "Ripple"]
+                        model: [I18n.t("globe3d.effectNone"), I18n.t("globe3d.effectScanner"), I18n.t("globe3d.effectRipple")]
                         currentIndex: engine.effectMode
                         onActivated: index => engine.effectMode = index
                     }
@@ -304,14 +304,14 @@ Item {
                             id: glowHover
                             onHoveredChanged: {
                                 if (glowHover.hovered)
-                                    hintTooltip.showFor(glowRow, "Bloom render passes while location dots are visible - disable to save GPU");
+                                    hintTooltip.showFor(glowRow, I18n.t("globe3d.dotGlowHint"));
                                 else
                                     hintTooltip.hideFor(glowRow);
                             }
                         }
 
                         Text {
-                            text: "Dot glow"
+                            text: I18n.t("globe3d.dotGlow")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -331,14 +331,14 @@ Item {
                             id: dotsFollowRodHover
                             onHoveredChanged: {
                                 if (dotsFollowRodHover.hovered)
-                                    hintTooltip.showFor(dotsFollowRodRow, "Lifts location dots to ride their rod's current scanner/ripple/audio bump - costs a bit of extra GPU per dot");
+                                    hintTooltip.showFor(dotsFollowRodRow, I18n.t("globe3d.dotsTrackRodHeightHint"));
                                 else
                                     hintTooltip.hideFor(dotsFollowRodRow);
                             }
                         }
 
                         Text {
-                            text: "Dots track rod height"
+                            text: I18n.t("globe3d.dotsTrackRodHeight")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -358,14 +358,14 @@ Item {
                             id: closeGapsHover
                             onHoveredChanged: {
                                 if (closeGapsHover.hovered)
-                                    hintTooltip.showFor(closeGapsRow, "Raised rods flare their tops outward so tall spikes visually cover the crack against shorter neighbors");
+                                    hintTooltip.showFor(closeGapsRow, I18n.t("globe3d.closeHeightGapsHint"));
                                 else
                                     hintTooltip.hideFor(closeGapsRow);
                             }
                         }
 
                         Text {
-                            text: "Close height gaps"
+                            text: I18n.t("globe3d.closeHeightGaps")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -393,14 +393,14 @@ Item {
                             id: audioReactiveHover
                             onHoveredChanged: {
                                 if (audioReactiveHover.hovered)
-                                    hintTooltip.showFor(audioRow, "Runs continuous PipeWire capture + FFT - noticeably spikes GPU usage while enabled");
+                                    hintTooltip.showFor(audioRow, I18n.t("globe3d.audioReactiveHint"));
                                 else
                                     hintTooltip.hideFor(audioRow);
                             }
                         }
 
                         Text {
-                            text: "Audio reactive"
+                            text: I18n.t("globe3d.audioReactive")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true
@@ -416,7 +416,7 @@ Item {
                         visible: engine.audioReactiveEnabled
 
                         Text {
-                            text: "Audio intensity"
+                            text: I18n.t("globe3d.audioIntensity")
                             color: Colors.text
                             font.pixelSize: UIScale.fontBody
                             font.bold: true

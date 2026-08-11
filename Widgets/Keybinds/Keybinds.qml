@@ -69,7 +69,7 @@ Item {
                         Text {
                             anchors.fill: parent
                             anchors.leftMargin: Math.round(2 * UIScale.value)
-                            text: "Search keybinds..."
+                            text: I18n.t("keybinds.searchPlaceholder")
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontBody
                             verticalAlignment: Text.AlignVCenter
@@ -237,7 +237,7 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "No keybinds match"
+                    text: I18n.t("keybinds.noMatch")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontBody
                 }
@@ -250,7 +250,7 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "No compositor config found"
+                    text: I18n.t("keybinds.noCompositorConfig")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontBody
                 }

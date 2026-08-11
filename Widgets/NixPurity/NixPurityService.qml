@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../../"
 
 Singleton {
     id: root
@@ -57,48 +58,48 @@ Singleton {
     readonly property var tiers: [
         {
             greek: "Archikakodaímōn",
-            title: "Arch Degenerate",
-            taunt: "You absolute degenerate. Your config is practically handwritten on papyrus. You might as well just use Arch."
+            title: I18n.t("nixpurity.tier0Title"),
+            taunt: I18n.t("nixpurity.tier0Taunt")
         },
         {
             greek: "Bárbaros",
-            title: "Barbarian",
-            taunt: "Barbarian. You wallow in mutable squalor. The nix store has never heard of you, and frankly, it prefers it that way."
+            title: I18n.t("nixpurity.tier1Title"),
+            taunt: I18n.t("nixpurity.tier1Taunt")
         },
         {
             greek: "Neóphytos",
-            title: "Neophyte",
-            taunt: "You have taken your first steps toward purity. Unfortunately, most of them were in the wrong direction."
+            title: I18n.t("nixpurity.tier2Title"),
+            taunt: I18n.t("nixpurity.tier2Taunt")
         },
         {
             greek: "Mathētḗs",
-            title: "Student",
-            taunt: "A student of the Nix. The impure files weigh heavy on your soul. The philosophers watch. They are disappointed."
+            title: I18n.t("nixpurity.tier3Title"),
+            taunt: I18n.t("nixpurity.tier3Taunt")
         },
         {
             greek: "Philósophos",
-            title: "Philosopher",
-            taunt: "You reason well. Mostly pure. But wisdom without purity is mere knowledge. The unmanaged files haunt your dreams."
+            title: I18n.t("nixpurity.tier4Title"),
+            taunt: I18n.t("nixpurity.tier4Taunt")
         },
         {
             greek: "Sophós",
-            title: "The Wise",
-            taunt: "The wise manage what they can. A few rogue files still escape your dominion. You know which ones. So do we."
+            title: I18n.t("nixpurity.tier5Title"),
+            taunt: I18n.t("nixpurity.tier5Taunt")
         },
         {
             greek: "Mýstēs",
-            title: "Mystic Initiate",
-            taunt: "You have been initiated into the mysteries. Almost completely pure. The uninitiated cannot fathom your discipline. Almost."
+            title: I18n.t("nixpurity.tier6Title"),
+            taunt: I18n.t("nixpurity.tier6Taunt")
         },
         {
             greek: "ho Theatḗs",
-            title: "The Beholder",
-            taunt: "You have witnessed the eternal store. Only the most stubborn files refuse the nix. Freedom is within reach. Almost."
+            title: I18n.t("nixpurity.tier7Title"),
+            taunt: I18n.t("nixpurity.tier7Taunt")
         },
         {
             greek: "Hyperoúsios",
-            title: "Transcendent",
-            taunt: "Perfect. Your ~/.config is a sacred garden. Every file a symlink to eternity. The nix store is your universe."
+            title: I18n.t("nixpurity.tier8Title"),
+            taunt: I18n.t("nixpurity.tier8Taunt")
         }
     ]
 

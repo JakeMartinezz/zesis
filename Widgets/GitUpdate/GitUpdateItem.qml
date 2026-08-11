@@ -79,7 +79,7 @@ BarButton {
 
                     Text {
                         Layout.fillWidth: true
-                        text: root.justSucceeded ? "Updated" : (root.blocked ? "Update needs help" : "Update available")
+                        text: root.justSucceeded ? I18n.t("gitupdate.updated") : (root.blocked ? I18n.t("gitupdate.updateNeedsHelp") : I18n.t("gitupdate.updateAvailable"))
                         color: Colors.text
                         font.pixelSize: UIScale.fontLead
                         font.weight: Font.DemiBold
@@ -96,12 +96,12 @@ BarButton {
                     wrapMode: Text.WordWrap
                     text: {
                         if (root.justSucceeded)
-                            return "Zesis has been updated to the latest version.";
+                            return I18n.t("gitupdate.updatedMessage");
                         if (root.blocked)
-                            return "There's a newer version of your desktop ready, but some files here have been changed by hand. It can't update itself safely, ask whoever set this up to take a look.";
+                            return I18n.t("gitupdate.blockedMessage");
                         if (GitUpdateService.status === "pullFailed")
-                            return "The update didn't go through. Ask whoever set this up to take a look.";
-                        return "There's a newer version of your desktop ready to install.";
+                            return I18n.t("gitupdate.failedMessage");
+                        return I18n.t("gitupdate.availableMessage");
                     }
                 }
 
@@ -113,7 +113,7 @@ BarButton {
 
                     ActionButton {
                         visible: !root.blocked && !root.justSucceeded
-                        label: root.pulling ? "Updating..." : (GitUpdateService.status === "pullFailed" ? "Try again" : "Update now")
+                        label: root.pulling ? I18n.t("gitupdate.updating") : (GitUpdateService.status === "pullFailed" ? I18n.t("gitupdate.tryAgain") : I18n.t("gitupdate.updateNow"))
                         onActivated: GitUpdateService.updateNow()
                     }
 
@@ -122,7 +122,7 @@ BarButton {
                     }
 
                     Text {
-                        text: "Hide"
+                        text: I18n.t("gitupdate.hide")
                         color: hideMouseArea.containsMouse ? Colors.accent : Colors.muted
                         font.pixelSize: UIScale.fontCaption
                         Behavior on color {

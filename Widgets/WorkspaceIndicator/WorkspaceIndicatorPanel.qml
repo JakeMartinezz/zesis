@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import "./Disc"
 import "../Shared"
+import "../../"
 
 Item {
     ColumnLayout {
@@ -10,8 +11,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SETTINGS / WORKSPACE INDICATOR"
-            title: "Workspace Indicator"
+            breadcrumb: I18n.t("workspaceindicator.breadcrumb")
+            title: I18n.t("workspaceindicator.title")
         }
 
         WorkspaceDiscPanel {

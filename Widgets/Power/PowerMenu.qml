@@ -30,25 +30,25 @@ Item {
         {
             key: "lock",
             icon: "󰌾",
-            label: "Lock",
+            label: I18n.t("power.lock"),
             confirm: false
         },
         {
             key: "logout",
             icon: "󰍃",
-            label: "Log Out",
+            label: I18n.t("power.logOut"),
             confirm: false
         },
         {
             key: "reboot",
             icon: "󰜉",
-            label: "Reboot",
+            label: I18n.t("power.reboot"),
             confirm: true
         },
         {
             key: "shutdown",
             icon: "󰐥",
-            label: "Shut Down",
+            label: I18n.t("power.shutDown"),
             confirm: true
         }
     ]

@@ -22,8 +22,8 @@ Item {
 
         PanelHeader {
             Layout.fillWidth: true
-            breadcrumb: "SYSTEM / NIX PURITY"
-            title: "Nix Purity"
+            breadcrumb: I18n.t("nixpurity.breadcrumb")
+            title: I18n.t("nixpurity.title")
         }
 
         // Scanning spinner
@@ -38,14 +38,14 @@ Item {
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Auditing your sins..."
+                    text: I18n.t("nixpurity.auditing")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontBody
                     font.italic: true
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.svc.pureCount + " pure · " + root.svc.dirtyCount + " dirty"
+                    text: I18n.t("nixpurity.pureDirtyCounter", [root.svc.pureCount, root.svc.dirtyCount])
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                     font.family: "monospace"
@@ -130,7 +130,7 @@ Item {
                         Layout.fillWidth: true
 
                         Text {
-                            text: Math.round(root.svc.displayPurity * 100) + "% pure"
+                            text: I18n.t("nixpurity.percentPure", [Math.round(root.svc.displayPurity * 100)])
                             color: root._barColor
                             font.pixelSize: UIScale.fontSubhead
                             font.weight: Font.DemiBold
@@ -148,7 +148,7 @@ Item {
                             Text {
                                 id: hjemLabel
                                 anchors.centerIn: parent
-                                text: "✦ hjem  +10%"
+                                text: I18n.t("nixpurity.hjemBadge")
                                 color: Colors.accent
                                 font.pixelSize: UIScale.fontTiny
                                 font.weight: Font.Medium
@@ -158,7 +158,7 @@ Item {
                             Layout.fillWidth: true
                         }
                         Text {
-                            text: root.svc.pureCount + " managed / " + (root.svc.pureCount + root.svc.dirtyCount) + " total"
+                            text: I18n.t("nixpurity.managedTotal", [root.svc.pureCount, root.svc.pureCount + root.svc.dirtyCount])
                             color: Colors.muted
                             font.pixelSize: UIScale.fontCaption
                             font.family: "monospace"
@@ -187,7 +187,7 @@ Item {
                         visible: root.svc.topOffenders.length > 0
 
                         Text {
-                            text: "TOP OFFENDERS"
+                            text: I18n.t("nixpurity.topOffenders")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -229,7 +229,7 @@ Item {
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "ignore"
+                                        text: I18n.t("nixpurity.ignoreAction")
                                         color: ignoreHover.hovered ? Colors.textDim : Colors.muted
                                         font.pixelSize: UIScale.fontTiny
                                         Behavior on color {
@@ -258,7 +258,7 @@ Item {
                         visible: root.svc.ignoredApps.length > 0
 
                         Text {
-                            text: "IGNORED"
+                            text: I18n.t("nixpurity.ignoredHeader")
                             color: Colors.withAlpha(Colors.muted, 0.5)
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -295,7 +295,7 @@ Item {
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "restore"
+                                        text: I18n.t("nixpurity.restoreAction")
                                         color: restoreHover.hovered ? Colors.accent : Colors.muted
                                         font.pixelSize: UIScale.fontTiny
                                         Behavior on color {
@@ -326,7 +326,7 @@ Item {
                         visible: root.svc.dirtyCount > 0
 
                         Text {
-                            text: "IMPURE FILES"
+                            text: I18n.t("nixpurity.impureFiles")
                             color: Colors.muted
                             font.pixelSize: UIScale.fontTiny
                             font.weight: Font.Bold
@@ -348,7 +348,7 @@ Item {
 
                         Text {
                             visible: root.svc.dirtyCount > root.svc.dirtyFiles.length
-                            text: "...and " + (root.svc.dirtyCount - root.svc.dirtyFiles.length) + " more. For shame."
+                            text: I18n.t("nixpurity.andMoreForShame", [root.svc.dirtyCount - root.svc.dirtyFiles.length])
                             color: Colors.withAlpha(Colors.muted, 0.7)
                             font.pixelSize: UIScale.fontCaption
                             font.italic: true
@@ -358,7 +358,7 @@ Item {
                     Text {
                         visible: root.svc.dirtyCount === 0 && root.svc.pureCount > 0
                         Layout.fillWidth: true
-                        text: "No impure files detected.\nYou are one with the store."
+                        text: I18n.t("nixpurity.noImpureFiles")
                         color: Colors.withAlpha(Colors.textDim, 0.6)
                         font.pixelSize: UIScale.fontBody
                         font.italic: true
@@ -390,7 +390,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Re-scan"
+                            text: I18n.t("nixpurity.rescan")
                             color: rescanHover.hovered ? Colors.accent : Colors.textDim
                             font.pixelSize: UIScale.fontSmall
                             font.weight: Font.Medium

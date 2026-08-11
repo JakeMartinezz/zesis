@@ -224,12 +224,12 @@ Item {
                                 const l = AirPodsService.leftEar;
                                 const r = AirPodsService.rightEar;
                                 if (l && r)
-                                    return "Both in ear";
+                                    return I18n.t("airpods.bothInEar");
                                 if (l)
-                                    return "Left in ear";
+                                    return I18n.t("airpods.leftInEar");
                                 if (r)
-                                    return "Right in ear";
-                                return "Not in ear";
+                                    return I18n.t("airpods.rightInEar");
+                                return I18n.t("airpods.notInEar");
                             }
                             color: Colors.textDim
                             font.pixelSize: UIScale.fontTiny
@@ -247,7 +247,7 @@ Item {
                 // Battery rows
                 BatteryRow {
                     Layout.fillWidth: true
-                    label: "Left"
+                    label: I18n.t("airpods.left")
                     level: AirPodsService.leftLevel
                     charging: AirPodsService.leftCharging
                     inEar: AirPodsService.leftEar
@@ -255,7 +255,7 @@ Item {
 
                 BatteryRow {
                     Layout.fillWidth: true
-                    label: "Right"
+                    label: I18n.t("airpods.right")
                     level: AirPodsService.rightLevel
                     charging: AirPodsService.rightCharging
                     inEar: AirPodsService.rightEar
@@ -263,7 +263,7 @@ Item {
 
                 BatteryRow {
                     Layout.fillWidth: true
-                    label: "Case"
+                    label: I18n.t("airpods.case")
                     level: AirPodsService.caseLevel
                     charging: AirPodsService.caseCharging
                     inEar: true

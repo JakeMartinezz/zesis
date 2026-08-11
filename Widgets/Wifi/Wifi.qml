@@ -36,7 +36,7 @@ Item {
                 }
 
                 Text {
-                    text: "Network"
+                    text: I18n.t("wifi.networkHeader")
                     color: Colors.text
                     font.pixelSize: UIScale.fontLead
                     font.weight: Font.DemiBold
@@ -81,13 +81,13 @@ Item {
                     Layout.fillWidth: true
                     spacing: Math.round(2 * UIScale.value)
                     Text {
-                        text: "Ethernet"
+                        text: I18n.t("wifi.ethernet")
                         color: Colors.text
                         font.pixelSize: UIScale.fontBody
                         font.weight: Font.DemiBold
                     }
                     Text {
-                        text: "Connected"
+                        text: I18n.t("wifi.connected")
                         color: Colors.accent
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -133,7 +133,7 @@ Item {
                         width: parent.width
                     }
                     Text {
-                        text: "Connected  ·  " + Math.round(WifiService.signalStrength * 100) + "%"
+                        text: I18n.t("wifi.connectedWithPercent", [Math.round(WifiService.signalStrength * 100)])
                         color: Colors.accent
                         font.pixelSize: UIScale.fontSmall
                     }
@@ -153,7 +153,7 @@ Item {
                     Text {
                         id: discTxt
                         anchors.centerIn: parent
-                        text: "Disconnect"
+                        text: I18n.t("wifi.disconnect")
                         color: "#e05c5c"
                         font.pixelSize: UIScale.fontSmall
                         font.weight: Font.DemiBold
@@ -178,14 +178,14 @@ Item {
             // Empty states
             Text {
                 anchors.centerIn: parent
-                text: "No Wi-Fi adapter found"
+                text: I18n.t("wifi.noAdapterFound")
                 color: Colors.muted
                 font.pixelSize: UIScale.fontSmall
                 visible: !WifiService.available
             }
             Text {
                 anchors.centerIn: parent
-                text: "Wi-Fi is off"
+                text: I18n.t("wifi.off")
                 color: Colors.muted
                 font.pixelSize: UIScale.fontSmall
                 visible: WifiService.available && !WifiService.enabled
@@ -194,7 +194,7 @@ Item {
             // Section label + network list when enabled
             SectionLabel {
                 id: netHeader
-                text: "AVAILABLE NETWORKS"
+                text: I18n.t("wifi.availableNetworksSection")
                 leftPadding: UIScale.spacingMd
                 anchors.top: parent.top
                 anchors.topMargin: UIScale.spacingSm
@@ -275,7 +275,7 @@ Item {
 
                                 Text {
                                     visible: netRow.modelData.known && !netRow.isConnected
-                                    text: "saved"
+                                    text: I18n.t("wifi.savedBadge")
                                     color: Colors.withAlpha(Colors.accent, 0.65)
                                     font.pixelSize: UIScale.fontTiny
                                     font.family: "monospace"
@@ -303,7 +303,7 @@ Item {
                                     Text {
                                         id: netBtnTxt
                                         anchors.centerIn: parent
-                                        text: netRow.isConnected ? "Disconnect" : (netRow.isPending ? "Cancel" : "Connect")
+                                        text: netRow.isConnected ? I18n.t("wifi.disconnect") : (netRow.isPending ? I18n.t("common.cancel") : I18n.t("wifi.connect"))
                                         color: netRow.isConnected ? "#e05c5c" : (netRow.isPending ? Colors.textDim : Colors.accent)
                                         font.pixelSize: UIScale.fontSmall
                                         font.weight: Font.DemiBold
