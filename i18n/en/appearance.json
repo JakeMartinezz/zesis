@@ -18,5 +18,16 @@
   "paletteActive": "%1 (active)",
   "editingInactive": "Editing the inactive palette - changes apply when you switch to %1 mode.",
   "reset": "Reset",
-  "resetPaletteColors": "Reset %1 colors"
+  "resetPaletteColors": "Reset %1 colors",
+  "scopeWallpaper": "Follow wallpaper",
+  "scopeGlobal": "Global",
+  "scopeWallpaperDescription": "Colors are tied to the current wallpaper - switching wallpapers switches to whatever was saved for it.",
+  "scopeGlobalDescription": "One color set applies everywhere, no matter which wallpaper is active.",
+  "themes": "Themes",
+  "themesDescription": "Save the colors currently in effect under a name, then re-apply them later in either scope above.",
+  "themeNamePlaceholder": "Theme name...",
+  "saveTheme": "Save",
+  "noThemesSaved": "No themes saved yet.",
+  "applyTheme": "Apply",
+  "deleteTheme": "Delete"
 }

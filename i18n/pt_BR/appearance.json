@@ -18,5 +18,16 @@
   "paletteActive": "%1 (ativo)",
   "editingInactive": "Você está editando a paleta inativa - as alterações valem quando você mudar para o modo %1.",
   "reset": "Redefinir",
-  "resetPaletteColors": "Redefinir cores do modo %1"
+  "resetPaletteColors": "Redefinir cores do modo %1",
+  "scopeWallpaper": "Seguir wallpaper",
+  "scopeGlobal": "Global",
+  "scopeWallpaperDescription": "As cores ficam ligadas ao wallpaper atual - trocar de wallpaper troca para o que foi salvo pra ele.",
+  "scopeGlobalDescription": "Um único conjunto de cores vale em todo lugar, independente do wallpaper ativo.",
+  "themes": "Temas",
+  "themesDescription": "Salve as cores em vigor agora com um nome, e reaplique depois em qualquer um dos escopos acima.",
+  "themeNamePlaceholder": "Nome do tema...",
+  "saveTheme": "Salvar",
+  "noThemesSaved": "Nenhum tema salvo ainda.",
+  "applyTheme": "Aplicar",
+  "deleteTheme": "Excluir"
 }

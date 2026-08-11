@@ -4,9 +4,17 @@ import Quickshell
 import Quickshell.Io
 
 // Per-role overrides on top of the wallpaper-generated theme, kept separately
-// for the dark and light palettes so switching modes picks the matching set up.
-// A role that isn't in the map falls back to the generated theme, which is the
-// default and what every existing config gets.
+// for the dark and light palettes so switching modes picks the matching set
+// up. A role that isn't in the map falls back to the generated theme, which
+// is the default and what every existing config gets.
+//
+// Where an override lives depends on `scope`:
+// - "wallpaper" (default): overrides are kept per wallpaper path, so
+//   swapping wallpapers swaps in whatever was saved for that specific image.
+// - "global": a single override set applies no matter which wallpaper is
+//   active.
+// Switching scope doesn't move or merge anything - it just changes which
+// bucket reads/writes target, so flipping back and forth is non-destructive.
 Singleton {
     id: root
 
@@ -78,11 +86,33 @@ Singleton {
         }
     ])
 
+    // "wallpaper" or "global" - which bucket set()/clear()/get() target.
+    property string scope: "wallpaper"
+
+    // Every wallpaper's override set, keyed by its absolute path (the same
+    // string ThemeState.lastWallpaper holds). "" is the bucket used before
+    // any wallpaper has ever been applied.
+    property var byWallpaper: ({})
+
+    // The single override set used when scope === "global".
+    property var global: ({
+            dark: {},
+            light: {}
+        })
+
+    readonly property var _current: root.scope === "global" ? root.global : (root.byWallpaper[ThemeState.lastWallpaper] || {})
     // Authoritative in memory, not bound to the adapter: the file write is
     // async, so reading edits back off disk would lose any change made before
     // the previous one landed. Disk only feeds back in via _adopt().
-    property var dark: ({})
-    property var light: ({})
+    readonly property var dark: root._current.dark || {}
+    readonly property var light: root._current.light || {}
+
+    function setScope(newScope) {
+        if (newScope !== "wallpaper" && newScope !== "global")
+            return;
+        root.scope = newScope;
+        root._persist();
+    }
 
     function forPalette(palette) {
         return palette === "dark" ? root.dark : root.light;
@@ -101,48 +131,66 @@ Singleton {
     function set(palette, role, hex) {
         if (!root.isValid(hex))
             return;
-        var d = root._copy(root.dark);
-        var l = root._copy(root.light);
-        var target = palette === "dark" ? d : l;
+        var entry = root._copyEntry();
+        var target = palette === "dark" ? entry.dark : entry.light;
         target[role] = hex.trim().toLowerCase();
-        root._save(d, l);
+        root._saveEntry(entry);
     }
 
     function clear(palette, role) {
-        var d = root._copy(root.dark);
-        var l = root._copy(root.light);
-        delete (palette === "dark" ? d : l)[role];
-        root._save(d, l);
+        var entry = root._copyEntry();
+        delete (palette === "dark" ? entry.dark : entry.light)[role];
+        root._saveEntry(entry);
     }
 
     function clearPalette(palette) {
+        var entry = root._copyEntry();
         if (palette === "dark")
-            root._save({}, root._copy(root.light));
+            entry.dark = {};
         else
-            root._save(root._copy(root.dark), {});
+            entry.light = {};
+        root._saveEntry(entry);
     }
 
     function isValid(hex) {
         return /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test((hex || "").trim());
     }
 
+    function _copyEntry() {
+        var e = root.scope === "global" ? root.global : root.byWallpaper[ThemeState.lastWallpaper];
+        return {
+            dark: e && e.dark ? root._copy(e.dark) : {},
+            light: e && e.light ? root._copy(e.light) : {}
+        };
+    }
+
     function _copy(map) {
         return map ? JSON.parse(JSON.stringify(map)) : ({});
     }
 
-    function _save(d, l) {
-        root.dark = d;
-        root.light = l;
-        root._pendingJson = JSON.stringify({
-            dark: d,
-            light: l
-        });
-        root._flush();
+    function _saveEntry(entry) {
+        if (root.scope === "global") {
+            root.global = entry;
+        } else {
+            var all = root._copy(root.byWallpaper);
+            all[ThemeState.lastWallpaper] = entry;
+            root.byWallpaper = all;
+        }
+        root._persist();
     }
 
     // A single writer, with the latest state queued behind whatever is in
     // flight - assigning to a running Process would drop the write.
     property string _pendingJson: ""
+
+    function _persist() {
+        root._pendingJson = JSON.stringify({
+            scope: root.scope,
+            byWallpaper: root.byWallpaper,
+            global: root.global
+        });
+        root._flush();
+    }
 
     function _flush() {
         if (writeProc.running || root._pendingJson.length === 0)
@@ -154,22 +202,63 @@ Singleton {
     }
 
     // Pick the file up on startup and on external edits, but never on top of a
-    // write we haven't finished issuing.
+    // write we haven't finished issuing. Also migrates the pre-scope, flat
+    // {dark, light} format into the current wallpaper's bucket the first time
+    // it's loaded, rather than silently discarding it.
     function _adopt() {
         if (writeProc.running || root._pendingJson.length > 0)
             return;
-        root.dark = root._copy(overrideData.dark);
-        root.light = root._copy(overrideData.light);
+        var hasByWallpaper = overrideData.byWallpaper && Object.keys(overrideData.byWallpaper).length > 0;
+        var g = overrideData.global || {};
+        var hasGlobal = (g.dark && Object.keys(g.dark).length > 0) || (g.light && Object.keys(g.light).length > 0);
+        var legacyDark = overrideData.dark || {};
+        var legacyLight = overrideData.light || {};
+        var hasLegacy = Object.keys(legacyDark).length > 0 || Object.keys(legacyLight).length > 0;
+
+        root.scope = overrideData.scope === "global" ? "global" : "wallpaper";
+
+        if (!hasByWallpaper && !hasGlobal && hasLegacy) {
+            var migrated = {};
+            migrated[ThemeState.lastWallpaper] = {
+                dark: root._copy(legacyDark),
+                light: root._copy(legacyLight)
+            };
+            root.byWallpaper = migrated;
+            root.global = {
+                dark: {},
+                light: {}
+            };
+            root._persist();
+        } else {
+            root.byWallpaper = root._copy(overrideData.byWallpaper);
+            root.global = {
+                dark: root._copy(g.dark),
+                light: root._copy(g.light)
+            };
+        }
     }
 
     JsonAdapter {
         id: overrideData
+        property string scope: "wallpaper"
+        property var byWallpaper: ({})
+        property var global: ({})
+        // Legacy pre-scope fields, only read once for migration.
         property var dark: ({})
         property var light: ({})
     }
 
     Connections {
         target: overrideData
+        function onScopeChanged() {
+            root._adopt();
+        }
+        function onByWallpaperChanged() {
+            root._adopt();
+        }
+        function onGlobalChanged() {
+            root._adopt();
+        }
         function onDarkChanged() {
             root._adopt();
         }

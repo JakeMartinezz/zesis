@@ -234,6 +234,46 @@ Item {
                     wrapMode: Text.WordWrap
                 }
 
+                // Whether edits below apply only to the active wallpaper, or
+                // globally regardless of which wallpaper is set.
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: UIScale.spacingXs
+                    spacing: UIScale.spacingSm
+                    Repeater {
+                        model: [[I18n.t("appearance.scopeWallpaper"), "wallpaper"], [I18n.t("appearance.scopeGlobal"), "global"]]
+                        delegate: Rectangle {
+                            id: scopeBtn
+                            required property var modelData
+                            readonly property bool selected: ColorOverrides.scope === scopeBtn.modelData[1]
+                            Layout.fillWidth: true
+                            implicitHeight: Math.round(28 * UIScale.value)
+                            radius: UIScale.radiusSm
+                            color: scopeBtn.selected ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
+                            border.color: scopeBtn.selected ? Colors.accent : "transparent"
+                            border.width: 1
+                            Text {
+                                anchors.centerIn: parent
+                                text: scopeBtn.modelData[0]
+                                color: Colors.text
+                                font.pixelSize: UIScale.fontCaption
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: ColorOverrides.setScope(scopeBtn.modelData[1])
+                            }
+                        }
+                    }
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: ColorOverrides.scope === "global" ? I18n.t("appearance.scopeGlobalDescription") : I18n.t("appearance.scopeWallpaperDescription")
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontCaption
+                    wrapMode: Text.WordWrap
+                }
+
                 // Which palette is being edited - defaults to the active one,
                 // but the other can be set up without switching modes.
                 RowLayout {
@@ -405,6 +445,84 @@ Item {
                     Layout.topMargin: UIScale.spacingXs
                     label: I18n.t("appearance.resetPaletteColors", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
                     onActivated: ColorOverrides.clearPalette(root._editPalette)
+                }
+
+                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
+
+                // Saved themes - snapshots of whatever colors are in effect
+                // right now (generated or overridden, doesn't matter), that
+                // can be re-applied later in either scope above.
+                Text {
+                    text: I18n.t("appearance.themes")
+                    color: Colors.text
+                    font.bold: true
+                    font.pixelSize: UIScale.fontBody
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: I18n.t("appearance.themesDescription")
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontCaption
+                    wrapMode: Text.WordWrap
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: UIScale.spacingXs
+                    spacing: UIScale.spacingSm
+
+                    StyledTextInput {
+                        id: themeNameField
+                        Layout.fillWidth: true
+                        placeholder: I18n.t("appearance.themeNamePlaceholder")
+                        onAccepted: {
+                            ColorThemes.save(themeNameField.text);
+                            themeNameField.text = "";
+                        }
+                    }
+                    ActionButton {
+                        label: I18n.t("appearance.saveTheme")
+                        onActivated: {
+                            ColorThemes.save(themeNameField.text);
+                            themeNameField.text = "";
+                        }
+                    }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    Layout.topMargin: UIScale.spacingSm
+                    visible: ColorThemes.themes.length === 0
+                    text: I18n.t("appearance.noThemesSaved")
+                    color: Colors.muted
+                    font.pixelSize: UIScale.fontCaption
+                }
+
+                Repeater {
+                    model: ColorThemes.themes
+                    delegate: RowLayout {
+                        id: themeRow
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.topMargin: UIScale.spacingXs
+                        spacing: UIScale.spacingSm
+
+                        Text {
+                            text: themeRow.modelData.name
+                            color: Colors.text
+                            font.pixelSize: UIScale.fontBody
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                        }
+                        ActionButton {
+                            label: I18n.t("appearance.applyTheme")
+                            onActivated: ColorThemes.apply(themeRow.modelData.name)
+                        }
+                        ActionButton {
+                            label: I18n.t("appearance.deleteTheme")
+                            onActivated: ColorThemes.remove(themeRow.modelData.name)
+                        }
+                    }
                 }
             }
         }
