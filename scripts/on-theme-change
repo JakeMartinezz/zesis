@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Runs after ThemeState successfully applies a wallpaper (see ThemeState.qml's
+# hookProcess, which execs ~/.config/zesis/on-theme-change if it's
+# executable). Generates a Material You palette for the current wallpaper
+# with matugen and writes it where Colors.qml expects to find it, in the
+# {"colors": {"dark": {role: hex}, "light": {role: hex}}} shape it reads.
+#
+# Not wired up automatically: symlink this into place to enable it, e.g.
+#   mkdir -p ~/.config/zesis
+#   ln -sf "$(pwd)/scripts/on-theme-change" ~/.config/zesis/on-theme-change
+set -euo pipefail
+
+state_file="$HOME/.cache/zesis/state.json"
+out_dir="$HOME/.cache/theme/zesis"
+out_file="$out_dir/colors.json"
+
+wallpaper=$(jq -r '.lastWallpaper // ""' "$state_file" 2>/dev/null || echo "")
+if [ -z "$wallpaper" ] || [ ! -f "$wallpaper" ]; then
+    exit 0
+fi
+
+scheme_type="${ZESIS_SCHEME_TYPE:-scheme-tonal-spot}"
+
+raw=$(matugen image "$wallpaper" --source-color-index 0 --type "$scheme_type" -m dark -j hex -q --dry-run)
+
+mkdir -p "$out_dir"
+jq -n --argjson raw "$raw" '
+    ($raw.colors) as $c
+    | {
+        colors: {
+            dark: {
+                background: $c.background.dark.color,
+                surface_container: $c.surface_container.dark.color,
+                surface_container_high: $c.surface_container_high.dark.color,
+                outline_variant: $c.outline_variant.dark.color,
+                primary: $c.primary.dark.color,
+                primary_fixed_dim: $c.primary_fixed_dim.dark.color,
+                primary_container: $c.primary_container.dark.color,
+                on_primary: $c.on_primary.dark.color,
+                on_background: $c.on_background.dark.color,
+                on_surface_variant: $c.on_surface_variant.dark.color
+            },
+            light: {
+                background: $c.background.light.color,
+                surface_container: $c.surface_container.light.color,
+                surface_container_high: $c.surface_container_high.light.color,
+                outline_variant: $c.outline_variant.light.color,
+                primary: $c.primary.light.color,
+                primary_fixed_dim: $c.primary_fixed_dim.light.color,
+                primary_container: $c.primary_container.light.color,
+                on_primary: $c.on_primary.light.color,
+                on_background: $c.on_background.light.color,
+                on_surface_variant: $c.on_surface_variant.light.color
+            }
+        }
+    }
+' > "$out_file"
