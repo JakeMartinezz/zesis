@@ -58,8 +58,17 @@ Singleton {
     }
 
     function _save(s, eg, en, states, order, collapsed, monitors) {
-        const json = '{"side":"' + s + '","edgeGap":' + eg + ',"endGap":' + en + ',"itemStates":' + JSON.stringify(states) + ',"itemOrder":' + JSON.stringify(order) + ',"itemCollapsed":' + JSON.stringify(collapsed) + ',"enabledMonitors":' + JSON.stringify(monitors) + '}';
-        writeProc.command = ["sh", "-c", "mkdir -p '" + root._configDir + "' && printf '%s' '" + json + "' > '" + root._configPath + "'"];
+        const json = JSON.stringify({
+            side: s,
+            edgeGap: eg,
+            endGap: en,
+            itemStates: states,
+            itemOrder: order,
+            itemCollapsed: collapsed,
+            enabledMonitors: monitors
+        });
+        writeProc.command = ["bash", "-c", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "--",
+            root._configDir, json, root._configPath];
         writeProc.running = true;
     }
 

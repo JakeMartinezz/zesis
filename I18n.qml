@@ -59,7 +59,8 @@ Singleton {
     }
 
     function setLanguage(code) {
-        writeProc.command = ["sh", "-c", "mkdir -p '" + root._configDir + "' && printf '%s' '{\"language\":\"" + code + "\"}' > '" + root._configPath + "'"];
+        writeProc.command = ["bash", "-c", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "--",
+            root._configDir, JSON.stringify({language: code}), root._configPath];
         writeProc.running = true;
     }
 
