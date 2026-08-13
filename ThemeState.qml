@@ -71,9 +71,14 @@ Singleton {
 
     // Backends that need a persistent daemon running before `apply()` can
     // talk to them (AGS starts awww-daemon the same way on its own startup).
+    // Run at zesis startup, which on this system can race the compositor's
+    // layer-shell protocol not being ready yet right after login/boot - the
+    // daemon opens its background layer then immediately dies, and a single
+    // fire-and-forget start never notices or retries. Retry a few times a
+    // second apart instead of trying once.
     readonly property var _daemonStartCommands: ({
-            "awww": "pgrep -f awww-daemon >/dev/null || { awww-daemon >/dev/null 2>&1 & }",
-            "swww": "pgrep -f swww-daemon >/dev/null || { swww-daemon >/dev/null 2>&1 & }"
+            "awww": "for i in 1 2 3 4 5; do pgrep -f awww-daemon >/dev/null && break; awww-daemon >/dev/null 2>&1 & sleep 1; done",
+            "swww": "for i in 1 2 3 4 5; do pgrep -f swww-daemon >/dev/null && break; swww-daemon >/dev/null 2>&1 & sleep 1; done"
         })
 
     function _ensureDaemonRunning() {
