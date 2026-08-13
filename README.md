@@ -1,17 +1,12 @@
-<table>
-<tr>
-<td><img src="Assets/logo.svg" alt="zesis logo" width="108"></td>
-<td>
+<img src="Assets/logo.svg" alt="zesis logo" width="108" align="left">
 
-# zesis
+### zesis
 
 <em>ζέσις - Greek for "boiling", "seething": the act of bubbling up with heat or fervor</em>
 
 [![Discord](https://img.shields.io/badge/discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=ffffff&labelColor=101418)](https://discord.gg/npWCSGaju7)
 
-</td>
-</tr>
-</table>
+<br clear="left">
 
 <!-- TODO: drop a screenshot/short video -->
 
