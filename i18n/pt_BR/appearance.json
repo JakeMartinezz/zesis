@@ -31,6 +31,9 @@
   "noThemesSaved": "Nenhum tema salvo ainda.",
   "applyTheme": "Aplicar",
   "deleteTheme": "Excluir",
+  "rename": "Renomear",
+  "renameConfirm": "Confirmar",
+  "renameCancel": "Cancelar",
   "pinned": "Fixado",
   "themeActive": "Ativo",
   "pinnedNoWallpaperHint": "Esse tema não tem wallpaper vinculado, então não vai aparecer no seletor rápido mesmo estando fixado."

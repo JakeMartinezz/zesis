@@ -53,6 +53,16 @@ Singleton {
         return !!(wp && (wp.all || wp.fallback || Object.keys(wp.byMonitor || {}).length > 0));
     }
 
+    // A single representative wallpaper path for an entry, for previews (the
+    // theme row's thumbnail, ThemeCycler's cards) that just need one image
+    // to show rather than the full per-monitor breakdown.
+    function primaryWallpaper(entry) {
+        var wp = entry && entry.wallpaper;
+        if (!wp)
+            return "";
+        return wp.all || wp.fallback || Object.values(wp.byMonitor || {})[0] || "";
+    }
+
     readonly property var pinned: root.themes.filter(t => t.pinned && root.hasWallpaper(t))
 
     // Snapshots the colors and wallpaper currently in effect under `name`,
@@ -99,6 +109,26 @@ Singleton {
         if (bar.length > 0)
             out.bar = bar;
         return out;
+    }
+
+    // Renames in place, keeping pinned/wallpaper/colors untouched. No-ops
+    // (returns false) on an empty name, no real change, or a collision with
+    // another saved theme - the caller decides how to surface that.
+    function rename(oldName, newName) {
+        var trimmed = (newName || "").trim();
+        if (trimmed.length === 0 || trimmed === oldName)
+            return false;
+        var idx = root._indexOf(oldName);
+        if (idx < 0 || root.exists(trimmed))
+            return false;
+        var list = root.themes.slice();
+        list[idx] = Object.assign({}, list[idx], {
+            name: trimmed
+        });
+        if (root.activeThemeName === oldName)
+            root.activeThemeName = trimmed;
+        root._save(list);
+        return true;
     }
 
     function togglePinned(name) {

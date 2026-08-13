@@ -31,6 +31,9 @@
   "noThemesSaved": "No themes saved yet.",
   "applyTheme": "Apply",
   "deleteTheme": "Delete",
+  "rename": "Rename",
+  "renameConfirm": "Confirm",
+  "renameCancel": "Cancel",
   "pinned": "Pinned",
   "themeActive": "Active",
   "pinnedNoWallpaperHint": "This theme has no wallpaper attached, so it won't show up in the quick theme switcher even while pinned."

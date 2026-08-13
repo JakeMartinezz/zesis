@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Quickshell.Io
 import "../../"
 import "../Shared"
 
@@ -544,6 +545,14 @@ Item {
                         required property var modelData
                         readonly property bool hasWallpaper: Themes.hasWallpaper(themeRow.modelData)
                         readonly property bool isActive: Themes.activeThemeName === themeRow.modelData.name
+                        readonly property string wallpaperPath: Themes.primaryWallpaper(themeRow.modelData)
+                        property bool renaming: false
+
+                        function confirmRename() {
+                            if (Themes.rename(themeRow.modelData.name, renameField.text))
+                                themeRow.renaming = false;
+                        }
+
                         Layout.fillWidth: true
                         Layout.topMargin: UIScale.spacingSm
                         spacing: Math.round(2 * UIScale.value)
@@ -551,6 +560,41 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             spacing: UIScale.spacingSm
+
+                            Rectangle {
+                                id: thumbRect
+                                implicitWidth: Math.round(34 * UIScale.value)
+                                implicitHeight: implicitWidth
+                                radius: UIScale.radiusSm
+                                color: Colors.surfaceHigh
+                                clip: true
+
+                                Image {
+                                    id: thumbImg
+                                    anchors.fill: parent
+                                    visible: themeRow.hasWallpaper
+                                    source: themeRow.hasWallpaper ? ("file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg") : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    onStatusChanged: {
+                                        if (status === Image.Error && !thumbGen.running)
+                                            thumbGen.running = true;
+                                    }
+                                }
+
+                                Process {
+                                    id: thumbGen
+                                    command: ["magick", themeRow.wallpaperPath, "-resize", "68x68^", "-gravity", "Center", "-extent", "68x68", ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg"]
+                                    onExited: (code, status) => {
+                                        if (code === 0) {
+                                            thumbImg.source = "";
+                                            thumbImg.source = "file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg";
+                                        } else {
+                                            thumbImg.source = "file://" + themeRow.wallpaperPath;
+                                        }
+                                    }
+                                }
+                            }
 
                             Rectangle {
                                 visible: themeRow.isActive
@@ -561,6 +605,7 @@ Item {
                             }
 
                             Text {
+                                visible: !themeRow.renaming
                                 text: themeRow.modelData.name
                                 color: themeRow.isActive ? Colors.accent : Colors.text
                                 font.bold: themeRow.isActive
@@ -569,28 +614,52 @@ Item {
                                 elide: Text.ElideRight
                             }
 
+                            StyledTextInput {
+                                id: renameField
+                                visible: themeRow.renaming
+                                Layout.fillWidth: true
+                                text: themeRow.modelData.name
+                                onAccepted: themeRow.confirmRename()
+                                onEscapePressed: themeRow.renaming = false
+                                onVisibleChanged: if (visible)
+                                    field.forceActiveFocus()
+                            }
+
                             Text {
-                                visible: themeRow.isActive
+                                visible: themeRow.isActive && !themeRow.renaming
                                 text: I18n.t("appearance.themeActive")
                                 color: Colors.accent
                                 font.pixelSize: UIScale.fontTiny
                             }
 
                             ToggleSwitch {
+                                visible: !themeRow.renaming
                                 checked: !!themeRow.modelData.pinned
                                 onToggled: Themes.togglePinned(themeRow.modelData.name)
                             }
                             Text {
+                                visible: !themeRow.renaming
                                 text: I18n.t("appearance.pinned")
                                 color: Colors.textDim
                                 font.pixelSize: UIScale.fontTiny
                             }
 
                             ActionButton {
+                                label: themeRow.renaming ? I18n.t("appearance.renameConfirm") : I18n.t("appearance.rename")
+                                onActivated: themeRow.renaming ? themeRow.confirmRename() : (themeRow.renaming = true)
+                            }
+                            ActionButton {
+                                visible: themeRow.renaming
+                                label: I18n.t("appearance.renameCancel")
+                                onActivated: themeRow.renaming = false
+                            }
+                            ActionButton {
+                                visible: !themeRow.renaming
                                 label: I18n.t("appearance.applyTheme")
                                 onActivated: Themes.apply(themeRow.modelData.name)
                             }
                             ActionButton {
+                                visible: !themeRow.renaming
                                 label: I18n.t("appearance.deleteTheme")
                                 onActivated: Themes.remove(themeRow.modelData.name)
                             }

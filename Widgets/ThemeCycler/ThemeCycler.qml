@@ -91,7 +91,7 @@ Item {
             required property int index
 
             readonly property bool isSelected: cardDelegate.index === root.selectedIndex
-            readonly property string wallpaperPath: cardDelegate.modelData.wallpaper.all || cardDelegate.modelData.wallpaper.fallback || Object.values(cardDelegate.modelData.wallpaper.byMonitor || {})[0] || ""
+            readonly property string wallpaperPath: Themes.primaryWallpaper(cardDelegate.modelData)
             readonly property var swatchPalette: ThemeState.palette === "dark" ? cardDelegate.modelData.dark : cardDelegate.modelData.light
 
             width: root.cardW
