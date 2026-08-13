@@ -476,14 +476,14 @@ Item {
                         Layout.fillWidth: true
                         placeholder: I18n.t("appearance.themeNamePlaceholder")
                         onAccepted: {
-                            ColorThemes.save(themeNameField.text);
+                            Themes.save(themeNameField.text);
                             themeNameField.text = "";
                         }
                     }
                     ActionButton {
                         label: I18n.t("appearance.saveTheme")
                         onActivated: {
-                            ColorThemes.save(themeNameField.text);
+                            Themes.save(themeNameField.text);
                             themeNameField.text = "";
                         }
                     }
@@ -492,35 +492,61 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     Layout.topMargin: UIScale.spacingSm
-                    visible: ColorThemes.themes.length === 0
+                    visible: Themes.themes.length === 0
                     text: I18n.t("appearance.noThemesSaved")
                     color: Colors.muted
                     font.pixelSize: UIScale.fontCaption
                 }
 
                 Repeater {
-                    model: ColorThemes.themes
-                    delegate: RowLayout {
+                    model: Themes.themes
+                    delegate: ColumnLayout {
                         id: themeRow
                         required property var modelData
+                        readonly property bool hasWallpaper: Themes.hasWallpaper(themeRow.modelData)
                         Layout.fillWidth: true
-                        Layout.topMargin: UIScale.spacingXs
-                        spacing: UIScale.spacingSm
+                        Layout.topMargin: UIScale.spacingSm
+                        spacing: Math.round(2 * UIScale.value)
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: UIScale.spacingSm
+
+                            Text {
+                                text: themeRow.modelData.name
+                                color: Colors.text
+                                font.pixelSize: UIScale.fontBody
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+
+                            ToggleSwitch {
+                                checked: !!themeRow.modelData.pinned
+                                onToggled: Themes.togglePinned(themeRow.modelData.name)
+                            }
+                            Text {
+                                text: I18n.t("appearance.pinned")
+                                color: Colors.textDim
+                                font.pixelSize: UIScale.fontTiny
+                            }
+
+                            ActionButton {
+                                label: I18n.t("appearance.applyTheme")
+                                onActivated: Themes.apply(themeRow.modelData.name)
+                            }
+                            ActionButton {
+                                label: I18n.t("appearance.deleteTheme")
+                                onActivated: Themes.remove(themeRow.modelData.name)
+                            }
+                        }
 
                         Text {
-                            text: themeRow.modelData.name
-                            color: Colors.text
-                            font.pixelSize: UIScale.fontBody
                             Layout.fillWidth: true
-                            elide: Text.ElideRight
-                        }
-                        ActionButton {
-                            label: I18n.t("appearance.applyTheme")
-                            onActivated: ColorThemes.apply(themeRow.modelData.name)
-                        }
-                        ActionButton {
-                            label: I18n.t("appearance.deleteTheme")
-                            onActivated: ColorThemes.remove(themeRow.modelData.name)
+                            visible: themeRow.modelData.pinned && !themeRow.hasWallpaper
+                            text: I18n.t("appearance.pinnedNoWallpaperHint")
+                            color: Colors.muted
+                            font.pixelSize: UIScale.fontTiny
+                            wrapMode: Text.WordWrap
                         }
                     }
                 }

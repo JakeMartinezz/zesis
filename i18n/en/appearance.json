@@ -24,10 +24,12 @@
   "scopeWallpaperDescription": "Colors are tied to the current wallpaper - switching wallpapers switches to whatever was saved for it.",
   "scopeGlobalDescription": "One color set applies everywhere, no matter which wallpaper is active.",
   "themes": "Themes",
-  "themesDescription": "Save the colors currently in effect under a name, then re-apply them later in either scope above.",
+  "themesDescription": "Save the colors and wallpaper currently in effect under a name, then re-apply them later. Pin a theme (and give it a wallpaper) to add it to the quick theme switcher.",
   "themeNamePlaceholder": "Theme name...",
   "saveTheme": "Save",
   "noThemesSaved": "No themes saved yet.",
   "applyTheme": "Apply",
-  "deleteTheme": "Delete"
+  "deleteTheme": "Delete",
+  "pinned": "Pinned",
+  "pinnedNoWallpaperHint": "This theme has no wallpaper attached, so it won't show up in the quick theme switcher even while pinned."
 }

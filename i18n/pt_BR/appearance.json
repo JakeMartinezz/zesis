@@ -24,10 +24,12 @@
   "scopeWallpaperDescription": "As cores ficam ligadas ao wallpaper atual - trocar de wallpaper troca para o que foi salvo pra ele.",
   "scopeGlobalDescription": "Um único conjunto de cores vale em todo lugar, independente do wallpaper ativo.",
   "themes": "Temas",
-  "themesDescription": "Salve as cores em vigor agora com um nome, e reaplique depois em qualquer um dos escopos acima.",
+  "themesDescription": "Salve as cores e o wallpaper em vigor agora com um nome, e reaplique depois. Fixe um tema (com um wallpaper vinculado) pra ele aparecer no seletor rápido de temas.",
   "themeNamePlaceholder": "Nome do tema...",
   "saveTheme": "Salvar",
   "noThemesSaved": "Nenhum tema salvo ainda.",
   "applyTheme": "Aplicar",
-  "deleteTheme": "Excluir"
+  "deleteTheme": "Excluir",
+  "pinned": "Fixado",
+  "pinnedNoWallpaperHint": "Esse tema não tem wallpaper vinculado, então não vai aparecer no seletor rápido mesmo estando fixado."
 }

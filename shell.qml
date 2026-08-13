@@ -9,6 +9,7 @@ import "Widgets/Notifications"
 import "Widgets/LockScreen"
 import "Widgets/Keybinds"
 import "Widgets/AppSwitcher"
+import "Widgets/ThemeCycler"
 import "Widgets/Power"
 import "Widgets/Shared"
 import "Widgets/WidgetHome"
@@ -289,6 +290,41 @@ Scope {
         }
         function cancel() {
             AppSwitcherService.cancel();
+        }
+    }
+
+    FullscreenOverlay {
+        id: themeCyclerOverlay
+        dimmerOpacity: 0.60
+        dimmerColor: "#0a0806"
+        initialScale: 0.94
+        showOvershoot: 1.1
+        content: Component {
+            ThemeCycler {}
+        }
+
+        property bool _tcOpen: ThemeCyclerService.open
+        on_TcOpenChanged: _tcOpen ? open() : close()
+
+        onVisibleChanged: if (!visible)
+            ThemeCyclerService.open = false
+        onDimmerTapped: ThemeCyclerService.confirm()
+        onContentLoaded: item => item.forceActiveFocus()
+    }
+
+    IpcHandler {
+        target: "themecycler"
+        function cycle() {
+            ThemeCyclerService.cycleForward();
+        }
+        function back() {
+            ThemeCyclerService.cycleBack();
+        }
+        function confirm() {
+            ThemeCyclerService.confirm();
+        }
+        function cancel() {
+            ThemeCyclerService.cancel();
         }
     }
 
