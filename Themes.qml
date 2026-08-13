@@ -30,6 +30,12 @@ Singleton {
 
     property var themes: [] // [{name, pinned, wallpaper: {all, byMonitor, fallback}, dark: {role: hex}, light: {role: hex}}]
 
+    // Name of the last theme applied via apply() - sticky until a different
+    // theme is applied (or this one is removed), regardless of any manual
+    // color tweaks made afterwards. A simple "last chosen" marker, not a live
+    // check that every color still matches the saved snapshot.
+    property string activeThemeName: ""
+
     function _indexOf(name) {
         for (var i = 0; i < root.themes.length; i++) {
             if (root.themes[i].name === name)
@@ -118,6 +124,8 @@ Singleton {
         root._applyPalette("light", entry.light);
         if (root.hasWallpaper(entry))
             root._applyWallpaper(entry.wallpaper);
+        root.activeThemeName = name;
+        root._save(root.themes);
     }
 
     function _applyPalette(palette, roleMap) {
@@ -155,13 +163,16 @@ Singleton {
             return;
         var list = root.themes.slice();
         list.splice(idx, 1);
+        if (root.activeThemeName === name)
+            root.activeThemeName = "";
         root._save(list);
     }
 
     function _save(list) {
         root.themes = list;
         root._pendingJson = JSON.stringify({
-            themes: list
+            themes: list,
+            activeThemeName: root.activeThemeName
         });
         root._flush();
     }
@@ -196,16 +207,21 @@ Singleton {
                     dark: t.dark || {},
                     light: t.light || {}
                 }));
+        root.activeThemeName = themeData.activeThemeName || "";
     }
 
     JsonAdapter {
         id: themeData
         property var themes: []
+        property string activeThemeName: ""
     }
 
     Connections {
         target: themeData
         function onThemesChanged() {
+            root._adopt();
+        }
+        function onActiveThemeNameChanged() {
             root._adopt();
         }
     }

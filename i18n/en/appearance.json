@@ -31,5 +31,6 @@
   "applyTheme": "Apply",
   "deleteTheme": "Delete",
   "pinned": "Pinned",
+  "themeActive": "Active",
   "pinnedNoWallpaperHint": "This theme has no wallpaper attached, so it won't show up in the quick theme switcher even while pinned."
 }

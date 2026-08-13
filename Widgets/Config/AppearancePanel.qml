@@ -45,6 +45,24 @@ Item {
         return p[roleId] || "#000000";
     }
 
+    // Whether a role's effective color actually differs from what this
+    // wallpaper's own matugen generation would give it. isOverridden() alone
+    // isn't enough: applying a saved theme writes every role into
+    // ColorOverrides (Themes.qml snapshots the full palette, not just the
+    // roles that were hand-picked), so right after loading a theme every
+    // role would otherwise read as "customized" even the ones that just
+    // happen to match the wallpaper's own colors. "bar" has no wallpaper
+    // role to compare against, so it stays presence-based.
+    function _isCustomized(roleId) {
+        if (roleId === "bar")
+            return ColorOverrides.isOverridden(root._editPalette, "bar");
+        var raw = root._editPalette === "dark" ? Colors.rawDarkPalette : Colors.rawLightPalette;
+        var baseline = raw[roleId];
+        if (!baseline)
+            return ColorOverrides.isOverridden(root._editPalette, roleId);
+        return root._effectiveColor(roleId).toLowerCase() !== baseline.toLowerCase();
+    }
+
     // The picker fires on every drag step; coalesce so a drag doesn't turn into
     // a write per frame.
     property string _pendingRole: ""
@@ -341,7 +359,7 @@ Item {
 
                             required property var modelData
                             readonly property string roleId: roleTile.modelData.id
-                            readonly property bool overridden: ColorOverrides.isOverridden(root._editPalette, roleTile.roleId)
+                            readonly property bool overridden: root._isCustomized(roleTile.roleId)
                             readonly property bool selected: root._openRole === roleTile.roleId
 
                             implicitWidth: Math.round(52 * UIScale.value)
@@ -426,7 +444,7 @@ Item {
                             }
                         }
                         ActionButton {
-                            visible: ColorOverrides.isOverridden(root._editPalette, root._openRole)
+                            visible: root._isCustomized(root._openRole)
                             label: I18n.t("appearance.reset")
                             onActivated: ColorOverrides.clear(root._editPalette, root._openRole)
                         }
@@ -504,6 +522,7 @@ Item {
                         id: themeRow
                         required property var modelData
                         readonly property bool hasWallpaper: Themes.hasWallpaper(themeRow.modelData)
+                        readonly property bool isActive: Themes.activeThemeName === themeRow.modelData.name
                         Layout.fillWidth: true
                         Layout.topMargin: UIScale.spacingSm
                         spacing: Math.round(2 * UIScale.value)
@@ -512,12 +531,28 @@ Item {
                             Layout.fillWidth: true
                             spacing: UIScale.spacingSm
 
+                            Rectangle {
+                                visible: themeRow.isActive
+                                implicitWidth: Math.round(7 * UIScale.value)
+                                implicitHeight: implicitWidth
+                                radius: implicitWidth / 2
+                                color: Colors.accent
+                            }
+
                             Text {
                                 text: themeRow.modelData.name
-                                color: Colors.text
+                                color: themeRow.isActive ? Colors.accent : Colors.text
+                                font.bold: themeRow.isActive
                                 font.pixelSize: UIScale.fontBody
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
+                            }
+
+                            Text {
+                                visible: themeRow.isActive
+                                text: I18n.t("appearance.themeActive")
+                                color: Colors.accent
+                                font.pixelSize: UIScale.fontTiny
                             }
 
                             ToggleSwitch {

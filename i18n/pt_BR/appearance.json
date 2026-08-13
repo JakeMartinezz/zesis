@@ -31,5 +31,6 @@
   "applyTheme": "Aplicar",
   "deleteTheme": "Excluir",
   "pinned": "Fixado",
+  "themeActive": "Ativo",
   "pinnedNoWallpaperHint": "Esse tema não tem wallpaper vinculado, então não vai aparecer no seletor rápido mesmo estando fixado."
 }

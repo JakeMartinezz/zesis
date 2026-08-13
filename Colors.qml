@@ -15,6 +15,14 @@ Singleton {
     readonly property var lightPalette: _merge(colorData.colors.light, ColorOverrides.light)
     readonly property var _p: ThemeState.palette === "dark" ? darkPalette : lightPalette
 
+    // The wallpaper's own matugen output, with no overrides merged in - the
+    // baseline "isCustomized" checks compare against, so a role that was
+    // written into an override (e.g. by applying a saved theme) but happens
+    // to match what this wallpaper would generate anyway doesn't read as
+    // user-modified.
+    readonly property var rawDarkPalette: colorData.colors.dark
+    readonly property var rawLightPalette: colorData.colors.light
+
     function _merge(base, overrides) {
         var roles = ColorOverrides.paletteRoles;
         var out = {};
