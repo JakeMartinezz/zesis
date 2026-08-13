@@ -80,6 +80,32 @@ Item {
         onTriggered: ColorOverrides.set(root._editPalette, root._pendingRole, root._pendingHex)
     }
 
+    // Overwriting an existing theme needs a second click within a few
+    // seconds to confirm, same two-step pattern as the destructive actions
+    // in PowerMenu.qml - saving a brand new name (no existing match) still
+    // goes through in one click.
+    property string _saveArmedFor: ""
+
+    Timer {
+        id: saveArmTimer
+        interval: 3000
+        onTriggered: root._saveArmedFor = ""
+    }
+
+    function _saveTheme() {
+        var name = themeNameField.text.trim();
+        if (name.length === 0)
+            return;
+        if (Themes.exists(name) && root._saveArmedFor !== name) {
+            root._saveArmedFor = name;
+            saveArmTimer.restart();
+            return;
+        }
+        Themes.save(name);
+        themeNameField.text = "";
+        root._saveArmedFor = "";
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
@@ -493,17 +519,12 @@ Item {
                         id: themeNameField
                         Layout.fillWidth: true
                         placeholder: I18n.t("appearance.themeNamePlaceholder")
-                        onAccepted: {
-                            Themes.save(themeNameField.text);
-                            themeNameField.text = "";
-                        }
+                        onAccepted: root._saveTheme()
                     }
                     ActionButton {
-                        label: I18n.t("appearance.saveTheme")
-                        onActivated: {
-                            Themes.save(themeNameField.text);
-                            themeNameField.text = "";
-                        }
+                        readonly property bool _armed: root._saveArmedFor !== "" && root._saveArmedFor === themeNameField.text.trim()
+                        label: _armed ? I18n.t("appearance.saveThemeConfirm") : I18n.t("appearance.saveTheme")
+                        onActivated: root._saveTheme()
                     }
                 }
 

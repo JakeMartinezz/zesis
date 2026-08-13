@@ -27,6 +27,7 @@
   "themesDescription": "Save the colors and wallpaper currently in effect under a name, then re-apply them later. Pin a theme (and give it a wallpaper) to add it to the quick theme switcher.",
   "themeNamePlaceholder": "Theme name...",
   "saveTheme": "Save",
+  "saveThemeConfirm": "Overwrite?",
   "noThemesSaved": "No themes saved yet.",
   "applyTheme": "Apply",
   "deleteTheme": "Delete",
