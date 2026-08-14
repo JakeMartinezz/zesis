@@ -14,7 +14,15 @@ state_file="$HOME/.cache/zesis/state.json"
 out_dir="$HOME/.cache/theme/zesis"
 out_file="$out_dir/colors.json"
 
-wallpaper=$(jq -r '.lastWallpaper // ""' "$state_file" 2>/dev/null || echo "")
+# The wallpaper actually driving the color scheme: colorSourceMonitor's own
+# override if it has one, otherwise the global wallpaper - same fallback
+# ThemeState._effectiveWallpaper() uses.
+wallpaper=$(jq -r '
+    (.colorSourceMonitor // "") as $m
+    | if $m == "" then (.lastWallpaper // "")
+      else (.perMonitorWallpaper[$m] // .lastWallpaper // "")
+      end
+' "$state_file" 2>/dev/null || echo "")
 if [ -z "$wallpaper" ] || [ ! -f "$wallpaper" ]; then
     exit 0
 fi

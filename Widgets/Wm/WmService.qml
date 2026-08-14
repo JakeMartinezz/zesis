@@ -21,6 +21,12 @@ Singleton {
     // whether the currently focused workspace has a fullscreen/maximized window on it
     readonly property bool focusedHasFullscreen: _backend.focusedHasFullscreen
 
+    // active workspace on a given ShellScreen (for per-monitor widgets, vs. the single
+    // globally-focused monitor above)
+    function activeWorkspaceFor(screen) {
+        return _backend.activeWorkspaceFor(screen);
+    }
+
     // switch to workspace by numeric id
     function focusWorkspace(id) {
         _backend.focusWorkspace(id);

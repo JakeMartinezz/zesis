@@ -15,15 +15,17 @@ Singleton {
     property string lastWallpaper: ""
     property string wallpaperBackend: "awww"
     property string customWallpaperCommand: ""
-    property string wallpaperFolder: _home + "/Pictures/Wallpapers"
+    // "" means the default, ~/Pictures/Wallpapers.
+    property string wallpapersDirOverride: ""
+    readonly property string wallpapersDir: root.wallpapersDirOverride !== "" ? root.wallpapersDirOverride : (root._home + "/Pictures/Wallpapers")
+    property bool autoStartWallpaperDaemon: true
     property bool applying: false
     property string lastError: ""
-
-    // Tracks explicit per-monitor assignments, so a saved theme can capture
-    // "this monitor got that wallpaper" rather than just "the last path
-    // applied to anything". Reset to {} whenever a wallpaper is applied to
-    // "all monitors" - that supersedes any earlier per-monitor split.
-    property var monitorWallpapers: ({})
+    // Per-monitor overrides: { "DP-1": "/path/to/wall.png", ... }. A monitor with no entry
+    // here just shows lastWallpaper.
+    property var perMonitorWallpaper: ({})
+    // Which monitor's wallpaper drives matugen. "" = the global/all-monitors wallpaper
+    property string colorSourceMonitor: ""
 
     // Backend commands take two positional args: $1 image path, $2 space-separated
     // list of target monitor names (always at least one real name, never
@@ -82,6 +84,8 @@ Singleton {
         })
 
     function _ensureDaemonRunning() {
+        if (!root.autoStartWallpaperDaemon)
+            return;
         var cmd = root._daemonStartCommands[root.wallpaperBackend];
         if (!cmd)
             return;
@@ -107,8 +111,10 @@ Singleton {
         property string lastWallpaper: ""
         property string wallpaperBackend: "awww"
         property string customWallpaperCommand: ""
-        property string wallpaperFolder: ""
-        property var monitorWallpapers: ({})
+        property string wallpapersDirOverride: ""
+        property bool autoStartWallpaperDaemon: true
+        property var perMonitorWallpaper: ({})
+        property string colorSourceMonitor: ""
     }
 
     FileView {
@@ -119,9 +125,19 @@ Singleton {
             root.lastWallpaper = stateData.lastWallpaper;
             root.wallpaperBackend = stateData.wallpaperBackend;
             root.customWallpaperCommand = stateData.customWallpaperCommand;
-            root.wallpaperFolder = stateData.wallpaperFolder || (root._home + "/Pictures/Wallpapers");
-            root.monitorWallpapers = stateData.monitorWallpapers || ({});
+            root.wallpapersDirOverride = stateData.wallpapersDirOverride;
+            root.autoStartWallpaperDaemon = stateData.autoStartWallpaperDaemon;
+            root.perMonitorWallpaper = stateData.perMonitorWallpaper || ({});
+            root.colorSourceMonitor = stateData.colorSourceMonitor;
         }
+    }
+
+    // "" resolves to the global wallpaper - the effective wallpaper for a
+    // monitor with no per-monitor override of its own.
+    function _effectiveWallpaper(monitor) {
+        if (!monitor)
+            return root.lastWallpaper;
+        return root.perMonitorWallpaper[monitor] || root.lastWallpaper;
     }
 
     // Calls queued while one is already running (e.g. a theme applying a
@@ -129,20 +145,54 @@ Singleton {
     // the backend commands are one Process at a time, run sequentially.
     property var _queue: []
 
-    // monitor: ShellScreen.name to target, or "" for all monitors (default) -
-    // resolved here to a real, space-separated monitor list either way, so the
-    // backend command is never invoked without an explicit target.
-    function apply(wallpaperPath, monitor) {
+    // Sets the wallpaper for every monitor, clearing any per-monitor splits -
+    // a global apply overwrites every output at the daemon level anyway.
+    function apply(wallpaperPath) {
+        root._enqueueOrRun(wallpaperPath, "");
+    }
+
+    function applyToMonitor(wallpaperPath, monitor) {
+        if (!monitor)
+            return;
+        root._enqueueOrRun(wallpaperPath, monitor);
+    }
+
+    function resetMonitor(monitor) {
+        if (!monitor || !(monitor in root.perMonitorWallpaper))
+            return;
+        var next = Object.assign({}, root.perMonitorWallpaper);
+        delete next[monitor];
+        root.perMonitorWallpaper = next;
+        root._persistState();
+        // Re-run the backend command to visually sync the output back to the
+        // global wallpaper, now that this monitor's override is gone.
+        if (root.lastWallpaper !== "")
+            root.applyToMonitor(root.lastWallpaper, monitor);
+    }
+
+    // Picks which monitor's wallpaper drives the system color scheme, and
+    // immediately recomputes colors from whatever that monitor is showing.
+    function setColorSourceMonitor(monitor) {
+        root.colorSourceMonitor = monitor;
+        root._persistState();
+        if (!hookProcess.running)
+            hookProcess.running = true;
+    }
+
+    function _enqueueOrRun(wallpaperPath, monitor) {
         if (root.applying) {
             root._queue.push({
                 path: wallpaperPath,
-                monitor: monitor || ""
+                monitor: monitor
             });
             return;
         }
-        root._runApply(wallpaperPath, monitor || "");
+        root._runApply(wallpaperPath, monitor);
     }
 
+    // monitor: ShellScreen.name to target, or "" for all monitors - resolved
+    // here to a real, space-separated monitor list either way, so the
+    // backend command is never invoked without an explicit target.
     function _runApply(wallpaperPath, monitor) {
         root.applying = true;
         root.lastError = "";
@@ -153,12 +203,8 @@ Singleton {
         applyProcess.running = true;
     }
 
-    function _copy(map) {
-        return map ? JSON.parse(JSON.stringify(map)) : ({});
-    }
-
-    function setWallpaperFolder(path) {
-        root.wallpaperFolder = path;
+    function setWallpapersDirOverride(dir) {
+        root.wallpapersDirOverride = dir;
         root._persistState();
     }
 
@@ -181,11 +227,11 @@ Singleton {
             if (code === 0) {
                 root.lastWallpaper = applyProcess._wallpaperPath;
                 if (applyProcess._targetMonitor === "") {
-                    root.monitorWallpapers = ({});
+                    root.perMonitorWallpaper = ({});
                 } else {
-                    var m = root._copy(root.monitorWallpapers);
+                    var m = Object.assign({}, root.perMonitorWallpaper);
                     m[applyProcess._targetMonitor] = applyProcess._wallpaperPath;
-                    root.monitorWallpapers = m;
+                    root.perMonitorWallpaper = m;
                 }
                 root._persistState();
                 if (!hookProcess.running)
@@ -215,8 +261,10 @@ Singleton {
             lastWallpaper: root.lastWallpaper,
             wallpaperBackend: root.wallpaperBackend,
             customWallpaperCommand: root.customWallpaperCommand,
-            wallpaperFolder: root.wallpaperFolder,
-            monitorWallpapers: root.monitorWallpapers
+            wallpapersDirOverride: root.wallpapersDirOverride,
+            autoStartWallpaperDaemon: root.autoStartWallpaperDaemon,
+            perMonitorWallpaper: root.perMonitorWallpaper,
+            colorSourceMonitor: root.colorSourceMonitor
         });
         saveProcess.command = ["bash", "-c", "printf '%s' \"$1\" > \"$2\"", "--", json, root._stateFile];
         saveProcess.running = true;

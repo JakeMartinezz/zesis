@@ -1,12 +1,12 @@
-<h1 align="center">zesis</h1>
+<img src="Assets/logo.svg" alt="zesis logo" width="108" align="left">
 
-<p align="center"><em>ζέσις - Greek for "boiling", "seething": the act of bubbling up with heat or fervor</em></p>
+### zesis
 
-<div align="center">
+<em>ζέσις - Greek for "boiling", "seething": the act of bubbling up with heat or fervor</em>
 
 [![Discord](https://img.shields.io/badge/discord-join-5865F2?style=for-the-badge&logo=discord&logoColor=ffffff&labelColor=101418)](https://discord.gg/npWCSGaju7)
 
-</div>
+<br clear="left">
 
 <!-- TODO: drop a screenshot/short video -->
 
@@ -52,7 +52,7 @@ It's built for **Hyprland**, that's the only compositor backend implemented so f
 - A [Nerd Font](https://www.nerdfonts.com/) or the `nerd-fonts.symbols-only` package for icons.
 - One wallpaper-setting backend: [awww](https://codeberg.org/LGFae/awww) (default), [swww](https://codeberg.org/LGFae/awww), `hyprpaper`, `feh`, or a custom command, configurable in the Wallpaper settings panel.
 - `bash`, `curl`, `python3` - widgets shell out to these directly for core features: theming, weather, AirPods, the 3D globe's starfield generation.
-- A handful of standard desktop utilities most Linux systems already have: `bluez` (`bluetoothctl`, for Bluetooth/AirPods), `libnotify` (`notify-send`), `brightnessctl`, `slurp`, `xdg-utils` (`xdg-open`), `procps` (`pkill`), `gawk`, `hostname`. On NixOS, the [NixOS module](#nixos-module)'s `services.zesis.batteriesIncluded.enable = true;` puts all of these on the service's `PATH` for you, if you don't already have them.
+- A handful of standard desktop utilities most Linux systems already have: `bluez` (`bluetoothctl`, for Bluetooth/AirPods), `libnotify` (`notify-send`), `brightnessctl`, `slurp`, `xdg-utils` (`xdg-open`), `procps` (`pkill`, `pgrep`), `gawk`, `hostname`. On NixOS, the [NixOS module](#nixos-module)'s `services.zesis.batteriesIncluded.enable = true;` puts all of these on the service's `PATH` for you, if you don't already have them.
 
 ### Optional
 
@@ -312,6 +312,10 @@ touch .qmlls.ini
 #### VSCode / VSCodium
 
 Enable `qt-qml.qmlls.useQmlImportPathEnvVar` in your workspace settings so `qmlls` picks up `QML_IMPORT_PATH` from the devshell. `.vscode/` is gitignored; manage your own local workspace settings.
+
+## Cool forks
+
+- [JakeMartinezz/zesis](https://github.com/JakeMartinezz/zesis) - modelled to mirror parts of AGS
 
 ## Contributing
 

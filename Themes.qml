@@ -89,7 +89,7 @@ Singleton {
     }
 
     function _snapshotWallpaper() {
-        var perMonitor = ThemeState.monitorWallpapers || ({});
+        var perMonitor = ThemeState.perMonitorWallpaper || ({});
         var hasPerMonitor = Object.keys(perMonitor).length > 0;
         return {
             all: hasPerMonitor ? "" : ThemeState.lastWallpaper,
@@ -176,14 +176,14 @@ Singleton {
         if (Object.keys(byMonitor).length === 0) {
             var single = wp.all || wp.fallback;
             if (single)
-                ThemeState.apply(single, "");
+                ThemeState.apply(single);
             return;
         }
         for (var i = 0; i < screens.length; i++) {
             var mon = screens[i].name;
             var path = byMonitor[mon] || wp.fallback || wp.all;
             if (path)
-                ThemeState.apply(path, mon);
+                ThemeState.applyToMonitor(path, mon);
         }
     }
 

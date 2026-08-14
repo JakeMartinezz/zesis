@@ -8,7 +8,6 @@ Item {
     id: root
 
     required property string wallpaperPath
-    signal activated
 
     readonly property bool selected: ThemeState.lastWallpaper === wallpaperPath
     readonly property string _baseName: wallpaperPath.substring(wallpaperPath.lastIndexOf("/") + 1)
@@ -131,7 +130,7 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.activated()
+        onClicked: ThemeState.apply(root.wallpaperPath)
     }
 
     Process {

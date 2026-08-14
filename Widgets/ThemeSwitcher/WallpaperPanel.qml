@@ -10,14 +10,20 @@ import "../Shared"
 Item {
     id: root
 
-    readonly property string _wallpapersDir: ThemeState.wallpaperFolder
+    // "" means the wallpaper grid below applies to every monitor.
+    // Otherwise it's a ShellScreen.name and clicks only retarget that one output.
+    property string targetMonitor: ""
+    readonly property string _displayedWallpaper: root.targetMonitor === "" ? ThemeState.lastWallpaper : (ThemeState.perMonitorWallpaper[root.targetMonitor] || ThemeState.lastWallpaper)
+
+    readonly property bool _currentBackendHasDaemon: {
+        for (var i = 0; i < ThemeState.wallpaperBackends.length; i++) {
+            if (ThemeState.wallpaperBackends[i].id === ThemeState.wallpaperBackend)
+                return !!ThemeState.wallpaperBackends[i].daemonProcess;
+        }
+        return false;
+    }
 
     readonly property real paneMargin: Math.round(28 * UIScale.value)
-
-    // Monitor-picker popup state, opened when a wallpaper cell is clicked
-    property bool _monitorPickerOpen: false
-    property string _monitorPickerPath: ""
-    property point _monitorPickerPos: Qt.point(0, 0)
 
     // Container-aware split, see docs/qml-patterns.md #2. Both sides of the threshold are
     // measured from content. The grid needs at least two target-sized columns to be worth
@@ -31,7 +37,12 @@ Item {
     readonly property real stackedGridHeight: Math.max(Math.round(240 * UIScale.value), Math.round(root.height * 0.4))
 
     Component.onCompleted: scanner.running = true
-    on_WallpapersDirChanged: scanner.running = true
+    Connections {
+        target: ThemeState // qmllint disable incompatible-type
+        function onWallpapersDirChanged() {
+            scanner.running = true;
+        }
+    }
 
     ListModel {
         id: wallpapers
@@ -53,10 +64,7 @@ Item {
 
     Process {
         id: scanner
-        // -L: follow symlinks, including when the wallpaper folder itself is one
-        // (a common dotfiles pattern) - without it, find treats a symlinked dir
-        // as a leaf and never descends into it.
-        command: ["bash", "-c", "find -L \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", root._wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
+        command: ["bash", "-c", "find \"$1\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort > \"$2\"", "--", ThemeState.wallpapersDir, Quickshell.env("HOME") + "/.cache/zesis/wallpapers.txt"]
         stdout: StdioCollector {}
         onExited: () => listReader.reload()
     }
@@ -81,7 +89,7 @@ Item {
     component WallpaperCell: Item {
         id: cell
         required property string path
-        readonly property bool selected: ThemeState.lastWallpaper === cell.path
+        readonly property bool selected: root._displayedWallpaper === cell.path
         readonly property string _baseName: cell.path.substring(cell.path.lastIndexOf("/") + 1)
         readonly property string _displayName: cell._baseName.replace(/\.[^.]+$/, "")
         readonly property string _thumbPath: ThemeState.thumbsDir + "/" + cell._baseName + ".jpg"
@@ -184,12 +192,7 @@ Item {
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
-            onClicked: function (mouse) {
-                var p = mapToItem(root, mouse.x, mouse.y);
-                root._monitorPickerPath = cell.path;
-                root._monitorPickerPos = Qt.point(p.x, p.y);
-                root._monitorPickerOpen = true;
-            }
+            onClicked: root.targetMonitor === "" ? ThemeState.apply(cell.path) : ThemeState.applyToMonitor(cell.path, root.targetMonitor)
         }
 
         Process {
@@ -359,35 +362,6 @@ Item {
         }
     }
 
-    component PickerRow: Rectangle {
-        id: pickRow
-        property string label: ""
-        signal activated
-
-        width: parent ? parent.width : 0
-        implicitHeight: Math.round(32 * UIScale.value)
-        radius: UIScale.radiusSm
-        color: pickHover.hovered ? Colors.surfaceHigh : "transparent"
-
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: UIScale.spacingSm
-            text: pickRow.label
-            color: Colors.text
-            font.pixelSize: UIScale.fontSmall
-        }
-
-        HoverHandler {
-            id: pickHover
-        }
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: pickRow.activated()
-        }
-    }
-
     Item {
         id: bodyArea
         anchors.fill: parent
@@ -402,22 +376,9 @@ Item {
             spacing: UIScale.spacingSm
 
             StyledTextInput {
-                id: folderField
-                Layout.fillWidth: true
-                Layout.topMargin: UIScale.spacingLg
-                Layout.leftMargin: Math.round(16 * UIScale.value)
-                Layout.rightMargin: Math.round(16 * UIScale.value)
-                placeholder: I18n.t("wallpaper.folderPathPlaceholder")
-                text: ThemeState.wallpaperFolder
-                onAccepted: {
-                    if (text.trim() !== "")
-                        ThemeState.setWallpaperFolder(text.trim());
-                }
-            }
-
-            StyledTextInput {
                 id: searchField
                 Layout.fillWidth: true
+                Layout.topMargin: UIScale.spacingLg
                 Layout.leftMargin: Math.round(16 * UIScale.value)
                 Layout.rightMargin: Math.round(16 * UIScale.value)
                 showClearButton: true
@@ -457,7 +418,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: filteredWallpapers.count === 0 && !scanner.running
-                    text: wallpapers.count === 0 ? I18n.t("wallpaper.noneFoundIn", [root._wallpapersDir]) : I18n.t("wallpaper.noResults")
+                    text: wallpapers.count === 0 ? I18n.t("wallpaper.noneFoundIn", [ThemeState.wallpapersDir]) : I18n.t("wallpaper.noResults")
                     color: Colors.textDim
                     font.pixelSize: UIScale.fontSmall
                     horizontalAlignment: Text.AlignHCenter
@@ -525,6 +486,58 @@ Item {
                         Layout.fillWidth: true
                     }
 
+                    // Scheme type dropdown
+                    StyledComboBox {
+                        id: schemeDropdown
+                        Layout.preferredHeight: Math.round(32 * UIScale.value)
+                        model: [
+                            {
+                                value: "scheme-tonal-spot",
+                                label: "Tonal Spot"
+                            },
+                            {
+                                value: "scheme-vibrant",
+                                label: "Vibrant"
+                            },
+                            {
+                                value: "scheme-expressive",
+                                label: "Expressive"
+                            },
+                            {
+                                value: "scheme-fidelity",
+                                label: "Fidelity"
+                            },
+                            {
+                                value: "scheme-content",
+                                label: "Content"
+                            },
+                            {
+                                value: "scheme-neutral",
+                                label: "Neutral"
+                            },
+                            {
+                                value: "scheme-monochrome",
+                                label: "Monochrome"
+                            },
+                            {
+                                value: "scheme-rainbow",
+                                label: "Rainbow"
+                            },
+                            {
+                                value: "scheme-fruit-salad",
+                                label: "Fruit Salad"
+                            },
+                        ]
+                        selectedValue: ThemeState.schemeType
+                        onChosen: value => {
+                            ThemeState.schemeType = value;
+                            if (ThemeState.lastWallpaper !== "")
+                                ThemeState.apply(ThemeState.lastWallpaper);
+                            else
+                                ThemeState._persistState();
+                        }
+                    }
+
                     // Dark / Light toggle
                     Rectangle {
                         Layout.preferredWidth: Math.round(120 * UIScale.value)
@@ -586,6 +599,34 @@ Item {
                     }
                 }
 
+                // Which folder the wallpaper grid is scanned from
+                RowLayout {
+                    id: wallpapersDirRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+
+                    Text {
+                        text: I18n.t("wallpaper.wallpapersFolderLabel")
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    StyledTextInput {
+                        id: wallpapersDirField
+                        Layout.fillWidth: true
+                        placeholder: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+                        text: ThemeState.wallpapersDir
+                        onAccepted: ThemeState.setWallpapersDirOverride(wallpapersDirField.text.trim())
+                    }
+
+                    ActionButton {
+                        visible: ThemeState.wallpapersDirOverride !== ""
+                        label: I18n.t("wallpaper.resetToDefault")
+                        onActivated: ThemeState.setWallpapersDirOverride("")
+                    }
+                }
+
                 // Wallpaper backend picker
                 RowLayout {
                     id: backendRow
@@ -609,6 +650,7 @@ Item {
                         onChosen: value => {
                             ThemeState.wallpaperBackend = value;
                             ThemeState._persistState();
+                            ThemeState.ensureWallpaperDaemon();
                         }
                     }
 
@@ -616,7 +658,7 @@ Item {
                         id: customCmdField
                         visible: ThemeState.wallpaperBackend === "custom"
                         Layout.fillWidth: true
-                        placeholder: "e.g. swww img \"$1\" --transition-type fade"
+                        placeholder: I18n.t("wallpaper.customCommandPlaceholder")
                         text: ThemeState.customWallpaperCommand
                         onAccepted: {
                             ThemeState.customWallpaperCommand = customCmdField.text;
@@ -627,6 +669,106 @@ Item {
                     Item {
                         Layout.fillWidth: true
                         visible: !customCmdField.visible
+                    }
+                }
+
+                // Whether to launch the backend's daemon on startup if it's not already running
+                RowLayout {
+                    id: daemonRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+                    visible: root._currentBackendHasDaemon
+
+                    Text {
+                        text: I18n.t("wallpaper.autoStartDaemon")
+                        color: Colors.text
+                        font.pixelSize: UIScale.fontBody
+                        Layout.fillWidth: true
+                    }
+
+                    ToggleSwitch {
+                        checked: ThemeState.autoStartWallpaperDaemon
+                        onToggled: {
+                            ThemeState.autoStartWallpaperDaemon = !ThemeState.autoStartWallpaperDaemon;
+                            ThemeState._persistState();
+                            if (ThemeState.autoStartWallpaperDaemon)
+                                ThemeState.ensureWallpaperDaemon();
+                        }
+                    }
+                }
+
+                // Which output the wallpaper grid below targets
+                RowLayout {
+                    id: targetRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+                    visible: Quickshell.screens.length > 1
+
+                    Text {
+                        text: I18n.t("wallpaper.applyTo")
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    StyledComboBox {
+                        id: targetComboBox
+                        model: [
+                            {
+                                value: "",
+                                label: I18n.t("wallpaper.allMonitors")
+                            }
+                        ].concat(Quickshell.screens.map(s => ({
+                                    value: s.name,
+                                    label: s.name
+                                })))
+                        selectedValue: root.targetMonitor
+                        onChosen: value => root.targetMonitor = value
+                    }
+
+                    ActionButton {
+                        visible: root.targetMonitor !== "" && (root.targetMonitor in ThemeState.perMonitorWallpaper)
+                        label: I18n.t("wallpaper.resetToGlobal")
+                        onActivated: ThemeState.resetMonitor(root.targetMonitor)
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Which monitor's wallpaper the color scheme (matugen) is computed from
+                RowLayout {
+                    id: colorSourceRow
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: UIScale.spacingLg
+                    spacing: UIScale.spacingSm
+                    visible: Quickshell.screens.length > 1
+
+                    Text {
+                        text: I18n.t("wallpaper.colorsFromLabel")
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontSmall
+                    }
+
+                    StyledComboBox {
+                        id: colorSourceComboBox
+                        model: [
+                            {
+                                value: "",
+                                label: I18n.t("wallpaper.allMonitors")
+                            }
+                        ].concat(Quickshell.screens.map(s => ({
+                                    value: s.name,
+                                    label: s.name
+                                })))
+                        selectedValue: ThemeState.colorSourceMonitor
+                        onChosen: value => ThemeState.setColorSourceMonitor(value)
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
                     }
                 }
 
@@ -648,11 +790,11 @@ Item {
                     radius: UIScale.radiusMd
                     color: Colors.surface
                     clip: true
-                    visible: ThemeState.lastWallpaper !== ""
+                    visible: root._displayedWallpaper !== ""
 
                     Image {
                         anchors.fill: parent
-                        source: ThemeState.lastWallpaper !== "" ? ("file://" + ThemeState.lastWallpaper) : ""
+                        source: root._displayedWallpaper !== "" ? ("file://" + root._displayedWallpaper) : ""
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                     }
@@ -683,85 +825,14 @@ Item {
 
                 PaletteRow {
                     Layout.fillWidth: true
-                    rowLabel: "Dark"
+                    rowLabel: I18n.t("wallpaper.dark")
                     swatches: root._darkSwatches
                 }
                 PaletteRow {
                     Layout.fillWidth: true
                     Layout.topMargin: UIScale.radiusMd
-                    rowLabel: "Light"
+                    rowLabel: I18n.t("wallpaper.light")
                     swatches: root._lightSwatches
-                }
-            }
-        }
-    }
-
-    // Monitor picker - opened when a wallpaper cell is clicked, lets a
-    // multi-monitor setup apply the wallpaper to just one screen
-    Item {
-        id: monitorPicker
-        anchors.fill: parent
-        visible: root._monitorPickerOpen
-        z: 1000
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: root._monitorPickerOpen = false
-        }
-
-        Rectangle {
-            id: pickerFrame
-            x: Math.max(0, Math.min(root._monitorPickerPos.x, monitorPicker.width - width))
-            y: Math.max(0, Math.min(root._monitorPickerPos.y, monitorPicker.height - height))
-            width: Math.round(200 * UIScale.value)
-            implicitHeight: pickerCol.implicitHeight + UIScale.spacingSm * 2
-            radius: UIScale.radiusMd
-            color: Colors.bg
-            border.color: Colors.outline
-            border.width: 1
-
-            // Swallow clicks inside the menu so they don't reach the backdrop dismiss area
-            MouseArea {
-                anchors.fill: parent
-            }
-
-            Column {
-                id: pickerCol
-                x: UIScale.spacingSm
-                y: UIScale.spacingSm
-                width: parent.width - UIScale.spacingSm * 2
-                spacing: 2
-
-                Text {
-                    text: I18n.t("wallpaper.applyTo")
-                    color: Colors.muted
-                    font.pixelSize: UIScale.fontTiny
-                    font.weight: Font.Bold
-                    leftPadding: UIScale.spacingXs
-                    bottomPadding: UIScale.spacingXs
-                }
-
-                PickerRow {
-                    width: pickerCol.width
-                    label: I18n.t("wallpaper.allMonitors")
-                    onActivated: {
-                        ThemeState.apply(root._monitorPickerPath, "");
-                        root._monitorPickerOpen = false;
-                    }
-                }
-
-                Repeater {
-                    model: Quickshell.screens
-                    delegate: PickerRow {
-                        id: monRow
-                        required property var modelData
-                        width: pickerCol.width
-                        label: monRow.modelData.name
-                        onActivated: {
-                            ThemeState.apply(root._monitorPickerPath, monRow.modelData.name);
-                            root._monitorPickerOpen = false;
-                        }
-                    }
                 }
             }
         }

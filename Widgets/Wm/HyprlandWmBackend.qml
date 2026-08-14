@@ -19,6 +19,10 @@ QtObject {
     readonly property var focusedMonitor: Hyprland.focusedMonitor
     readonly property bool focusedHasFullscreen: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.hasFullscreen : false
 
+    function activeWorkspaceFor(screen) {
+        return Hyprland.monitorFor(screen)?.activeWorkspace ?? null;
+    }
+
     function focusWorkspace(id) {
         Hyprland.dispatch("hl.dsp.focus({ workspace = " + id + " })");
     }

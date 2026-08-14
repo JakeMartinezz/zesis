@@ -7,8 +7,9 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // Which appId currently owns the popup. Empty = none.
-    property string activeAppId: ""
+    // Which TaskbarItem instance currently owns the popup. Null = none.
+    // Keyed by instance.
+    property var activeItem: null
 
     // Taskbar icons rendered as tinted symbolic (AGS's bar.taskbar.monochrome)
     // instead of full-color, when the app ships a symbolic icon variant.
@@ -49,11 +50,11 @@ Singleton {
     Timer {
         id: closeTimer
         interval: 350
-        onTriggered: root.activeAppId = ""
+        onTriggered: root.activeItem = null
     }
 
-    function hover(appId) {
-        activeAppId = appId;
+    function hover(item) {
+        activeItem = item;
         closeTimer.stop();
     }
 

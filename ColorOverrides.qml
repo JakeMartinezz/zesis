@@ -89,9 +89,11 @@ Singleton {
     // "wallpaper" or "global" - which bucket set()/clear()/get() target.
     property string scope: "wallpaper"
 
-    // Every wallpaper's override set, keyed by its absolute path (the same
-    // string ThemeState.lastWallpaper holds). "" is the bucket used before
-    // any wallpaper has ever been applied.
+    // Every wallpaper's override set, keyed by its absolute path - whichever
+    // wallpaper is actually driving the color scheme right now
+    // (ThemeState.colorSourceMonitor's effective wallpaper, not necessarily
+    // the global one). "" is the bucket used before any wallpaper has ever
+    // been applied.
     property var byWallpaper: ({})
 
     // The single override set used when scope === "global".
@@ -100,7 +102,11 @@ Singleton {
             light: {}
         })
 
-    readonly property var _current: root.scope === "global" ? root.global : (root.byWallpaper[ThemeState.lastWallpaper] || {})
+    function _currentWallpaper() {
+        return ThemeState._effectiveWallpaper(ThemeState.colorSourceMonitor);
+    }
+
+    readonly property var _current: root.scope === "global" ? root.global : (root.byWallpaper[root._currentWallpaper()] || {})
     // Authoritative in memory, not bound to the adapter: the file write is
     // async, so reading edits back off disk would lose any change made before
     // the previous one landed. Disk only feeds back in via _adopt().
@@ -157,7 +163,7 @@ Singleton {
     }
 
     function _copyEntry() {
-        var e = root.scope === "global" ? root.global : root.byWallpaper[ThemeState.lastWallpaper];
+        var e = root.scope === "global" ? root.global : root.byWallpaper[root._currentWallpaper()];
         return {
             dark: e && e.dark ? root._copy(e.dark) : {},
             light: e && e.light ? root._copy(e.light) : {}
@@ -173,7 +179,7 @@ Singleton {
             root.global = entry;
         } else {
             var all = root._copy(root.byWallpaper);
-            all[ThemeState.lastWallpaper] = entry;
+            all[root._currentWallpaper()] = entry;
             root.byWallpaper = all;
         }
         root._persist();
@@ -219,7 +225,7 @@ Singleton {
 
         if (!hasByWallpaper && !hasGlobal && hasLegacy) {
             var migrated = {};
-            migrated[ThemeState.lastWallpaper] = {
+            migrated[root._currentWallpaper()] = {
                 dark: root._copy(legacyDark),
                 light: root._copy(legacyLight)
             };

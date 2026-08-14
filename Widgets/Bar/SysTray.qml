@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import "../../"
+import "../Home"
 import "../Settings"
 import "../LockScreen"
 import "../Shared"
@@ -321,7 +322,12 @@ Rectangle {
                 onLoaded: {
                     if (!slot.itemData.src) {
                         content.item.icon = slot.itemData.icon ?? "";
-                        if (slot.itemData.id === "settings") {
+                        if (slot.itemData.id === "home") {
+                            content.item.active = Qt.binding(() => HomePanelService.open);
+                            content.item.clicked.connect(() => {
+                                HomePanelService.open = !HomePanelService.open;
+                            });
+                        } else if (slot.itemData.id === "settings") {
                             content.item.active = Qt.binding(() => SettingsPanelService.open);
                             content.item.clicked.connect(() => {
                                 SettingsPanelService.open = !SettingsPanelService.open;

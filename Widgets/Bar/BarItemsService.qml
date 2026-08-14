@@ -74,6 +74,11 @@ Singleton {
             src: "../GitUpdate/GitUpdateItem.qml"
         },
         {
+            id: "home",
+            label: I18n.t("bar.itemHome"),
+            icon: ""
+        },
+        {
             id: "settings",
             label: I18n.t("bar.itemSettings"),
             icon: "󰘮"
