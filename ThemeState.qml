@@ -128,7 +128,13 @@ Singleton {
         if (!proc)
             return;
         daemonCheckProcess._daemonProcess = proc;
-        daemonCheckProcess.command = ["pgrep", "-x", proc];
+        // -f, not -x: Nix wraps these binaries, so /proc/PID/comm is the
+        // truncated wrapper name (e.g. ".awww-daemon-wr"), never the plain
+        // process name - -x's exact match against comm never found an
+        // already-running daemon there, so this ended up launching a
+        // redundant extra one on every restart. -f matches the full command
+        // line instead, which does contain the real binary path.
+        daemonCheckProcess.command = ["pgrep", "-f", proc];
         daemonCheckProcess.running = true;
     }
 
@@ -186,9 +192,24 @@ Singleton {
             root._recolor(path);
     }
 
+    // Calls queued while one is already running (e.g. a theme applying a
+    // different wallpaper to each monitor in turn) instead of being dropped -
+    // the backend/matugen commands are one Process at a time, run
+    // sequentially.
+    property var _queue: []
+
     function _recolor(path) {
-        if (root.applying)
+        if (root.applying) {
+            root._queue.push({
+                kind: "recolor",
+                path: path
+            });
             return;
+        }
+        root._runRecolor(path);
+    }
+
+    function _runRecolor(path) {
         root.applying = true;
         root.lastError = "";
         applyProcess._wallpaperPath = path;
@@ -199,8 +220,20 @@ Singleton {
     }
 
     function _apply(wallpaperPath, monitor, recolor, persistOverride = true) {
-        if (root.applying)
+        if (root.applying) {
+            root._queue.push({
+                kind: "apply",
+                wallpaperPath: wallpaperPath,
+                monitor: monitor,
+                recolor: recolor,
+                persistOverride: persistOverride
+            });
             return;
+        }
+        root._runApply(wallpaperPath, monitor, recolor, persistOverride);
+    }
+
+    function _runApply(wallpaperPath, monitor, recolor, persistOverride) {
         root.applying = true;
         root.lastError = "";
         applyProcess._wallpaperPath = wallpaperPath;
@@ -215,6 +248,16 @@ Singleton {
         var script = parts.length > 0 ? parts.join(" && ") : "true";
         applyProcess.command = ["bash", "-c", script, "--", wallpaperPath, monitor, root.schemeType, root.palette];
         applyProcess.running = true;
+    }
+
+    function _runNextQueued() {
+        if (root._queue.length === 0)
+            return;
+        var next = root._queue.shift();
+        if (next.kind === "recolor")
+            root._runRecolor(next.path);
+        else
+            root._runApply(next.wallpaperPath, next.monitor, next.recolor, next.persistOverride);
     }
 
     function setWallpapersDirOverride(dir) {
@@ -262,6 +305,7 @@ Singleton {
             } else {
                 root.lastError = applyStderr.text.trim() || ("Command exited with code " + code);
             }
+            root._runNextQueued();
         }
     }
 

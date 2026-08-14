@@ -6,8 +6,9 @@ import Quickshell
 import Quickshell.Io
 import "../Wm"
 
-// This has a bug I've yet to resolve, and cannot replicate. It's rare.
-// A lot of empty windows will spawn in the staack of open apps. I have no clue why.
+// Blank, title-less cards used to appear in the switcher, rarely and hard to
+// replicate - see the `windows` filter below for the likely cause (toplevels
+// Hyprland's IPC hasn't populated yet) and mitigation.
 Singleton {
     id: root
 
@@ -127,8 +128,17 @@ Singleton {
     // onOpenChanged: console.log("[AppSwitcher] open =", open, "| windows =", windows.length)
 
     // Sorted by focusHistoryID ascending: index 0 = current window, 1 = most recently used, etc.
+    // Filters out toplevels Hyprland's IPC hasn't populated yet - when several
+    // windows open in a burst (e.g. a browser restoring many tabs as separate
+    // windows), Quickshell's Hyprland.toplevels can briefly list one before
+    // its lastIpcObject (address/class/title, delivered over a separate IPC
+    // socket from the Wayland surface creation itself) has arrived, which is
+    // what used to show up here as a blank, title-less card. It fills in on
+    // its own moments later, so skipping it now just avoids the empty flash
+    // rather than losing the window - it reappears once populated since this
+    // is a reactive binding.
     readonly property var windows: {
-        var tops = WmService.toplevels.slice();
+        var tops = WmService.toplevels.filter(t => t.lastIpcObject && t.lastIpcObject["address"]);
         tops.sort((a, b) => {
             var fa = (a.lastIpcObject && "focusHistoryID" in a.lastIpcObject) ? a.lastIpcObject["focusHistoryID"] : 9999;
             var fb = (b.lastIpcObject && "focusHistoryID" in b.lastIpcObject) ? b.lastIpcObject["focusHistoryID"] : 9999;
