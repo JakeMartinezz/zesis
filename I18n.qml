@@ -95,7 +95,12 @@ Singleton {
     }
 
     function _mergeCurrent(domain, text) {
-        var data = JSON.parse(text || "{}");
+        var data;
+        try {
+            data = JSON.parse(text || "{}");
+        } catch (e) {
+            return;
+        }
         var out = Object.assign({}, root._currentStrings);
         for (var k in data)
             out[domain + "." + k] = data[k];
@@ -103,7 +108,12 @@ Singleton {
     }
 
     function _mergeFallback(domain, text) {
-        var data = JSON.parse(text || "{}");
+        var data;
+        try {
+            data = JSON.parse(text || "{}");
+        } catch (e) {
+            return;
+        }
         var out = Object.assign({}, root._fallbackStrings);
         for (var k in data)
             out[domain + "." + k] = data[k];
@@ -114,7 +124,11 @@ Singleton {
         id: manifestView
         path: root._i18nDir + "/manifest.json"
         watchChanges: true
-        onLoaded: root.manifest = JSON.parse(text())
+        onLoaded: {
+            try {
+                root.manifest = JSON.parse(text());
+            } catch (e) {}
+        }
         onFileChanged: reload()
     }
 

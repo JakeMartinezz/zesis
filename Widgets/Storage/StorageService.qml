@@ -12,6 +12,7 @@ Singleton {
 
     property var mounts: []
     property string _buf: ""
+    property bool panelOpen: false
 
     function refresh() {
         dfProc.running = true;
@@ -19,9 +20,15 @@ Singleton {
 
     Component.onCompleted: refresh()
 
+    onPanelOpenChanged: if (panelOpen)
+        refresh()
+
+    // Only the WidgetHome sidebar's Storage tile reads `mounts` - no point
+    // polling `df` every 30s while that sidebar is closed. Component.onCompleted
+    // above still gives one accurate reading at startup.
     Timer {
         interval: 30000
-        running: true
+        running: root.panelOpen
         repeat: true
         onTriggered: root.refresh()
     }

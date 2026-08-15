@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "../../"
+import "../Storage"
 
 PanelWindow {
     id: root
@@ -20,6 +21,7 @@ PanelWindow {
     implicitWidth: panelW
     color: "transparent"
     visible: false
+    onVisibleChanged: StorageService.panelOpen = visible
 
     property bool _whOpen: WidgetHomeService.open
     on_WhOpenChanged: {

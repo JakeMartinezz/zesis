@@ -227,9 +227,9 @@ Item {
                             required property var modelData
                             required property int index
 
-                            readonly property bool isConnected: modelData.connected
-                            readonly property bool isPending: pskFooter.pendingNetwork === modelData
-                            readonly property bool isChanging: modelData.stateChanging
+                            readonly property bool isConnected: _state.isConnected
+                            readonly property bool isPending: _state.isPending
+                            readonly property bool isChanging: _state.isChanging
 
                             width: parent.width
                             height: Math.round(44 * UIScale.value)
@@ -240,11 +240,11 @@ Item {
                                 }
                             }
 
-                            Connections {
-                                target: netRow.modelData
-                                function onConnectionFailed(reason) {
-                                    pskFooter.handleConnectionFailed(netRow.modelData);
-                                }
+                            WifiNetworkRowState {
+                                id: _state
+                                network: netRow.modelData
+                                pendingNetwork: pskFooter.pendingNetwork
+                                onConnectionFailed: pskFooter.handleConnectionFailed(netRow.modelData)
                             }
 
                             RowLayout {

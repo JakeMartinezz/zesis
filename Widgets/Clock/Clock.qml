@@ -102,14 +102,20 @@ Item {
     }
 
     Component.onCompleted: {
-        ClockSettings.altModeRequested.connect(root.triggerAltMode);
-        ClockSettings.showDateChanged.connect(function () {
-            engine.animateTo(root._resolveTarget(root._date));
-        });
-        ClockSettings.use12HourChanged.connect(function () {
-            engine.animateTo(root._resolveTarget(root._date));
-        });
         engine.snapTo(_resolveTarget(new Date()));
+    }
+
+    Connections {
+        target: ClockSettings
+        function onAltModeRequested() {
+            root.triggerAltMode();
+        }
+        function onShowDateChanged() {
+            engine.animateTo(root._resolveTarget(root._date));
+        }
+        function onUse12HourChanged() {
+            engine.animateTo(root._resolveTarget(root._date));
+        }
     }
 
     // Used by ClockPanel test UI

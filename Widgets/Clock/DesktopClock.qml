@@ -120,9 +120,13 @@ Item {
     Component.onCompleted: {
         timeEngine.snapTo(_toTimeChars(new Date()));
         dateEngine.snapTo(_toDateChars(new Date()));
-        ClockSettings.use12HourChanged.connect(function () {
+    }
+
+    Connections {
+        target: ClockSettings
+        function onUse12HourChanged() {
             timeEngine.snapTo(root._toTimeChars(root._date));
-        });
+        }
     }
 
     function simulateTo(h, m) {

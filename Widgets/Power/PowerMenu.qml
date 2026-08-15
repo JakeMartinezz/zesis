@@ -3,6 +3,7 @@ import QtQuick
 import "../../"
 import "../LockScreen"
 import "../Wm"
+import "../Shared"
 
 // Bog standard power menu, click-twice-to-confirm on the destructive ones.
 Item {
@@ -17,13 +18,8 @@ Item {
 
     Keys.onEscapePressed: root.closeRequested()
 
-    // "" | "reboot" | "shutdown" - destructive action armed, awaiting a second confirm click
-    property string armed: ""
-
-    Timer {
-        id: armTimer
-        interval: 3000
-        onTriggered: root.armed = ""
+    ArmedConfirm {
+        id: confirmState
     }
 
     readonly property var _actions: [
@@ -54,11 +50,8 @@ Item {
     ]
 
     function _activate(action) {
-        if (action.confirm && root.armed !== action.key) {
-            root.armed = action.key;
-            armTimer.restart();
+        if (action.confirm && !confirmState.confirm(action.key))
             return;
-        }
         switch (action.key) {
         case "lock":
             LockService.triggerLock();
@@ -94,7 +87,7 @@ Item {
                 required property var modelData
                 icon: modelData.icon
                 label: modelData.label
-                armed: root.armed === modelData.key
+                armed: confirmState.isArmed(modelData.key)
                 onActivated: root._activate(modelData)
             }
         }

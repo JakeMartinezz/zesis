@@ -82,29 +82,21 @@ Item {
     }
 
     // Overwriting an existing theme needs a second click within a few
-    // seconds to confirm, same two-step pattern as the destructive actions
-    // in PowerMenu.qml - saving a brand new name (no existing match) still
-    // goes through in one click.
-    property string _saveArmedFor: ""
-
-    Timer {
-        id: saveArmTimer
-        interval: 3000
-        onTriggered: root._saveArmedFor = ""
+    // seconds to confirm - saving a brand new name (no existing match)
+    // still goes through in one click.
+    ArmedConfirm {
+        id: saveConfirm
     }
 
     function _saveTheme() {
         var name = themeNameField.text.trim();
         if (name.length === 0)
             return;
-        if (Themes.exists(name) && root._saveArmedFor !== name) {
-            root._saveArmedFor = name;
-            saveArmTimer.restart();
+        if (Themes.exists(name) && !saveConfirm.confirm(name))
             return;
-        }
         Themes.save(name);
         themeNameField.text = "";
-        root._saveArmedFor = "";
+        saveConfirm.disarm();
     }
 
     ColumnLayout {
@@ -523,7 +515,7 @@ Item {
                         onAccepted: root._saveTheme()
                     }
                     ActionButton {
-                        readonly property bool _armed: root._saveArmedFor !== "" && root._saveArmedFor === themeNameField.text.trim()
+                        readonly property bool _armed: saveConfirm.isArmed(themeNameField.text.trim())
                         label: _armed ? I18n.t("appearance.saveThemeConfirm") : I18n.t("appearance.saveTheme")
                         onActivated: root._saveTheme()
                     }
