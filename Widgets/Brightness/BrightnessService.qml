@@ -8,6 +8,7 @@ Singleton {
 
     property bool testMode: false
     property int testPercent: 65
+    property bool popupOpen: false
 
     property bool available: testMode ? true : false
     property int current: 0
@@ -34,6 +35,9 @@ Singleton {
     }
 
     property string _buf: ""
+
+    onPopupOpenChanged: if (popupOpen)
+        refresh()
 
     Process {
         id: _proc
@@ -68,9 +72,12 @@ Singleton {
             root.refresh()
     }
 
+    // Only poll while a brightness UI is actually open - `available`/`percent`
+    // just need to be correct once at startup for the bar icon, not kept live
+    // every 3s in the background for a value nobody's looking at.
     Timer {
         interval: 3000
-        running: !root.testMode
+        running: !root.testMode && root.popupOpen
         repeat: true
         onTriggered: root.refresh()
     }

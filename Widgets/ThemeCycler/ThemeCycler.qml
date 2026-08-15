@@ -119,6 +119,7 @@ Item {
                     source: cardDelegate.wallpaperPath ? ("file://" + cardDelegate.wallpaperPath) : ""
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
+                    sourceSize: Qt.size(width, height)
                 }
 
                 Rectangle {

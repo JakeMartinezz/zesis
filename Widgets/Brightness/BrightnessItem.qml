@@ -29,6 +29,7 @@ BarButton {
         anchorItem: root
         implicitWidth: Math.round(280 * UIScale.value)
         implicitHeight: Math.round(200 * UIScale.value)
+        onVisibleChanged: BrightnessService.popupOpen = visible
         content: Component {
             Brightness {}
         }

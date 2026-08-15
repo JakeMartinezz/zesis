@@ -797,6 +797,7 @@ Item {
                         source: root._displayedWallpaper !== "" ? ("file://" + root._displayedWallpaper) : ""
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
+                        sourceSize: Qt.size(width, height)
                     }
 
                     Rectangle {
