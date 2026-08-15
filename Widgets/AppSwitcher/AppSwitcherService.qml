@@ -25,7 +25,7 @@ Singleton {
 
     Process {
         id: submapResetProc
-        command: ["hyprctl", "dispatch", "submap", "reset"]
+        command: ["hyprctl", "dispatch", 'hl.dsp.submap("reset")']
     }
 
     // 0 = single-window cards, 1 = workspace grid
