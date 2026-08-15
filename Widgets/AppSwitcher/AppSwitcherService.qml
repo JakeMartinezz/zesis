@@ -15,6 +15,19 @@ Singleton {
     property bool open: false
     property int selectedIndex: 0
 
+    // Closing the workspace grid via a mouse click on a tile never touches
+    // Hyprland (see WorkspaceGrid.qml's onClicked), so the "workspaceOverview"
+    // submap entered on SUPER+Tab (see keybinds.lua) wouldn't otherwise reset -
+    // leaving SUPER-chorded window binds suspended. Reset unconditionally on
+    // every close; it's a no-op when the default submap is already active.
+    onOpenChanged: if (!open)
+        submapResetProc.running = true
+
+    Process {
+        id: submapResetProc
+        command: ["hyprctl", "dispatch", "submap", "reset"]
+    }
+
     // 0 = single-window cards, 1 = workspace grid
     property int mode: 0
 
