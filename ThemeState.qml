@@ -37,12 +37,12 @@ Singleton {
         {
             id: "awww",
             label: "awww",
-            command: "pgrep -f awww-daemon >/dev/null || { awww-daemon >/dev/null 2>&1 & sleep 2; }; for m in $2; do awww img --outputs \"$m\" --transition-type center --transition-duration 1 \"$1\"; done"
+            command: "bin=\"aw\"\"ww-daemon\"; pgrep -f \"$bin\" >/dev/null || { \"$bin\" >/dev/null 2>&1 & sleep 2; }; for m in $2; do awww img --outputs \"$m\" --transition-type center --transition-duration 1 \"$1\"; done"
         },
         {
             id: "swww",
             label: "swww",
-            command: "pgrep -f swww-daemon >/dev/null || { swww-daemon >/dev/null 2>&1 & sleep 2; }; for m in $2; do swww img --outputs \"$m\" --transition-type center --transition-duration 1 \"$1\"; done"
+            command: "bin=\"sw\"\"ww-daemon\"; pgrep -f \"$bin\" >/dev/null || { \"$bin\" >/dev/null 2>&1 & sleep 2; }; for m in $2; do swww img --outputs \"$m\" --transition-type center --transition-duration 1 \"$1\"; done"
         },
         {
             id: "hyprpaper",
@@ -79,8 +79,8 @@ Singleton {
     // fire-and-forget start never notices or retries. Retry a few times a
     // second apart instead of trying once.
     readonly property var _daemonStartCommands: ({
-            "awww": "for i in 1 2 3 4 5; do pgrep -f awww-daemon >/dev/null && break; awww-daemon >/dev/null 2>&1 & sleep 1; done",
-            "swww": "for i in 1 2 3 4 5; do pgrep -f swww-daemon >/dev/null && break; swww-daemon >/dev/null 2>&1 & sleep 1; done"
+            "awww": "bin=\"aw\"\"ww-daemon\"; for i in 1 2 3 4 5; do pgrep -f \"$bin\" >/dev/null && break; \"$bin\" >/dev/null 2>&1 & sleep 1; done",
+            "swww": "bin=\"sw\"\"ww-daemon\"; for i in 1 2 3 4 5; do pgrep -f \"$bin\" >/dev/null && break; \"$bin\" >/dev/null 2>&1 & sleep 1; done"
         })
 
     function _ensureDaemonRunning() {
