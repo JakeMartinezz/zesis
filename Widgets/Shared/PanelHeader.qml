@@ -36,7 +36,13 @@ Item {
 
     // Must match the Column's own spacing below and the RowLayout's top/bottom margins
     readonly property real _colSpacing: Math.round(5 * UIScale.value)
-    implicitHeight: breadcrumbMetrics.height + _colSpacing + (root.compact ? titleCompactMetrics.height : titleMetrics.height) + UIScale.spacingMd * 2
+    // Always sized off the larger (non-compact) title metrics - must have zero
+    // dependency on `compact`, which is itself derived from this item's own
+    // laid-out width, or an ancestor whose width in turn depends on this
+    // implicitHeight creates the binding-loop pattern documented in
+    // docs/qml-patterns.md. Compact mode just renders a smaller font inside
+    // the same reserved height.
+    implicitHeight: breadcrumbMetrics.height + _colSpacing + titleMetrics.height + UIScale.spacingMd * 2
 
     RowLayout {
         anchors.fill: parent

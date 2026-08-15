@@ -92,7 +92,9 @@ Item {
         readonly property bool selected: root._displayedWallpaper === cell.path
         readonly property string _baseName: cell.path.substring(cell.path.lastIndexOf("/") + 1)
         readonly property string _displayName: cell._baseName.replace(/\.[^.]+$/, "")
-        readonly property string _thumbPath: ThemeState.thumbsDir + "/" + cell._baseName + ".jpg"
+        readonly property int _thumbW: 240
+        readonly property int _thumbH: 135
+        readonly property string _thumbPath: ThumbnailService.pathFor(cell.path, cell._thumbW, cell._thumbH)
 
         Rectangle {
             id: cellBg
@@ -124,8 +126,8 @@ Item {
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     onStatusChanged: {
-                        if (status === Image.Error && !thumbGen.running)
-                            thumbGen.running = true;
+                        if (status === Image.Error)
+                            ThumbnailService.request(cell.path, cell._thumbW, cell._thumbH);
                     }
                 }
 
@@ -195,11 +197,12 @@ Item {
             onClicked: root.targetMonitor === "" ? ThemeState.apply(cell.path) : ThemeState.applyToMonitor(cell.path, root.targetMonitor)
         }
 
-        Process {
-            id: thumbGen
-            command: ["magick", cell.path, "-resize", "240x135^", "-gravity", "Center", "-extent", "240x135", cell._thumbPath]
-            onExited: (code, status) => {
-                if (code === 0) {
+        Connections {
+            target: ThumbnailService
+            function onReady(key, ok) {
+                if (key !== ThumbnailService.keyFor(cell.path, cell._thumbW, cell._thumbH))
+                    return;
+                if (ok) {
                     thumbImg.source = "";
                     thumbImg.source = "file://" + cell._thumbPath;
                 } else {

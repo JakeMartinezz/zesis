@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Quickshell.Io
 import "../../"
 import "../Shared"
 
@@ -565,22 +564,23 @@ Item {
                                     id: thumbImg
                                     anchors.fill: parent
                                     visible: themeRow.hasWallpaper
-                                    source: themeRow.hasWallpaper ? ("file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg") : ""
+                                    source: themeRow.hasWallpaper ? ("file://" + ThumbnailService.pathFor(themeRow.wallpaperPath, 68, 68)) : ""
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     onStatusChanged: {
-                                        if (status === Image.Error && !thumbGen.running)
-                                            thumbGen.running = true;
+                                        if (status === Image.Error)
+                                            ThumbnailService.request(themeRow.wallpaperPath, 68, 68);
                                     }
                                 }
 
-                                Process {
-                                    id: thumbGen
-                                    command: ["magick", themeRow.wallpaperPath, "-resize", "68x68^", "-gravity", "Center", "-extent", "68x68", ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg"]
-                                    onExited: (code, status) => {
-                                        if (code === 0) {
+                                Connections {
+                                    target: ThumbnailService
+                                    function onReady(key, ok) {
+                                        if (key !== ThumbnailService.keyFor(themeRow.wallpaperPath, 68, 68))
+                                            return;
+                                        if (ok) {
                                             thumbImg.source = "";
-                                            thumbImg.source = "file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg";
+                                            thumbImg.source = "file://" + ThumbnailService.pathFor(themeRow.wallpaperPath, 68, 68);
                                         } else {
                                             thumbImg.source = "file://" + themeRow.wallpaperPath;
                                         }

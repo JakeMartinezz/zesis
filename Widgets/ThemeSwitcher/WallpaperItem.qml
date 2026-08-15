@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Io
 import "../../"
 
 Item {
@@ -13,7 +12,9 @@ Item {
     readonly property string _baseName: wallpaperPath.substring(wallpaperPath.lastIndexOf("/") + 1)
     readonly property string _displayName: _baseName.replace(/\.[^.]+$/, "")
     readonly property string _ext: _baseName.includes(".") ? _baseName.split(".").pop().toUpperCase() : ""
-    readonly property string _thumbPath: ThemeState.thumbsDir + "/" + _baseName + ".jpg"
+    readonly property int _thumbW: 240
+    readonly property int _thumbH: 136
+    readonly property string _thumbPath: ThumbnailService.pathFor(root.wallpaperPath, root._thumbW, root._thumbH)
 
     implicitHeight: Math.round(84 * UIScale.value)
 
@@ -51,9 +52,8 @@ Item {
                 asynchronous: true
 
                 onStatusChanged: {
-                    if (status === Image.Error && !thumbGen.running) {
-                        thumbGen.running = true;
-                    }
+                    if (status === Image.Error)
+                        ThumbnailService.request(root.wallpaperPath, root._thumbW, root._thumbH);
                 }
             }
 
@@ -133,11 +133,12 @@ Item {
         onClicked: ThemeState.apply(root.wallpaperPath)
     }
 
-    Process {
-        id: thumbGen
-        command: ["magick", root.wallpaperPath, "-resize", "240x136^", "-gravity", "Center", "-extent", "240x136", root._thumbPath]
-        onExited: (code, status) => {
-            if (code === 0) {
+    Connections {
+        target: ThumbnailService
+        function onReady(key, ok) {
+            if (key !== ThumbnailService.keyFor(root.wallpaperPath, root._thumbW, root._thumbH))
+                return;
+            if (ok) {
                 thumb.source = "";
                 thumb.source = "file://" + root._thumbPath;
             } else {
