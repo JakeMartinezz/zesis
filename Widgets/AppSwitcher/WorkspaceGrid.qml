@@ -378,6 +378,8 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
+                    hoverEnabled: true
+                    onEntered: AppSwitcherService.selectedWorkspace = tile.wsId
                     onClicked: {
                         AppSwitcherService.selectedWorkspace = tile.wsId;
                         AppSwitcherService.confirmWorkspace();
