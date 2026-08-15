@@ -256,7 +256,7 @@ Compositor keybinds trigger shell actions through Quickshell's `IpcHandler`. Eac
 | `keybinds` | `toggle()` | `shell.qml` |
 | `home` | `toggle()` | `shell.qml` |
 | `settings` | `toggle()` | `shell.qml` |
-| `appswitcher` | `cycle()`, `back()`, `confirm()`, `cancel()` | `shell.qml` |
+| `appswitcher` | `cycle()`, `back()`, `confirm()`, `cancel()`, `showWorkspaces()` | `shell.qml` |
 | `desktop` | `toggleConfig()` | `shell.qml` |
 | `power` | `toggle()` | `shell.qml` |
 | `lockscreen` | `lock()`, `unlock()` | `Widgets/LockScreen/LockScreen.qml` |
@@ -270,6 +270,7 @@ local function zesis_ipc(cmd)
     return string.format("sh -c 'qs -p %s ipc call %s 2>/dev/null || qs ipc call %s'", ZESIS_DEV, cmd, cmd)
 end
 hl.bind("ALT + Tab", hl.dsp.exec_cmd(zesis_ipc("appswitcher cycle")), { repeating = true })
+hl.bind("SUPER", hl.dsp.exec_cmd(zesis_ipc("appswitcher showWorkspaces")))
 ```
 
 ### Display

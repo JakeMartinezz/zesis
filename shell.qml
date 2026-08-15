@@ -279,6 +279,9 @@ Scope {
 
     IpcHandler {
         target: "appswitcher"
+        function showWorkspaces() {
+            AppSwitcherService.showWorkspaces();
+        }
         function cycle() {
             AppSwitcherService.mode === 1 ? AppSwitcherService.cycleWorkspaceForward() : AppSwitcherService.cycleForward();
         }

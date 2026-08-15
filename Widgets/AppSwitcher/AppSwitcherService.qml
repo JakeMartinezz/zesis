@@ -172,6 +172,17 @@ Singleton {
         open = true;
     }
 
+    // Standalone entry point: opens straight into the workspace grid,
+    // bypassing the app-switcher windows list (and its empty-list gate,
+    // since an empty workspace set is still worth showing).
+    function showWorkspaces() {
+        WmService.refreshToplevels();
+        WmService.refreshMonitors();
+        mode = 1;
+        _everOpened = true;
+        open = true;
+    }
+
     function cycleForward() {
         // console.log("[AppSwitcher] cycleForward(), open =", open);
         if (!open) {
