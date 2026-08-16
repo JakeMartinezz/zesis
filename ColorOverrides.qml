@@ -90,6 +90,9 @@ Singleton {
         }
     ])
 
+    // Override system
+    property bool enabled: true
+
     // "wallpaper" or "global" - which bucket set()/clear()/get() target.
     property string scope: "wallpaper"
 
@@ -122,6 +125,13 @@ Singleton {
         if (newScope !== "wallpaper" && newScope !== "global")
             return;
         root.scope = newScope;
+        root._persist();
+    }
+
+    function setEnabled(v) {
+        if (root.enabled === v)
+            return;
+        root.enabled = v;
         root._persist();
     }
 
@@ -196,6 +206,7 @@ Singleton {
 
     function _persist() {
         root._pendingJson = JSON.stringify({
+            enabled: root.enabled,
             scope: root.scope,
             byWallpaper: root.byWallpaper,
             global: root.global
@@ -227,6 +238,7 @@ Singleton {
         var hasLegacy = Object.keys(legacyDark).length > 0 || Object.keys(legacyLight).length > 0;
 
         root.scope = overrideData.scope === "global" ? "global" : "wallpaper";
+        root.enabled = overrideData.enabled;
 
         if (!hasByWallpaper && !hasGlobal && hasLegacy) {
             var migrated = {};
@@ -251,6 +263,7 @@ Singleton {
 
     JsonAdapter {
         id: overrideData
+        property bool enabled: true
         property string scope: "wallpaper"
         property var byWallpaper: ({})
         property var global: ({})
@@ -261,6 +274,9 @@ Singleton {
 
     Connections {
         target: overrideData
+        function onEnabledChanged() {
+            root._adopt();
+        }
         function onScopeChanged() {
             root._adopt();
         }

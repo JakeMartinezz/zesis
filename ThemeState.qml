@@ -128,12 +128,6 @@ Singleton {
         if (!proc)
             return;
         daemonCheckProcess._daemonProcess = proc;
-        // -f, not -x: Nix wraps these binaries, so /proc/PID/comm is the
-        // truncated wrapper name (e.g. ".awww-daemon-wr"), never the plain
-        // process name - -x's exact match against comm never found an
-        // already-running daemon there, so this ended up launching a
-        // redundant extra one on every restart. -f matches the full command
-        // line instead, which does contain the real binary path.
         daemonCheckProcess.command = ["pgrep", "-f", proc];
         daemonCheckProcess.running = true;
     }

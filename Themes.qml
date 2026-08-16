@@ -32,10 +32,7 @@ Singleton {
 
     property var themes: [] // [{name, pinned, wallpaper: {all, byMonitor, fallback}, dark: {role: hex}, light: {role: hex}}]
 
-    // Name of the last theme applied via apply() - sticky until a different
-    // theme is applied (or this one is removed), regardless of any manual
-    // color tweaks made afterwards. A simple "last chosen" marker, not a live
-    // check that every color still matches the saved snapshot.
+    // Name of the last theme applied via apply()
     property string activeThemeName: ""
 
     function _indexOf(name) {
@@ -50,14 +47,33 @@ Singleton {
         return root._indexOf(name) >= 0;
     }
 
+    function isDirty(name) {
+        var idx = root._indexOf(name);
+        if (idx < 0)
+            return false;
+        var entry = root.themes[idx];
+        return !root._paletteMatches(entry.dark, Colors.darkPalette, "dark") || !root._paletteMatches(entry.light, Colors.lightPalette, "light");
+    }
+
+    function _paletteMatches(saved, live, palette) {
+        for (var i = 0; i < ColorOverrides.paletteRoles.length; i++) {
+            var id = ColorOverrides.paletteRoles[i].id;
+            if ((saved[id] || "").toLowerCase() !== (live[id] || "").toLowerCase())
+                return false;
+        }
+        var savedBar = saved.bar || "";
+        var liveBar = ColorOverrides.get(palette, "bar");
+        return savedBar.toLowerCase() === liveBar.toLowerCase();
+    }
+
+    readonly property bool activeIsDirty: ColorOverrides.enabled && root.activeThemeName !== "" && root.isDirty(root.activeThemeName)
+
     function hasWallpaper(entry) {
         var wp = entry && entry.wallpaper;
         return !!(wp && (wp.all || wp.fallback || Object.keys(wp.byMonitor || {}).length > 0));
     }
 
-    // A single representative wallpaper path for an entry, for previews (the
-    // theme row's thumbnail, ThemeCycler's cards) that just need one image
-    // to show rather than the full per-monitor breakdown.
+    // Single representative wallpaper path for an entry, for previews
     function primaryWallpaper(entry) {
         var wp = entry && entry.wallpaper;
         if (!wp)
@@ -115,7 +131,7 @@ Singleton {
 
     // Renames in place, keeping pinned/wallpaper/colors untouched. No-ops
     // (returns false) on an empty name, no real change, or a collision with
-    // another saved theme - the caller decides how to surface that.
+    // another saved theme.
     function rename(oldName, newName) {
         var trimmed = (newName || "").trim();
         if (trimmed.length === 0 || trimmed === oldName)

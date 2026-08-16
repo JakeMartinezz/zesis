@@ -18,6 +18,8 @@ Item {
     property string _editPalette: ThemeState.palette
     property string _openRole: ""
 
+    readonly property var _swatchClusters: [["background", "surface_container", "surface_container_high", "outline_variant"], ["primary", "primary_fixed_dim", "primary_container", "on_primary"], ["on_background", "on_surface_variant"], ["bar"]]
+
     Timer {
         id: writeTimer
         interval: 0
@@ -35,15 +37,14 @@ Item {
         return null;
     }
 
-    // Effective color of a role in the edited palette: Colors' palettes already
-    // have the overrides merged in, so this is what the shell actually paints.
     function _effectiveColor(roleId) {
-        var p = root._editPalette === "dark" ? Colors.darkPalette : Colors.lightPalette;
+        var raw = root._editPalette === "dark" ? Colors.rawDarkPalette : Colors.rawLightPalette;
         if (roleId === "bar") {
             var bar = ColorOverrides.get(root._editPalette, "bar");
-            return bar.length > 0 ? bar : p.background;
+            return bar.length > 0 ? bar : raw.background;
         }
-        return p[roleId] || "#000000";
+        var ov = ColorOverrides.get(root._editPalette, roleId);
+        return ov.length > 0 ? ov : (raw[roleId] || "#000000");
     }
 
     // Whether a role's effective color actually differs from what this
@@ -93,8 +94,16 @@ Item {
         onTriggered: root._saveArmedFor = ""
     }
 
+    readonly property string _typedName: themeNameField.text.trim()
+    readonly property bool _typedMatchesActive: root._typedName.length === 0 && Themes.activeIsDirty
+
     function _saveTheme() {
-        var name = themeNameField.text.trim();
+        if (root._typedMatchesActive) {
+            Themes.save(Themes.activeThemeName);
+            root._saveArmedFor = "";
+            return;
+        }
+        var name = root._typedName;
         if (name.length === 0)
             return;
         if (Themes.exists(name) && root._saveArmedFor !== name) {
@@ -123,7 +132,9 @@ Item {
             contentWidth: width
             contentHeight: content.implicitHeight + UIScale.spacingLg * 2
             clip: true
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
 
             ColumnLayout {
                 id: content
@@ -132,322 +143,200 @@ Item {
                 width: parent.width - UIScale.panelPad * 2
                 spacing: UIScale.spacingMd
 
-                // Interface scale
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: I18n.t("appearance.interfaceScale")
-                        color: Colors.text
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
+                // Sizing
+                SettingCard {
+                    RowLayout {
                         Layout.fillWidth: true
-                    }
-                    Text {
-                        text: I18n.t("appearance.multiplier", [root._scaleVal.toFixed(2)])
-                        color: Colors.accent
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
-                    }
-                }
-                SettingSlider {
-                    Layout.fillWidth: true
-                    from: 0.5; to: 2.0; step: 0.05
-                    value: root._scaleVal
-                    onMoved: function(v) { root._scaleVal = v; writeTimer.restart(); }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: UIScale.spacingSm
-                    Repeater {
-                        model: [[I18n.t("appearance.small"), 0.85], [I18n.t("appearance.normal"), 1.0], [I18n.t("appearance.large"), 1.3]]
-                        delegate: Rectangle {
-                            id: scalePreset
-                            required property var modelData
+                        spacing: UIScale.spacingSm
+                        SectionLabel {
+                            text: I18n.t("appearance.sizing")
+                        }
+                        InfoTooltip {
+                            text: I18n.t("appearance.sizingDescription")
+                        }
+                        Item {
                             Layout.fillWidth: true
-                            implicitHeight: Math.round(28 * UIScale.value)
-                            radius: UIScale.radiusSm
-                            color: Math.abs(root._scaleVal - scalePreset.modelData[1]) < 0.01 ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
-                            border.color: Math.abs(root._scaleVal - scalePreset.modelData[1]) < 0.01 ? Colors.accent : "transparent"
-                            border.width: 1
-                            Text {
-                                anchors.centerIn: parent
-                                text: scalePreset.modelData[0]
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontCaption
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { root._scaleVal = scalePreset.modelData[1]; writeTimer.restart(); }
-                            }
                         }
                     }
-                }
 
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
-
-                // Font size
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: I18n.t("appearance.fontSize")
-                        color: Colors.text
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
+                    RowLayout {
                         Layout.fillWidth: true
-                    }
-                    Text {
-                        text: I18n.t("appearance.multiplier", [root._fontVal.toFixed(2)])
-                        color: Colors.accent
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
-                    }
-                }
-                SettingSlider {
-                    Layout.fillWidth: true
-                    from: 0.5; to: 2.0; step: 0.05
-                    value: root._fontVal
-                    onMoved: function(v) { root._fontVal = v; writeTimer.restart(); }
-                }
-
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
-
-                // Spacing
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: I18n.t("appearance.spacing")
-                        color: Colors.text
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
-                        Layout.fillWidth: true
-                    }
-                    Text {
-                        text: I18n.t("appearance.multiplier", [root._spacingVal.toFixed(2)])
-                        color: Colors.accent
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
-                    }
-                }
-                SettingSlider {
-                    Layout.fillWidth: true
-                    from: 0.5; to: 2.0; step: 0.05
-                    value: root._spacingVal
-                    onMoved: function(v) { root._spacingVal = v; writeTimer.restart(); }
-                }
-
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
-
-                // Radius
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: I18n.t("appearance.radius")
-                        color: Colors.text
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
-                        Layout.fillWidth: true
-                    }
-                    Text {
-                        text: I18n.t("appearance.multiplier", [root._radiusVal.toFixed(2)])
-                        color: Colors.accent
-                        font.bold: true
-                        font.pixelSize: UIScale.fontBody
-                    }
-                }
-                SettingSlider {
-                    Layout.fillWidth: true
-                    from: 0.5; to: 2.0; step: 0.05
-                    value: root._radiusVal
-                    onMoved: function(v) { root._radiusVal = v; writeTimer.restart(); }
-                }
-
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
-
-                // Palette colors
-                Text {
-                    text: I18n.t("appearance.colors")
-                    color: Colors.text
-                    font.bold: true
-                    font.pixelSize: UIScale.fontBody
-                }
-                Text {
-                    Layout.fillWidth: true
-                    text: I18n.t("appearance.colorsDescription")
-                    color: Colors.muted
-                    font.pixelSize: UIScale.fontCaption
-                    wrapMode: Text.WordWrap
-                }
-
-                // Whether edits below apply only to the active wallpaper, or
-                // globally regardless of which wallpaper is set.
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.topMargin: UIScale.spacingXs
-                    spacing: UIScale.spacingSm
-                    Repeater {
-                        model: [[I18n.t("appearance.scopeWallpaper"), "wallpaper"], [I18n.t("appearance.scopeGlobal"), "global"]]
-                        delegate: Rectangle {
-                            id: scopeBtn
-                            required property var modelData
-                            readonly property bool selected: ColorOverrides.scope === scopeBtn.modelData[1]
+                        Text {
+                            text: I18n.t("appearance.interfaceScale")
+                            color: Colors.text
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
                             Layout.fillWidth: true
-                            implicitHeight: Math.round(28 * UIScale.value)
-                            radius: UIScale.radiusSm
-                            color: scopeBtn.selected ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
-                            border.color: scopeBtn.selected ? Colors.accent : "transparent"
-                            border.width: 1
-                            Text {
-                                anchors.centerIn: parent
-                                text: scopeBtn.modelData[0]
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontCaption
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: ColorOverrides.setScope(scopeBtn.modelData[1])
-                            }
+                        }
+                        Text {
+                            text: I18n.t("appearance.multiplier", [root._scaleVal.toFixed(2)])
+                            color: Colors.accent
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
                         }
                     }
-                }
-                Text {
-                    Layout.fillWidth: true
-                    text: ColorOverrides.scope === "global" ? I18n.t("appearance.scopeGlobalDescription") : I18n.t("appearance.scopeWallpaperDescription")
-                    color: Colors.muted
-                    font.pixelSize: UIScale.fontCaption
-                    wrapMode: Text.WordWrap
-                }
-
-                // Which palette is being edited - defaults to the active one,
-                // but the other can be set up without switching modes.
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: UIScale.spacingSm
-                    Repeater {
-                        model: [[I18n.t("appearance.darkMode"), "dark"], [I18n.t("appearance.lightMode"), "light"]]
-                        delegate: Rectangle {
-                            id: palBtn
-                            required property var modelData
-                            readonly property bool selected: root._editPalette === palBtn.modelData[1]
-                            Layout.fillWidth: true
-                            implicitHeight: Math.round(28 * UIScale.value)
-                            radius: UIScale.radiusSm
-                            color: palBtn.selected ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
-                            border.color: palBtn.selected ? Colors.accent : "transparent"
-                            border.width: 1
-                            Text {
-                                anchors.centerIn: parent
-                                text: ThemeState.palette === palBtn.modelData[1] ? I18n.t("appearance.paletteActive", [palBtn.modelData[0]]) : palBtn.modelData[0]
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontCaption
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    root._editPalette = palBtn.modelData[1];
-                                    root._openRole = "";
+                    SettingSlider {
+                        Layout.fillWidth: true
+                        from: 0.5
+                        to: 2.0
+                        step: 0.05
+                        value: root._scaleVal
+                        onMoved: function (v) {
+                            root._scaleVal = v;
+                            writeTimer.restart();
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: UIScale.spacingSm
+                        Repeater {
+                            model: [[I18n.t("appearance.small"), 0.85], [I18n.t("appearance.normal"), 1.0], [I18n.t("appearance.large"), 1.3]]
+                            delegate: Rectangle {
+                                id: scalePreset
+                                required property var modelData
+                                Layout.fillWidth: true
+                                implicitHeight: Math.round(28 * UIScale.value)
+                                radius: UIScale.radiusSm
+                                color: Math.abs(root._scaleVal - scalePreset.modelData[1]) < 0.01 ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
+                                border.color: Math.abs(root._scaleVal - scalePreset.modelData[1]) < 0.01 ? Colors.accent : "transparent"
+                                border.width: 1
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: scalePreset.modelData[0]
+                                    color: Colors.text
+                                    font.pixelSize: UIScale.fontCaption
                                 }
-                            }
-                        }
-                    }
-                }
-
-                Text {
-                    Layout.fillWidth: true
-                    visible: root._editPalette !== ThemeState.palette
-                    text: I18n.t("appearance.editingInactive", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
-                    color: Colors.muted
-                    font.pixelSize: UIScale.fontCaption
-                    wrapMode: Text.WordWrap
-                }
-
-                // Swatch grid - the hex only shows up in the editor below,
-                // once a role is actually picked.
-                Grid {
-                    id: roleGrid
-
-                    readonly property real _cellPitch: Math.round(52 * UIScale.value) + UIScale.spacingSm
-                    readonly property int _maxCols: Math.max(1, Math.floor((content.width + UIScale.spacingSm) / roleGrid._cellPitch))
-                    readonly property int _rows: Math.max(1, Math.ceil(ColorOverrides.roles.length / roleGrid._maxCols))
-
-                    Layout.fillWidth: true
-                    Layout.topMargin: UIScale.spacingXs
-                    // Balanced so the last row isn't left with a single tile.
-                    columns: Math.ceil(ColorOverrides.roles.length / roleGrid._rows)
-                    columnSpacing: UIScale.spacingSm
-                    rowSpacing: UIScale.spacingSm
-
-                    Repeater {
-                        model: ColorOverrides.roles
-                        delegate: Item {
-                            id: roleTile
-
-                            required property var modelData
-                            readonly property string roleId: roleTile.modelData.id
-                            readonly property bool overridden: root._isCustomized(roleTile.roleId)
-                            readonly property bool selected: root._openRole === roleTile.roleId
-
-                            implicitWidth: Math.round(52 * UIScale.value)
-                            implicitHeight: Math.round(70 * UIScale.value)
-
-                            Rectangle {
-                                id: tileSwatch
-                                anchors.top: parent.top
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                width: Math.round(46 * UIScale.value)
-                                height: Math.round(46 * UIScale.value)
-                                radius: Math.round(10 * UIScale.value)
-                                color: root._effectiveColor(roleTile.roleId)
-                                border.color: roleTile.selected ? Colors.accent : Colors.withAlpha(Colors.text, 0.08)
-                                border.width: roleTile.selected ? 2 : 1
-
-                                // Overridden roles get a dot rather than a hex
-                                // string, so the grid stays readable.
-                                Rectangle {
-                                    anchors.top: parent.top
-                                    anchors.right: parent.right
-                                    anchors.margins: UIScale.spacingXs
-                                    width: Math.round(7 * UIScale.value)
-                                    height: width
-                                    radius: width / 2
-                                    visible: roleTile.overridden
-                                    color: Colors.accent
-                                    border.color: Colors.withAlpha(Colors.bg, 0.6)
-                                    border.width: 1
-                                }
-
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: root._openRole = roleTile.selected ? "" : roleTile.roleId
+                                    onClicked: {
+                                        root._scaleVal = scalePreset.modelData[1];
+                                        writeTimer.restart();
+                                    }
                                 }
                             }
+                        }
+                    }
 
-                            Text {
-                                anchors.top: tileSwatch.bottom
-                                anchors.topMargin: UIScale.spacingXs
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: roleTile.modelData.label
-                                color: roleTile.selected ? Colors.accent : Colors.textDim
-                                font.pixelSize: Math.round(9 * UIScale.value)
-                            }
+                    Divider {
+                        Layout.topMargin: UIScale.spacingXs
+                        color: Colors.withAlpha(Colors.text, 0.06)
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text {
+                            text: I18n.t("appearance.fontSize")
+                            color: Colors.text
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: I18n.t("appearance.multiplier", [root._fontVal.toFixed(2)])
+                            color: Colors.accent
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
+                        }
+                    }
+                    SettingSlider {
+                        Layout.fillWidth: true
+                        from: 0.5
+                        to: 2.0
+                        step: 0.05
+                        value: root._fontVal
+                        onMoved: function (v) {
+                            root._fontVal = v;
+                            writeTimer.restart();
+                        }
+                    }
+
+                    Divider {
+                        Layout.topMargin: UIScale.spacingXs
+                        color: Colors.withAlpha(Colors.text, 0.06)
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text {
+                            text: I18n.t("appearance.spacing")
+                            color: Colors.text
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: I18n.t("appearance.multiplier", [root._spacingVal.toFixed(2)])
+                            color: Colors.accent
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
+                        }
+                    }
+                    SettingSlider {
+                        Layout.fillWidth: true
+                        from: 0.5
+                        to: 2.0
+                        step: 0.05
+                        value: root._spacingVal
+                        onMoved: function (v) {
+                            root._spacingVal = v;
+                            writeTimer.restart();
+                        }
+                    }
+
+                    Divider {
+                        Layout.topMargin: UIScale.spacingXs
+                        color: Colors.withAlpha(Colors.text, 0.06)
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Text {
+                            text: I18n.t("appearance.radius")
+                            color: Colors.text
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
+                            Layout.fillWidth: true
+                        }
+                        Text {
+                            text: I18n.t("appearance.multiplier", [root._radiusVal.toFixed(2)])
+                            color: Colors.accent
+                            font.bold: true
+                            font.pixelSize: UIScale.fontBody
+                        }
+                    }
+                    SettingSlider {
+                        Layout.fillWidth: true
+                        from: 0.5
+                        to: 2.0
+                        step: 0.05
+                        value: root._radiusVal
+                        onMoved: function (v) {
+                            root._radiusVal = v;
+                            writeTimer.restart();
                         }
                     }
                 }
 
-                // Editor for the tile that's open. This is the only place a hex
-                // code shows up.
-                ColumnLayout {
-                    id: roleEditor
-
-                    readonly property var role: root._roleById(root._openRole)
-
+                // Palette colors
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.topMargin: UIScale.spacingXs
-                    visible: roleEditor.role !== null
                     spacing: UIScale.spacingSm
+                    SectionLabel {
+                        text: I18n.t("appearance.colors")
+                    }
+                    InfoTooltip {
+                        text: I18n.t("appearance.colorsDescription")
+                    }
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Master color override switch
+                SettingCard {
+                    Layout.topMargin: UIScale.spacingXs
 
                     RowLayout {
                         Layout.fillWidth: true
@@ -457,58 +346,303 @@ Item {
                             Layout.fillWidth: true
                             spacing: 0
                             Text {
-                                text: roleEditor.role ? roleEditor.role.label : ""
+                                text: I18n.t("appearance.overridesEnabled")
                                 color: Colors.text
-                                font.bold: true
+                                font.weight: Font.DemiBold
                                 font.pixelSize: UIScale.fontBody
                             }
                             Text {
                                 Layout.fillWidth: true
-                                text: roleEditor.role ? roleEditor.role.desc : ""
+                                text: ColorOverrides.enabled ? I18n.t("appearance.overridesEnabledHint") : I18n.t("appearance.overridesDisabledHint")
                                 color: Colors.muted
                                 font.pixelSize: UIScale.fontTiny
                                 wrapMode: Text.WordWrap
                             }
                         }
-                        ActionButton {
-                            visible: root._isCustomized(root._openRole)
-                            label: I18n.t("appearance.reset")
-                            onActivated: ColorOverrides.clear(root._editPalette, root._openRole)
-                        }
-                    }
 
-                    ColorPicker {
-                        Layout.fillWidth: true
-                        value: root._effectiveColor(root._openRole)
-                        onPicked: function (hex) {
-                            root._queueColor(root._openRole, hex);
+                        ToggleSwitch {
+                            checked: ColorOverrides.enabled
+                            onToggled: ColorOverrides.setEnabled(!ColorOverrides.enabled)
                         }
                     }
                 }
 
-                ActionButton {
-                    Layout.topMargin: UIScale.spacingXs
-                    label: I18n.t("appearance.resetPaletteColors", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
-                    onActivated: ColorOverrides.clearPalette(root._editPalette)
-                }
-
-                Divider { color: Colors.withAlpha(Colors.accent, 0.1) }
-
-                // Saved themes - snapshots of whatever colors are in effect
-                // right now (generated or overridden, doesn't matter), that
-                // can be re-applied later in either scope above.
-                Text {
-                    text: I18n.t("appearance.themes")
-                    color: Colors.text
-                    font.bold: true
-                    font.pixelSize: UIScale.fontBody
-                }
-                Text {
+                Loader {
                     Layout.fillWidth: true
-                    text: I18n.t("appearance.themesDescription")
-                    color: Colors.muted
-                    font.pixelSize: UIScale.fontCaption
-                    wrapMode: Text.WordWrap
+                    active: ColorOverrides.enabled
+                    visible: active
+                    sourceComponent: Component {
+                        // Colors override body
+                        ColumnLayout {
+                            spacing: UIScale.spacingMd
+
+                            // Scope + Editing + the color picker
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: UIScale.spacingLg
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
+                                    Layout.alignment: Qt.AlignTop
+                                    spacing: UIScale.spacingSm
+
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: UIScale.spacingLg
+
+                                        // Edits apply to the active wallpaper or globally
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 0
+                                            Layout.alignment: Qt.AlignTop
+                                            spacing: UIScale.spacingSm
+
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: UIScale.spacingSm
+                                                SectionLabel {
+                                                    text: I18n.t("appearance.scopeLabel")
+                                                }
+                                                InfoTooltip {
+                                                    text: ColorOverrides.scope === "global" ? I18n.t("appearance.scopeGlobalDescription") : I18n.t("appearance.scopeWallpaperDescription")
+                                                }
+                                                Item {
+                                                    Layout.fillWidth: true
+                                                }
+                                            }
+                                            OptionRow {
+                                                Layout.fillWidth: true
+                                                model: [I18n.t("appearance.scopeWallpaper"), I18n.t("appearance.scopeGlobal")]
+                                                currentIndex: ColorOverrides.scope === "global" ? 1 : 0
+                                                onActivated: index => ColorOverrides.setScope(index === 1 ? "global" : "wallpaper")
+                                            }
+                                        }
+
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 0
+                                            Layout.alignment: Qt.AlignTop
+                                            spacing: UIScale.spacingSm
+
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: UIScale.spacingSm
+                                                SectionLabel {
+                                                    text: I18n.t("appearance.editingLabel")
+                                                }
+                                                InfoTooltip {
+                                                    text: I18n.t("appearance.editingDescription")
+                                                }
+                                                Item {
+                                                    Layout.fillWidth: true
+                                                }
+                                            }
+                                            OptionRow {
+                                                id: paletteRow
+                                                Layout.fillWidth: true
+                                                readonly property var _labels: [ThemeState.palette === "dark" ? I18n.t("appearance.paletteActive", [I18n.t("appearance.dark")]) : I18n.t("appearance.dark"), ThemeState.palette === "light" ? I18n.t("appearance.paletteActive", [I18n.t("appearance.light")]) : I18n.t("appearance.light")]
+                                                model: paletteRow._labels
+                                                currentIndex: root._editPalette === "light" ? 1 : 0
+                                                onActivated: index => {
+                                                    root._editPalette = index === 1 ? "light" : "dark";
+                                                    root._openRole = "";
+                                                }
+                                            }
+                                            Text {
+                                                Layout.fillWidth: true
+                                                visible: root._editPalette !== ThemeState.palette
+                                                text: I18n.t("appearance.editingInactive", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
+                                                color: Colors.muted
+                                                font.pixelSize: UIScale.fontCaption
+                                                wrapMode: Text.WordWrap
+                                            }
+                                        }
+                                    }
+
+                                    // Editor for the tile that's open
+                                    Rectangle {
+                                        id: roleEditorFrame
+                                        Layout.fillWidth: true
+                                        visible: roleEditor.role !== null
+                                        implicitHeight: roleEditor.implicitHeight + UIScale.spacingMd * 2
+                                        radius: UIScale.radiusMd
+                                        color: Colors.withAlpha(Colors.text, 0.025)
+                                        border.color: Colors.withAlpha(Colors.text, 0.05)
+                                        border.width: 1
+
+                                        ColumnLayout {
+                                            id: roleEditor
+                                            anchors.fill: parent
+                                            anchors.margins: UIScale.spacingMd
+                                            spacing: UIScale.spacingSm
+
+                                            readonly property var role: root._roleById(root._openRole)
+
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: UIScale.spacingSm
+
+                                                ColumnLayout {
+                                                    Layout.fillWidth: true
+                                                    spacing: 0
+                                                    Text {
+                                                        text: roleEditor.role ? roleEditor.role.label : ""
+                                                        color: Colors.text
+                                                        font.bold: true
+                                                        font.pixelSize: UIScale.fontBody
+                                                    }
+                                                    Text {
+                                                        Layout.fillWidth: true
+                                                        text: roleEditor.role ? roleEditor.role.desc : ""
+                                                        color: Colors.muted
+                                                        font.pixelSize: UIScale.fontTiny
+                                                        wrapMode: Text.WordWrap
+                                                    }
+                                                }
+                                                ActionButton {
+                                                    visible: root._isCustomized(root._openRole)
+                                                    label: I18n.t("appearance.reset")
+                                                    onActivated: ColorOverrides.clear(root._editPalette, root._openRole)
+                                                }
+                                            }
+
+                                            ColorPicker {
+                                                Layout.fillWidth: true
+                                                value: root._effectiveColor(root._openRole)
+                                                onPicked: function (hex) {
+                                                    root._queueColor(root._openRole, hex);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Swatch grid, palette column
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 0
+                                    Layout.alignment: Qt.AlignTop
+                                    spacing: UIScale.spacingSm
+
+                                    SectionLabel {
+                                        text: I18n.t("appearance.colorPalette")
+                                    }
+
+                                    Flow {
+                                        id: clusterFlow
+                                        Layout.fillWidth: true
+                                        spacing: Math.round(18 * UIScale.value)
+
+                                        Repeater {
+                                            model: root._swatchClusters
+                                            delegate: Grid {
+                                                id: clusterGrid
+
+                                                required property var modelData
+                                                readonly property var _tileRoles: clusterGrid.modelData.map(id => root._roleById(id))
+                                                readonly property real _cellPitch: Math.round(52 * UIScale.value) + UIScale.spacingSm
+                                                readonly property real _availableWidth: clusterGrid.parent ? clusterGrid.parent.width : 0
+                                                readonly property int _maxCols: Math.max(1, Math.floor((clusterGrid._availableWidth + UIScale.spacingSm) / clusterGrid._cellPitch))
+
+                                                columns: Math.min(clusterGrid._tileRoles.length, clusterGrid._maxCols)
+                                                columnSpacing: UIScale.spacingSm
+                                                rowSpacing: UIScale.spacingSm
+
+                                                Repeater {
+                                                    model: clusterGrid._tileRoles
+                                                    delegate: Item {
+                                                        id: roleTile
+
+                                                        required property var modelData
+                                                        readonly property string roleId: roleTile.modelData.id
+                                                        readonly property bool overridden: ColorOverrides.enabled && root._isCustomized(roleTile.roleId)
+                                                        readonly property bool selected: root._openRole === roleTile.roleId
+
+                                                        implicitWidth: Math.round(52 * UIScale.value)
+                                                        implicitHeight: Math.round(70 * UIScale.value)
+
+                                                        Rectangle {
+                                                            id: tileSwatch
+                                                            anchors.top: parent.top
+                                                            anchors.horizontalCenter: parent.horizontalCenter
+                                                            width: Math.round(46 * UIScale.value)
+                                                            height: Math.round(46 * UIScale.value)
+                                                            radius: Math.round(10 * UIScale.value)
+                                                            color: root._effectiveColor(roleTile.roleId)
+                                                            border.color: roleTile.overridden ? Colors.accent : Colors.withAlpha(Colors.text, 0.08)
+                                                            border.width: roleTile.overridden ? 2 : 1
+                                                            Behavior on border.color {
+                                                                ColorAnimation {
+                                                                    duration: Anim.fast
+                                                                }
+                                                            }
+
+                                                            Rectangle {
+                                                                anchors.fill: parent
+                                                                anchors.margins: -Math.round(3 * UIScale.value)
+                                                                radius: parent.radius + Math.round(3 * UIScale.value)
+                                                                color: "transparent"
+                                                                visible: roleTile.selected
+                                                                border.color: Colors.withAlpha(Colors.accent, 0.5)
+                                                                border.width: roleTile.selected ? 2 : 0
+                                                                Behavior on border.width {
+                                                                    NumberAnimation {
+                                                                        duration: Anim.fast
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            MouseArea {
+                                                                anchors.fill: parent
+                                                                cursorShape: Qt.PointingHandCursor
+                                                                onClicked: root._openRole = roleTile.selected ? "" : roleTile.roleId
+                                                            }
+                                                        }
+
+                                                        Text {
+                                                            anchors.top: tileSwatch.bottom
+                                                            anchors.topMargin: UIScale.spacingXs
+                                                            anchors.horizontalCenter: parent.horizontalCenter
+                                                            text: roleTile.modelData.label
+                                                            color: roleTile.selected ? Colors.accent : Colors.textDim
+                                                            font.pixelSize: Math.round(9 * UIScale.value)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            ActionButton {
+                                Layout.topMargin: UIScale.spacingXs
+                                ghost: true
+                                label: I18n.t("appearance.resetPaletteColors", [root._editPalette === "dark" ? I18n.t("appearance.dark") : I18n.t("appearance.light")])
+                                onActivated: ColorOverrides.clearPalette(root._editPalette)
+                            }
+                        }
+                    }
+                }
+
+                Divider {
+                    color: Colors.withAlpha(Colors.accent, 0.1)
+                }
+
+                // Saved themes
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: UIScale.spacingSm
+                    SectionLabel {
+                        text: I18n.t("appearance.themes")
+                    }
+                    InfoTooltip {
+                        text: I18n.t("appearance.themesDescription")
+                    }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                 }
 
                 RowLayout {
@@ -523,8 +657,10 @@ Item {
                         onAccepted: root._saveTheme()
                     }
                     ActionButton {
-                        readonly property bool _armed: root._saveArmedFor !== "" && root._saveArmedFor === themeNameField.text.trim()
-                        label: _armed ? I18n.t("appearance.saveThemeConfirm") : I18n.t("appearance.saveTheme")
+                        readonly property bool _armed: root._saveArmedFor !== "" && root._saveArmedFor === root._typedName
+                        readonly property bool _disabled: root._typedName.length === 0 && !root._typedMatchesActive
+                        label: _armed ? I18n.t("appearance.saveThemeConfirm") : root._typedMatchesActive ? I18n.t("appearance.updateTheme", [Themes.activeThemeName]) : I18n.t("appearance.saveTheme")
+                        enabled: !_disabled
                         onActivated: root._saveTheme()
                     }
                 }
@@ -540,11 +676,12 @@ Item {
 
                 Repeater {
                     model: Themes.themes
-                    delegate: ColumnLayout {
+                    delegate: Item {
                         id: themeRow
                         required property var modelData
                         readonly property bool hasWallpaper: Themes.hasWallpaper(themeRow.modelData)
-                        readonly property bool isActive: Themes.activeThemeName === themeRow.modelData.name
+                        readonly property bool isActive: ColorOverrides.enabled && Themes.activeThemeName === themeRow.modelData.name
+                        readonly property bool isDirty: themeRow.isActive && Themes.isDirty(themeRow.modelData.name)
                         readonly property string wallpaperPath: Themes.primaryWallpaper(themeRow.modelData)
                         property bool renaming: false
 
@@ -555,123 +692,212 @@ Item {
 
                         Layout.fillWidth: true
                         Layout.topMargin: UIScale.spacingSm
-                        spacing: Math.round(2 * UIScale.value)
+                        implicitHeight: rowCard.implicitHeight
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: UIScale.spacingSm
-
-                            Rectangle {
-                                id: thumbRect
-                                implicitWidth: Math.round(34 * UIScale.value)
-                                implicitHeight: implicitWidth
-                                radius: UIScale.radiusSm
-                                color: Colors.surfaceHigh
-                                clip: true
-
-                                Image {
-                                    id: thumbImg
-                                    anchors.fill: parent
-                                    visible: themeRow.hasWallpaper
-                                    source: themeRow.hasWallpaper ? ("file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg") : ""
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    onStatusChanged: {
-                                        if (status === Image.Error && !thumbGen.running)
-                                            thumbGen.running = true;
-                                    }
-                                }
-
-                                Process {
-                                    id: thumbGen
-                                    command: ["magick", themeRow.wallpaperPath, "-resize", "68x68^", "-gravity", "Center", "-extent", "68x68", ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg"]
-                                    onExited: (code, status) => {
-                                        if (code === 0) {
-                                            thumbImg.source = "";
-                                            thumbImg.source = "file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg";
-                                        } else {
-                                            thumbImg.source = "file://" + themeRow.wallpaperPath;
-                                        }
-                                    }
-                                }
-                            }
-
-                            Rectangle {
-                                visible: themeRow.isActive
-                                implicitWidth: Math.round(7 * UIScale.value)
-                                implicitHeight: implicitWidth
-                                radius: implicitWidth / 2
-                                color: Colors.accent
-                            }
-
-                            Text {
-                                visible: !themeRow.renaming
-                                text: themeRow.modelData.name
-                                color: themeRow.isActive ? Colors.accent : Colors.text
-                                font.bold: themeRow.isActive
-                                font.pixelSize: UIScale.fontBody
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                            }
-
-                            StyledTextInput {
-                                id: renameField
-                                visible: themeRow.renaming
-                                Layout.fillWidth: true
-                                text: themeRow.modelData.name
-                                onAccepted: themeRow.confirmRename()
-                                onEscapePressed: themeRow.renaming = false
-                                onVisibleChanged: if (visible)
-                                    field.forceActiveFocus()
-                            }
-
-                            Text {
-                                visible: themeRow.isActive && !themeRow.renaming
-                                text: I18n.t("appearance.themeActive")
-                                color: Colors.accent
-                                font.pixelSize: UIScale.fontTiny
-                            }
-
-                            ToggleSwitch {
-                                visible: !themeRow.renaming
-                                checked: !!themeRow.modelData.pinned
-                                onToggled: Themes.togglePinned(themeRow.modelData.name)
-                            }
-                            Text {
-                                visible: !themeRow.renaming
-                                text: I18n.t("appearance.pinned")
-                                color: Colors.textDim
-                                font.pixelSize: UIScale.fontTiny
-                            }
-
-                            ActionButton {
-                                label: themeRow.renaming ? I18n.t("appearance.renameConfirm") : I18n.t("appearance.rename")
-                                onActivated: themeRow.renaming ? themeRow.confirmRename() : (themeRow.renaming = true)
-                            }
-                            ActionButton {
-                                visible: themeRow.renaming
-                                label: I18n.t("appearance.renameCancel")
-                                onActivated: themeRow.renaming = false
-                            }
-                            ActionButton {
-                                visible: !themeRow.renaming
-                                label: I18n.t("appearance.applyTheme")
-                                onActivated: Themes.apply(themeRow.modelData.name)
-                            }
-                            ActionButton {
-                                visible: !themeRow.renaming
-                                label: I18n.t("appearance.deleteTheme")
-                                onActivated: Themes.remove(themeRow.modelData.name)
-                            }
+                        HoverHandler {
+                            id: rowHover
                         }
 
-                        Text {
-                            Layout.fillWidth: true
-                            visible: themeRow.modelData.pinned && !themeRow.hasWallpaper
-                            text: I18n.t("appearance.pinnedNoWallpaperHint")
-                            color: Colors.muted
-                            font.pixelSize: UIScale.fontTiny
-                            wrapMode: Text.WordWrap
+                        Rectangle {
+                            id: rowCard
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            radius: UIScale.radiusMd
+                            color: Colors.withAlpha(Colors.text, rowHover.hovered ? 0.05 : 0.03)
+                            border.color: themeRow.isActive ? Colors.withAlpha(Colors.accent, 0.35) : Colors.withAlpha(Colors.text, 0.06)
+                            border.width: 1
+                            implicitHeight: rowContent.implicitHeight + UIScale.spacingMd * 2
+                            Behavior on color {
+                                ColorAnimation {
+                                    duration: Anim.fast
+                                }
+                            }
+                            Behavior on border.color {
+                                ColorAnimation {
+                                    duration: Anim.fast
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                z: -1
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: if (!themeRow.renaming)
+                                    Themes.apply(themeRow.modelData.name)
+                            }
+
+                            ColumnLayout {
+                                id: rowContent
+                                anchors.fill: parent
+                                anchors.margins: UIScale.spacingMd
+                                spacing: Math.round(4 * UIScale.value)
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: UIScale.spacingSm
+
+                                    Rectangle {
+                                        id: thumbRect
+                                        implicitWidth: Math.round(34 * UIScale.value)
+                                        implicitHeight: implicitWidth
+                                        radius: UIScale.radiusSm
+                                        color: Colors.surfaceHigh
+                                        clip: true
+
+                                        Image {
+                                            id: thumbImg
+                                            anchors.fill: parent
+                                            visible: themeRow.hasWallpaper
+                                            source: themeRow.hasWallpaper ? ("file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg") : ""
+                                            fillMode: Image.PreserveAspectCrop
+                                            asynchronous: true
+                                            onStatusChanged: {
+                                                if (status === Image.Error && !thumbGen.running)
+                                                    thumbGen.running = true;
+                                            }
+                                        }
+
+                                        Process {
+                                            id: thumbGen
+                                            command: ["magick", themeRow.wallpaperPath, "-resize", "68x68^", "-gravity", "Center", "-extent", "68x68", ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg"]
+                                            onExited: (code, status) => {
+                                                if (code === 0) {
+                                                    thumbImg.source = "";
+                                                    thumbImg.source = "file://" + ThemeState.thumbsDir + "/" + themeRow.wallpaperPath.substring(themeRow.wallpaperPath.lastIndexOf("/") + 1) + ".jpg";
+                                                } else {
+                                                    thumbImg.source = "file://" + themeRow.wallpaperPath;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Text {
+                                        visible: !themeRow.renaming
+                                        text: themeRow.modelData.name
+                                        color: themeRow.isActive ? Colors.accent : Colors.text
+                                        font.bold: themeRow.isActive
+                                        font.pixelSize: UIScale.fontBody
+                                        elide: Text.ElideRight
+                                        Layout.maximumWidth: Math.round(220 * UIScale.value)
+                                    }
+
+                                    StyledTextInput {
+                                        id: renameField
+                                        visible: themeRow.renaming
+                                        Layout.fillWidth: true
+                                        text: themeRow.modelData.name
+                                        onAccepted: themeRow.confirmRename()
+                                        onEscapePressed: themeRow.renaming = false
+                                        onVisibleChanged: if (visible)
+                                            field.forceActiveFocus()
+                                    }
+
+                                    // Rename
+                                    Rectangle {
+                                        visible: !themeRow.renaming
+                                        opacity: rowHover.hovered ? 1 : 0
+                                        implicitWidth: Math.round(26 * UIScale.value)
+                                        implicitHeight: Math.round(26 * UIScale.value)
+                                        radius: UIScale.radiusSm
+                                        color: renameHov.hovered ? Colors.withAlpha(Colors.text, 0.1) : "transparent"
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration: Anim.fast
+                                            }
+                                        }
+                                        Behavior on color {
+                                            ColorAnimation {
+                                                duration: Anim.fast
+                                            }
+                                        }
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: ""
+                                            font.family: "Material Icons"
+                                            font.pixelSize: Math.round(14 * UIScale.value)
+                                            color: Colors.textDim
+                                        }
+                                        HoverHandler {
+                                            id: renameHov
+                                        }
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: themeRow.renaming = true
+                                        }
+                                    }
+
+                                    Item {
+                                        visible: !themeRow.renaming
+                                        Layout.fillWidth: true
+                                    }
+
+                                    // Active / Active-edited badge
+                                    RowLayout {
+                                        visible: themeRow.isActive && !themeRow.renaming
+                                        spacing: Math.round(4 * UIScale.value)
+                                        Rectangle {
+                                            implicitWidth: Math.round(7 * UIScale.value)
+                                            implicitHeight: implicitWidth
+                                            radius: implicitWidth / 2
+                                            color: Colors.accent
+                                        }
+                                        Text {
+                                            text: themeRow.isDirty ? I18n.t("appearance.themeActiveEdited") : I18n.t("appearance.themeActive")
+                                            color: Colors.accent
+                                            font.pixelSize: UIScale.fontTiny
+                                            font.weight: themeRow.isDirty ? Font.DemiBold : Font.Normal
+                                        }
+                                    }
+
+                                    ActionButton {
+                                        visible: themeRow.renaming
+                                        label: I18n.t("appearance.renameConfirm")
+                                        onActivated: themeRow.confirmRename()
+                                    }
+                                    ActionButton {
+                                        visible: themeRow.renaming
+                                        label: I18n.t("appearance.renameCancel")
+                                        onActivated: themeRow.renaming = false
+                                    }
+
+                                    // Pinned persistent state
+                                    ToggleSwitch {
+                                        visible: !themeRow.renaming
+                                        checked: !!themeRow.modelData.pinned
+                                        onToggled: Themes.togglePinned(themeRow.modelData.name)
+                                    }
+                                    Text {
+                                        visible: !themeRow.renaming
+                                        text: I18n.t("appearance.pinned")
+                                        color: Colors.textDim
+                                        font.pixelSize: UIScale.fontTiny
+                                    }
+
+                                    // Delete
+                                    ActionButton {
+                                        visible: !themeRow.renaming
+                                        ghost: true
+                                        opacity: rowHover.hovered ? 1 : 0
+                                        Behavior on opacity {
+                                            NumberAnimation {
+                                                duration: Anim.fast
+                                            }
+                                        }
+                                        label: I18n.t("appearance.deleteTheme")
+                                        onActivated: Themes.remove(themeRow.modelData.name)
+                                    }
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    visible: themeRow.modelData.pinned && !themeRow.hasWallpaper
+                                    text: I18n.t("appearance.pinnedNoWallpaperHint")
+                                    color: Colors.muted
+                                    font.pixelSize: UIScale.fontTiny
+                                    wrapMode: Text.WordWrap
+                                }
+                            }
                         }
                     }
                 }
