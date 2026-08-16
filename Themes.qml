@@ -21,7 +21,7 @@ import Quickshell.Io
 // applies cleanly when reconnected with just one.
 //
 // `pinned` marks a theme for the ThemeCycler's alt-tab-style quick switch
-// (Widgets/ThemeCycler/) - only pinned themes that actually have a wallpaper
+// (widgets/themecycler/) - only pinned themes that actually have a wallpaper
 // show up there, since cycling into a color-only theme would leave whatever
 // wallpaper was already showing looking mismatched.
 Singleton {

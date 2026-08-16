@@ -135,7 +135,7 @@ in {
 
     # The 3D globe's starfield data (see scripts/ensure_starfield.sh) is
     # identical for every user, so it's cached once here.
-    # `configPackage` pre-declares Widgets/Globe3D/RealStarField.js
+    # `configPackage` pre-declares widgets/globe3d/RealStarField.js
     # as a symlink into this directory.
     systemd.tmpfiles.rules = lib.mkIf cfg.congeries.enable [
       "d /var/cache/zesis/starfield 1777 root root -"
