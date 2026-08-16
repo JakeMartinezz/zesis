@@ -8,9 +8,25 @@ Singleton {
 
     readonly property string _themeDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/theme/zesis"
 
-    readonly property var _p: ThemeState.palette === "dark" ? colorData.colors.dark : colorData.colors.light
-    readonly property var darkPalette: colorData.colors.dark
-    readonly property var lightPalette: colorData.colors.light
+    // Generated theme with the user's per-role overrides applied on top
+    readonly property var darkPalette: ColorOverrides.enabled ? _merge(colorData.colors.dark, ColorOverrides.dark) : colorData.colors.dark
+    readonly property var lightPalette: ColorOverrides.enabled ? _merge(colorData.colors.light, ColorOverrides.light) : colorData.colors.light
+    readonly property var _p: ThemeState.palette === "dark" ? darkPalette : lightPalette
+
+    // The wallpaper's matugen output
+    readonly property var rawDarkPalette: colorData.colors.dark
+    readonly property var rawLightPalette: colorData.colors.light
+
+    function _merge(base, overrides) {
+        var roles = ColorOverrides.paletteRoles;
+        var out = {};
+        for (var i = 0; i < roles.length; i++) {
+            var key = roles[i].id;
+            var ov = overrides ? overrides[key] : "";
+            out[key] = (ov && ColorOverrides.isValid(ov)) ? ov : base[key];
+        }
+        return out;
+    }
 
     // Named tokens, mapped from MD3 semantic roles
     property color bg: _p.background
@@ -22,7 +38,8 @@ Singleton {
     property color muted: _p.on_surface_variant
     property color text: _p.on_background
     property color textDim: _p.on_surface_variant
-    property color barBg: withAlpha(bg, 0.85)
+    readonly property string _barOverride: ColorOverrides.enabled ? ColorOverrides.get(ThemeState.palette, "bar") : ""
+    property color barBg: withAlpha(_barOverride.length > 0 ? _barOverride : bg, 0.85)
 
     function withAlpha(col, alpha) {
         var c = Qt.color(col);
