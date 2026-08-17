@@ -136,6 +136,12 @@ in {
   config = lib.mkIf cfg.enable {
     environment.etc."xdg/quickshell/zesis".source = cfg.configPackage;
 
+    # Must match PamContext's `config: "quickshell"` in
+    # widgets/lockscreen/LockSurface.qml - that's the PAM service name it
+    # authenticates against, and the lock screen has no way to unlock
+    # without it.
+    security.pam.services.quickshell = {};
+
     # The 3D globe's starfield data (see scripts/ensure_starfield.sh) is
     # identical for every user, so it's cached once here.
     # `configPackage` pre-declares widgets/globe3d/RealStarField.js
