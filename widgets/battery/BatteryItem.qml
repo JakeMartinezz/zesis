@@ -65,7 +65,7 @@ Item {
                 // IconImage's `source` alias resolves plain relative strings against its
                 // OWN file's location, not the caller's - Qt.resolvedUrl() sidesteps that
                 // by resolving here, at this file, before the string ever reaches the alias.
-                source: Qt.resolvedUrl("../../Assets/battery-flash-symbolic.svg")
+                source: Qt.resolvedUrl("../../assets/battery-flash-symbolic.svg")
             }
 
             MultiEffect {
