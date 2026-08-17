@@ -11,6 +11,10 @@ import Quickshell.Io
 // Where an override lives depends on `scope`:
 // - "wallpaper" (default): overrides are kept per wallpaper path, so
 //   swapping wallpapers swaps in whatever was saved for that specific image.
+//   The path used as the key is whichever wallpaper is actually driving the
+//   color scheme right now - ThemeState.colorSourceMonitor's effective
+//   wallpaper, not necessarily the global one, since this system supports
+//   picking a different monitor's wallpaper as the color source.
 // - "global": a single override set applies no matter which wallpaper is
 //   active.
 // Switching scope doesn't move or merge anything - it just changes which
@@ -86,6 +90,10 @@ Singleton {
         }
     ])
 
+    // Master toggle - when off, Colors.qml falls back to the raw
+    // wallpaper-generated palette everywhere without discarding saved overrides.
+    property bool enabled: true
+
     // "wallpaper" or "global" - which bucket set()/clear()/get() target.
     property string scope: "wallpaper"
 
@@ -102,6 +110,9 @@ Singleton {
             light: {}
         })
 
+    // The wallpaper actually driving the color scheme right now - not
+    // necessarily the global one, since a specific monitor can be picked as
+    // the color source (see ThemeState.colorSourceMonitor).
     function _currentWallpaper() {
         return ThemeState._effectiveWallpaper(ThemeState.colorSourceMonitor);
     }
@@ -117,6 +128,13 @@ Singleton {
         if (newScope !== "wallpaper" && newScope !== "global")
             return;
         root.scope = newScope;
+        root._persist();
+    }
+
+    function setEnabled(v) {
+        if (root.enabled === v)
+            return;
+        root.enabled = v;
         root._persist();
     }
 
@@ -191,6 +209,7 @@ Singleton {
 
     function _persist() {
         root._pendingJson = JSON.stringify({
+            enabled: root.enabled,
             scope: root.scope,
             byWallpaper: root.byWallpaper,
             global: root.global
@@ -203,7 +222,7 @@ Singleton {
             return;
         var json = root._pendingJson;
         root._pendingJson = "";
-        writeProc.command = ["sh", "-c", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "--", root._configDir, json, root._configPath];
+        writeProc.command = ["bash", "-c", "mkdir -p \"$1\" && printf '%s' \"$2\" > \"$3\"", "--", root._configDir, json, root._configPath];
         writeProc.running = true;
     }
 
@@ -222,6 +241,7 @@ Singleton {
         var hasLegacy = Object.keys(legacyDark).length > 0 || Object.keys(legacyLight).length > 0;
 
         root.scope = overrideData.scope === "global" ? "global" : "wallpaper";
+        root.enabled = overrideData.enabled;
 
         if (!hasByWallpaper && !hasGlobal && hasLegacy) {
             var migrated = {};
@@ -246,6 +266,7 @@ Singleton {
 
     JsonAdapter {
         id: overrideData
+        property bool enabled: true
         property string scope: "wallpaper"
         property var byWallpaper: ({})
         property var global: ({})
@@ -256,6 +277,9 @@ Singleton {
 
     Connections {
         target: overrideData
+        function onEnabledChanged() {
+            root._adopt();
+        }
         function onScopeChanged() {
             root._adopt();
         }

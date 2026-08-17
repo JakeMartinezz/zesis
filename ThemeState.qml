@@ -13,6 +13,7 @@ Singleton {
 
     property string palette: "dark"
     property string lastWallpaper: ""
+    property string schemeType: "scheme-tonal-spot"
     property string wallpaperBackend: "awww"
     property string customWallpaperCommand: ""
     // "" means the default, ~/Pictures/Wallpapers.
@@ -109,6 +110,7 @@ Singleton {
         id: stateData
         property string palette: "dark"
         property string lastWallpaper: ""
+        property string schemeType: "scheme-tonal-spot"
         property string wallpaperBackend: "awww"
         property string customWallpaperCommand: ""
         property string wallpapersDirOverride: ""
@@ -123,6 +125,7 @@ Singleton {
         onLoaded: {
             root.palette = stateData.palette;
             root.lastWallpaper = stateData.lastWallpaper;
+            root.schemeType = stateData.schemeType;
             root.wallpaperBackend = stateData.wallpaperBackend;
             root.customWallpaperCommand = stateData.customWallpaperCommand;
             root.wallpapersDirOverride = stateData.wallpapersDirOverride;
@@ -140,21 +143,17 @@ Singleton {
         return root.perMonitorWallpaper[monitor] || root.lastWallpaper;
     }
 
-    // Calls queued while one is already running (e.g. a theme applying a
-    // different wallpaper to each monitor in turn) instead of being dropped -
-    // the backend commands are one Process at a time, run sequentially.
-    property var _queue: []
-
-    // Sets the wallpaper for every monitor, clearing any per-monitor splits -
-    // a global apply overwrites every output at the daemon level anyway.
+    // Sets the wallpaper for every monitor. This overwrites every output at the daemon
+    // level, so it also wipes any per-monitor overrides (onExited below) and always
+    // recomputes the system color scheme from it.
     function apply(wallpaperPath) {
-        root._enqueueOrRun(wallpaperPath, "");
+        root._apply(wallpaperPath, "", true);
     }
 
     function applyToMonitor(wallpaperPath, monitor) {
         if (!monitor)
             return;
-        root._enqueueOrRun(wallpaperPath, monitor);
+        root._apply(wallpaperPath, monitor, root.colorSourceMonitor === monitor);
     }
 
     function resetMonitor(monitor) {
@@ -164,43 +163,92 @@ Singleton {
         delete next[monitor];
         root.perMonitorWallpaper = next;
         root._persistState();
-        // Re-run the backend command to visually sync the output back to the
-        // global wallpaper, now that this monitor's override is gone.
+        // Re-run the backend command to visually sync the output, but don't let it
+        // re-record an override, cause that's what we just cleared. Recolor if this
+        // monitor was the color source, since its effective wallpaper just changed
+        // back to global.
         if (root.lastWallpaper !== "")
-            root.applyToMonitor(root.lastWallpaper, monitor);
+            root._apply(root.lastWallpaper, monitor, root.colorSourceMonitor === monitor, false);
     }
 
-    // Picks which monitor's wallpaper drives the system color scheme, and
-    // immediately recomputes colors from whatever that monitor is showing.
+    // Picks which monitor's wallpaper drives the system color scheme, and immediately
+    // recomputes colors from whatever that monitor is currently showing.
     function setColorSourceMonitor(monitor) {
+        if (root.colorSourceMonitor === monitor)
+            return;
         root.colorSourceMonitor = monitor;
         root._persistState();
-        if (!hookProcess.running)
-            hookProcess.running = true;
+        var path = root._effectiveWallpaper(monitor);
+        if (path !== "")
+            root._recolor(path);
     }
 
-    function _enqueueOrRun(wallpaperPath, monitor) {
+    // Calls queued while one is already running (e.g. a theme applying a
+    // different wallpaper to each monitor in turn) instead of being dropped -
+    // the backend/matugen commands are one Process at a time, run
+    // sequentially.
+    property var _queue: []
+
+    function _recolor(path) {
         if (root.applying) {
             root._queue.push({
-                path: wallpaperPath,
-                monitor: monitor
+                kind: "recolor",
+                path: path
             });
             return;
         }
-        root._runApply(wallpaperPath, monitor);
+        root._runRecolor(path);
+    }
+
+    function _runRecolor(path) {
+        root.applying = true;
+        root.lastError = "";
+        applyProcess._wallpaperPath = path;
+        applyProcess._monitor = "";
+        applyProcess._persistOverride = false;
+        applyProcess.command = ["bash", "-c", "matugen image \"$1\" --source-color-index 0 --type \"$2\" --mode \"$3\"", "--", path, root.schemeType, root.palette];
+        applyProcess.running = true;
+    }
+
+    function _apply(wallpaperPath, monitor, recolor, persistOverride = true) {
+        if (root.applying) {
+            root._queue.push({
+                kind: "apply",
+                wallpaperPath: wallpaperPath,
+                monitor: monitor,
+                recolor: recolor,
+                persistOverride: persistOverride
+            });
+            return;
+        }
+        root._runApply(wallpaperPath, monitor, recolor, persistOverride);
     }
 
     // monitor: ShellScreen.name to target, or "" for all monitors - resolved
     // here to a real, space-separated monitor list either way, so the
     // backend command is never invoked without an explicit target.
-    function _runApply(wallpaperPath, monitor) {
+    function _runApply(wallpaperPath, monitor, recolor, persistOverride) {
         root.applying = true;
         root.lastError = "";
         applyProcess._wallpaperPath = wallpaperPath;
-        applyProcess._targetMonitor = monitor;
+        applyProcess._monitor = monitor;
+        applyProcess._persistOverride = persistOverride;
         var targets = (monitor && monitor.length > 0) ? monitor : Quickshell.screens.map(s => s.name).join(" ");
-        applyProcess.command = ["bash", "-c", root._wallpaperSetCmd(), "--", wallpaperPath, targets];
+        var parts = [root._wallpaperSetCmd()];
+        if (recolor)
+            parts.push("matugen image \"$1\" --source-color-index 0 --type \"$3\" --mode \"$4\"");
+        applyProcess.command = ["bash", "-c", parts.join(" && "), "--", wallpaperPath, targets, root.schemeType, root.palette];
         applyProcess.running = true;
+    }
+
+    function _runNextQueued() {
+        if (root._queue.length === 0)
+            return;
+        var next = root._queue.shift();
+        if (next.kind === "recolor")
+            root._runRecolor(next.path);
+        else
+            root._runApply(next.wallpaperPath, next.monitor, next.recolor, next.persistOverride);
     }
 
     function setWallpapersDirOverride(dir) {
@@ -211,12 +259,16 @@ Singleton {
     function togglePalette() {
         root.palette = (root.palette === "dark" ? "light" : "dark");
         root._persistState();
+        var path = root._effectiveWallpaper(root.colorSourceMonitor);
+        if (path !== "")
+            root._recolor(path);
     }
 
     Process {
         id: applyProcess
         property string _wallpaperPath: ""
-        property string _targetMonitor: ""
+        property string _monitor: ""
+        property bool _persistOverride: true
 
         stderr: StdioCollector {
             id: applyStderr
@@ -225,13 +277,18 @@ Singleton {
         onExited: (code, status) => { // qmllint disable signal-handler-parameters
             root.applying = false;
             if (code === 0) {
-                root.lastWallpaper = applyProcess._wallpaperPath;
-                if (applyProcess._targetMonitor === "") {
-                    root.perMonitorWallpaper = ({});
-                } else {
-                    var m = Object.assign({}, root.perMonitorWallpaper);
-                    m[applyProcess._targetMonitor] = applyProcess._wallpaperPath;
-                    root.perMonitorWallpaper = m;
+                if (applyProcess._persistOverride) {
+                    if (applyProcess._monitor === "") {
+                        root.lastWallpaper = applyProcess._wallpaperPath;
+                        // A global apply just overwrote every output at the daemon level,
+                        // so any per-monitor overrides we were tracking are stale now.
+                        if (Object.keys(root.perMonitorWallpaper).length > 0)
+                            root.perMonitorWallpaper = {};
+                    } else {
+                        var next = Object.assign({}, root.perMonitorWallpaper);
+                        next[applyProcess._monitor] = applyProcess._wallpaperPath;
+                        root.perMonitorWallpaper = next;
+                    }
                 }
                 root._persistState();
                 if (!hookProcess.running)
@@ -239,10 +296,7 @@ Singleton {
             } else {
                 root.lastError = applyStderr.text.trim() || ("Command exited with code " + code);
             }
-            if (root._queue.length > 0) {
-                var next = root._queue.shift();
-                root._runApply(next.path, next.monitor);
-            }
+            root._runNextQueued();
         }
     }
 
@@ -259,6 +313,7 @@ Singleton {
         var json = JSON.stringify({
             palette: root.palette,
             lastWallpaper: root.lastWallpaper,
+            schemeType: root.schemeType,
             wallpaperBackend: root.wallpaperBackend,
             customWallpaperCommand: root.customWallpaperCommand,
             wallpapersDirOverride: root.wallpapersDirOverride,

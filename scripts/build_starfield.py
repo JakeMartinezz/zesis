@@ -7,7 +7,7 @@ invoked by QML... let's call it seperation of concerns and pretend this is a
 competent project, alright?
 
 It could also be run directly: `python3 build_starfield.py [src.csv] [out.js]`,
-defaulting to hygdata_v41.csv in the cwd and Widgets/Globe3D/RealStarField.js.
+defaulting to hygdata_v41.csv in the cwd and widgets/globe3d/RealStarField.js.
 
 Color: B-V color index -> temperature (Ballesteros 2012) -> RGB (Tanner Helland's
 fit of Mitchell Charity's blackbody dataset) -> linear->sRGB pre-encode.
@@ -22,7 +22,7 @@ import os
 import sys
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else "hygdata_v41.csv"
-OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), "..", "Widgets", "Globe3D", "RealStarField.js")
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), "..", "widgets", "globe3d", "RealStarField.js")
 MAG_LIMIT = 6.5
 
 

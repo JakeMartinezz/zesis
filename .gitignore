@@ -6,4 +6,4 @@ _refs/
 *.qsb
 __pycache__
 hygdata_v*.csv
-/Widgets/Globe3D/RealStarField.js
+/widgets/globe3d/RealStarField.js

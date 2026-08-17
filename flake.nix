@@ -41,7 +41,7 @@
           lndir -silent ${./.} "$out"
           lndir -silent ${self.packages.${system}.shaders} "$out"
 
-          ln -s /var/cache/zesis/starfield/RealStarField.js "$out/Widgets/Globe3D/RealStarField.js"
+          ln -s /var/cache/zesis/starfield/RealStarField.js "$out/widgets/globe3d/RealStarField.js"
         '';
     });
 

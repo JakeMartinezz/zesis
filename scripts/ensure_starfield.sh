@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-shot: make sure Widgets/Globe3D/RealStarField.js exists before
+# One-shot: make sure widgets/globe3d/RealStarField.js exists before
 # quickshell parses AssemblyGlobeView.qml's static `import "RealStarField.js"`
 #
 # On a manual (non-Nix) install, $repo_root is a writable directory, so we
@@ -15,7 +15,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-target="$repo_root/Widgets/Globe3D/RealStarField.js"
+target="$repo_root/widgets/globe3d/RealStarField.js"
 
 if [ -e "$target" ]; then
     exit 0
@@ -46,6 +46,6 @@ fi
 
 # In the shared-cache case $target is already a Nix-declared symlink to $js.
 # Nothing left to do once $js exists. Otherwise (manual install) create it.
-if [ "$cache_dir" != "$shared_cache" ]; then
+if [ ! -L "$target" ]; then
     ln -sf "$js" "$target"
 fi

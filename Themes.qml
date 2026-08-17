@@ -7,19 +7,21 @@ import Quickshell.Io
 // wallpaper(s) that go with them. Saving a theme captures whatever colors
 // are effectively showing right now (matugen's own generation for the
 // current wallpaper, or a hand-tweaked override, doesn't matter which) plus
-// ThemeState's current wallpaper assignment: either one path applied to
-// every monitor, or a per-monitor split if that's what was last applied.
+// ThemeState's current wallpaper assignment: either the single global
+// wallpaper, or a per-monitor split (ThemeState.perMonitorWallpaper) if
+// that's what was last applied.
 //
 // Applying a theme replays the colors through ColorOverrides.set() (lands in
 // whichever scope - per-wallpaper or global - is currently active there) and,
 // if the theme has a wallpaper, re-applies it per currently connected
-// monitor: a monitor with an explicit entry gets that path, any other
-// connected monitor gets `fallback` (the single path if the theme was saved
-// with one, otherwise whatever was last applied) - so a theme saved on a
-// 3-monitor dock still applies cleanly when reconnected with just one.
+// monitor: a monitor with an explicit entry gets that path via
+// ThemeState.applyToMonitor(), any other connected monitor gets `fallback`
+// (the single path if the theme was saved with one, otherwise whatever was
+// last applied globally) - so a theme saved on a 3-monitor dock still
+// applies cleanly when reconnected with just one.
 //
 // `pinned` marks a theme for the ThemeCycler's alt-tab-style quick switch
-// (Widgets/ThemeCycler/) - only pinned themes that actually have a wallpaper
+// (widgets/themecycler/) - only pinned themes that actually have a wallpaper
 // show up there, since cycling into a color-only theme would leave whatever
 // wallpaper was already showing looking mismatched.
 Singleton {
@@ -32,8 +34,8 @@ Singleton {
 
     // Name of the last theme applied via apply() - sticky until a different
     // theme is applied (or this one is removed), regardless of any manual
-    // color tweaks made afterwards. A simple "last chosen" marker, not a live
-    // check that every color still matches the saved snapshot.
+    // color tweaks made afterwards. A simple "last chosen" marker; isDirty()
+    // below is the live check against the saved snapshot.
     property string activeThemeName: ""
 
     function _indexOf(name) {
@@ -47,6 +49,27 @@ Singleton {
     function exists(name) {
         return root._indexOf(name) >= 0;
     }
+
+    function isDirty(name) {
+        var idx = root._indexOf(name);
+        if (idx < 0)
+            return false;
+        var entry = root.themes[idx];
+        return !root._paletteMatches(entry.dark, Colors.darkPalette, "dark") || !root._paletteMatches(entry.light, Colors.lightPalette, "light");
+    }
+
+    function _paletteMatches(saved, live, palette) {
+        for (var i = 0; i < ColorOverrides.paletteRoles.length; i++) {
+            var id = ColorOverrides.paletteRoles[i].id;
+            if ((saved[id] || "").toLowerCase() !== (live[id] || "").toLowerCase())
+                return false;
+        }
+        var savedBar = saved.bar || "";
+        var liveBar = ColorOverrides.get(palette, "bar");
+        return savedBar.toLowerCase() === liveBar.toLowerCase();
+    }
+
+    readonly property bool activeIsDirty: ColorOverrides.enabled && root.activeThemeName !== "" && root.isDirty(root.activeThemeName)
 
     function hasWallpaper(entry) {
         var wp = entry && entry.wallpaper;
@@ -163,11 +186,12 @@ Singleton {
             ColorOverrides.set(palette, role, roleMap[role]);
     }
 
-    // No per-monitor entries at all: one path for everything, simplest case.
-    // Otherwise: each connected monitor gets its own entry if it has one,
-    // falling back to `fallback`/`all` so a monitor the theme never saw
-    // (different dock, different day) still gets a sane wallpaper instead of
-    // being left untouched.
+    // No per-monitor entries at all: one path for everything, simplest case -
+    // ThemeState.apply() sets it globally (and recolors, since this is the
+    // theme's own wallpaper). Otherwise: each connected monitor gets its own
+    // entry if it has one, falling back to `fallback`/`all` so a monitor the
+    // theme never saw (different dock, different day) still gets a sane
+    // wallpaper instead of being left untouched.
     function _applyWallpaper(wp) {
         var screens = Quickshell.screens;
         if (screens.length === 0)

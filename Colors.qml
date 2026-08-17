@@ -10,9 +10,11 @@ Singleton {
 
     // Generated theme with the user's per-role overrides applied on top, so
     // every consumer (the tokens below, the palette preview in the wallpaper
-    // panel) sees the same effective colors. See ColorOverrides.
-    readonly property var darkPalette: _merge(colorData.colors.dark, ColorOverrides.dark)
-    readonly property var lightPalette: _merge(colorData.colors.light, ColorOverrides.light)
+    // panel) sees the same effective colors. See ColorOverrides. Gated on
+    // ColorOverrides.enabled so the "disable overrides" toggle actually
+    // takes effect instead of only clearing stored values.
+    readonly property var darkPalette: ColorOverrides.enabled ? _merge(colorData.colors.dark, ColorOverrides.dark) : colorData.colors.dark
+    readonly property var lightPalette: ColorOverrides.enabled ? _merge(colorData.colors.light, ColorOverrides.light) : colorData.colors.light
     readonly property var _p: ThemeState.palette === "dark" ? darkPalette : lightPalette
 
     // The wallpaper's own matugen output, with no overrides merged in - the
@@ -45,7 +47,7 @@ Singleton {
     property color text: _p.on_background
     property color textDim: _p.on_surface_variant
     // The bar can be recolored on its own; unset it just tracks the background.
-    readonly property string _barOverride: ColorOverrides.get(ThemeState.palette, "bar")
+    readonly property string _barOverride: ColorOverrides.enabled ? ColorOverrides.get(ThemeState.palette, "bar") : ""
     property color barBg: withAlpha(_barOverride.length > 0 ? _barOverride : bg, 0.85)
 
     function withAlpha(col, alpha) {

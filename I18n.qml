@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Io
 
 // Translation lookup. Strings live in i18n/<lang>/<domain>.json, one small
-// JSON file per domain (roughly one per Widgets/<Folder>) so contributors
+// JSON file per domain (roughly one per widgets/<Folder>) so contributors
 // touching a single feature area only ever conflict with themselves - see
 // i18n/manifest.json for the domain list and docs/i18n.md for how to add a
 // domain or a language.

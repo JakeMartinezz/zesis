@@ -1,4 +1,4 @@
-<img src="Assets/logo.svg" alt="zesis logo" width="108" align="left">
+<img src="assets/logo.svg" alt="zesis logo" width="108" align="left">
 
 ### zesis
 
@@ -181,10 +181,10 @@ Without Nix, `qsb` comes from Qt's `qtshadertools` module, on most distros this 
 sudo pacman -S qt6-shadertools
 ```
 
-Then compile every `.frag` file under `Widgets/` to a matching `.qsb`:
+Then compile every `.frag` file under `widgets/` to a matching `.qsb`:
 
 ```sh
-find Widgets -name '*.frag' -exec sh -c 'qsb --qt6 -o "${1%.frag}.qsb" "$1"' _ {} \;
+find widgets -name '*.frag' -exec sh -c 'qsb --qt6 -o "${1%.frag}.qsb" "$1"' _ {} \;
 ```
 
 ### System monitor (athroisma)
@@ -240,7 +240,7 @@ Dependencies: Qt 6.6+ (`Core`, `Qml`, `Quick3D`) and `libpipewire-0.3`. See Cong
 Colors live in `colors.json` and are exposed via the `Colors` singleton (`Colors.qml`). Editing `colors.json` hot-reloads the theme at runtime without restarting Quickshell. See the token list in `Colors.qml` for available palette properties.
 
 ### Compositor backend
-All Hyprland-specific calls (workspace/window data, dispatch commands, monitor queries) are isolated behind a two-layer abstraction in `Widgets/Wm/`:
+All Hyprland-specific calls (workspace/window data, dispatch commands, monitor queries) are isolated behind a two-layer abstraction in `widgets/wm/`:
 
 - **`HyprlandWmBackend`** - the only file that imports `Quickshell.Hyprland`. Exposes reactive `workspaces`, `toplevels`, and `focusedMonitor` properties, plus named action functions (`focusWorkspace`, `moveWindow`, `preselect`, etc.).
 - **`WmService`** - compositor-agnostic singleton. Widgets bind to `WmService.*`. Swapping compositors means writing a new backend and changing one line: `property QtObject _backend: SwayWmBackend {}`.
@@ -259,7 +259,7 @@ Compositor keybinds trigger shell actions through Quickshell's `IpcHandler`. Eac
 | `appswitcher` | `cycle()`, `back()`, `confirm()`, `cancel()`, `showWorkspaces()` | `shell.qml` |
 | `desktop` | `toggleConfig()` | `shell.qml` |
 | `power` | `toggle()` | `shell.qml` |
-| `lockscreen` | `lock()`, `unlock()` | `Widgets/LockScreen/LockScreen.qml` |
+| `lockscreen` | `lock()`, `unlock()` | `widgets/lockscreen/LockScreen.qml` |
 
 Since Quickshell instances are identified by config path, a dev instance launched with `qs -p ~/Documents/zesis` won't receive `qs ipc call` from a plain install pointed at `~/.config/quickshell` (or vice versa), the compositor config resolves this by trying the dev path first and falling back. Example from this author's own [Hyprland config](https://github.com/SquirrelModeller/squirrel-nixos/blob/main/users/squirrel/dotfiles/.config/hypr/hyprland.lua):
 
