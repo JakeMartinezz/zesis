@@ -88,6 +88,7 @@ in {
         type = lib.types.listOf lib.types.package;
         default = with pkgs; [
           matugen
+          imagemagick
           awww
           bluez
           avahi
