@@ -19,14 +19,42 @@ PanelWindow {
     required property var iconFor
     required property string mutedTextKey
 
+    readonly property string osdPosition: AudioService.osdPosition
+    // Docked to a side edge the pill stands on end, so it runs along the edge
+    // it hugs rather than jutting out into the screen.
+    readonly property bool vertical: osdPosition === "left" || osdPosition === "right"
+    // Gap between the screen edge the pill docks to and the pill itself.
+    readonly property real edgeGap: Math.round(70 * UIScale.value)
+    // Slack around the pill so the show animation's scale overshoot has room
+    // inside the surface bounds.
+    readonly property real _pad: Math.round(8 * UIScale.value)
+    readonly property real _dockMargin: Math.round(root.edgeGap - root._pad)
+
     WlrLayershell.layer: WlrLayer.Overlay
+    // Named so the compositor can target the surface, e.g. to opt its map
+    // animation out with Hyprland's `layerrule = noanim, zesis:osd`.
+    WlrLayershell.namespace: "zesis:osd"
+    // Anchored to the single edge the pill docks to: the compositor centers a
+    // layer surface along the axis it is not anchored on, and plays its map
+    // animation out of the edge it is anchored to. Anchoring elsewhere and
+    // pushing the surface over with margins makes it fly in from the wrong
+    // side. Margins on unanchored edges are ignored, so all four can carry the
+    // same gap.
     anchors {
-        top: true
-        left: true
-        right: true
+        top: root.osdPosition === "top"
+        bottom: root.osdPosition === "bottom"
+        left: root.osdPosition === "left"
+        right: root.osdPosition === "right"
+    }
+    margins {
+        top: root._dockMargin
+        bottom: root._dockMargin
+        left: root._dockMargin
+        right: root._dockMargin
     }
     exclusiveZone: -1
-    implicitHeight: Math.round(130 * UIScale.value)
+    implicitWidth: osdRect.implicitWidth + root._pad * 2
+    implicitHeight: osdRect.implicitHeight + root._pad * 2
     color: "transparent"
     visible: false
 
@@ -99,13 +127,24 @@ PanelWindow {
 
     Item {
         id: osdPill
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.round(70 * UIScale.value)
+
+        anchors.centerIn: parent
         width: osdRect.implicitWidth
         height: osdRect.implicitHeight
         opacity: 0
         scale: 0.88
-        transformOrigin: Item.Top
+        transformOrigin: {
+            switch (root.osdPosition) {
+            case "bottom":
+                return Item.Bottom;
+            case "left":
+                return Item.Left;
+            case "right":
+                return Item.Right;
+            default:
+                return Item.Top;
+            }
+        }
 
         HoverHandler {
             onHoveredChanged: {
@@ -119,20 +158,35 @@ PanelWindow {
 
         Rectangle {
             id: osdRect
-            implicitWidth: Math.round(280 * UIScale.value)
-            implicitHeight: Math.round(52 * UIScale.value)
-            radius: implicitHeight / 2
+            implicitWidth: Math.round((root.vertical ? 64 : 280) * UIScale.value)
+            implicitHeight: Math.round((root.vertical ? 280 : 52) * UIScale.value)
+            radius: Math.min(implicitWidth, implicitHeight) / 2
             color: Colors.surface
             border.color: Colors.withAlpha(Colors.outline, 0.8)
             border.width: 1
 
-            RowLayout {
+            // One layout for both orientations: the icon, the track and the
+            // readout keep their identity (and their state) across a flip
+            // instead of being duplicated into a row and a column variant.
+            GridLayout {
+                id: osdContent
+
+                readonly property real padX: Math.round((root.vertical ? 8 : 16) * UIScale.value)
+                readonly property real padY: Math.round((root.vertical ? 16 : 0) * UIScale.value)
+
                 anchors.fill: parent
-                anchors.leftMargin: Math.round(16 * UIScale.value)
-                anchors.rightMargin: Math.round(16 * UIScale.value)
-                spacing: Math.round(10 * UIScale.value)
+                anchors.leftMargin: osdContent.padX
+                anchors.rightMargin: osdContent.padX
+                anchors.topMargin: osdContent.padY
+                anchors.bottomMargin: osdContent.padY
+                flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+                rows: 3
+                columns: 3
+                rowSpacing: Math.round(10 * UIScale.value)
+                columnSpacing: osdContent.rowSpacing
 
                 Text {
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                     text: root.iconFor(root.vol, root.muted)
                     font.pixelSize: Math.round(20 * UIScale.value)
                     color: root.muted ? Colors.muted : Colors.accent
@@ -145,21 +199,32 @@ PanelWindow {
 
                 Item {
                     id: osdSlider
-                    Layout.fillWidth: true
-                    implicitHeight: Math.round(8 * UIScale.value)
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    Layout.fillWidth: !root.vertical
+                    Layout.fillHeight: root.vertical
+                    implicitWidth: root.vertical ? Math.round(8 * UIScale.value) : 0
+                    implicitHeight: root.vertical ? 0 : Math.round(8 * UIScale.value)
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: height / 2
+                        radius: Math.min(width, height) / 2
                         color: Colors.surfaceHigh
 
                         Rectangle {
-                            width: parent.width * Math.min(root.vol, 1.0)
-                            height: parent.height
+                            // A vertical track fills upwards from its floor.
+                            width: root.vertical ? parent.width : parent.width * Math.min(root.vol, 1.0)
+                            height: root.vertical ? parent.height * Math.min(root.vol, 1.0) : parent.height
+                            y: root.vertical ? parent.height - height : 0
                             radius: parent.radius
                             color: root.muted ? Colors.muted : Colors.accent
                             opacity: root.muted ? 0.45 : 1.0
                             Behavior on width {
+                                NumberAnimation {
+                                    duration: Anim.drag
+                                    easing.type: Easing.OutQuad
+                                }
+                            }
+                            Behavior on height {
                                 NumberAnimation {
                                     duration: Anim.drag
                                     easing.type: Easing.OutQuad
@@ -174,23 +239,25 @@ PanelWindow {
                     }
 
                     MouseArea {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        height: Math.round(44 * UIScale.value)
-                        cursorShape: Qt.SizeHorCursor
+                        id: osdSliderArea
+                        anchors.centerIn: parent
+                        width: root.vertical ? Math.round(44 * UIScale.value) : parent.width
+                        height: root.vertical ? parent.height : Math.round(44 * UIScale.value)
+                        cursorShape: root.vertical ? Qt.SizeVerCursor : Qt.SizeHorCursor
                         preventStealing: true
-                        function setVol(x) {
+                        function setVol(m) {
                             var a = root.audioTarget;
-                            if (a)
-                                a.volume = Math.max(0, Math.min(1.0, x / width));
+                            if (!a)
+                                return;
+                            var f = root.vertical ? 1 - m.y / osdSliderArea.height : m.x / osdSliderArea.width;
+                            a.volume = Math.max(0, Math.min(1.0, f));
                         }
                         onPressed: function (m) {
-                            setVol(m.x);
+                            setVol(m);
                         }
                         onPositionChanged: function (m) {
                             if (pressed) {
-                                setVol(m.x);
+                                setVol(m);
                                 root._dragging = true;
                                 osdDismissTimer.stop();
                             }
@@ -204,11 +271,15 @@ PanelWindow {
                 }
 
                 Text {
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    Layout.fillWidth: root.vertical
                     text: root.muted ? I18n.t(root.mutedTextKey) : (Math.round(root.vol * 100) + "%")
                     color: root.muted ? Colors.muted : Colors.text
                     font.pixelSize: Math.round(13 * UIScale.value)
                     font.family: "monospace"
                     font.weight: Font.Medium
+                    horizontalAlignment: Text.AlignHCenter
+                    elide: Text.ElideRight
                     Behavior on color {
                         ColorAnimation {
                             duration: Anim.fast

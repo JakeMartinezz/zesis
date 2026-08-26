@@ -30,10 +30,15 @@ Item {
                 border.width: 1
 
                 Text {
-                    anchors.centerIn: parent
+                    anchors.fill: parent
+                    anchors.leftMargin: UIScale.spacingXs
+                    anchors.rightMargin: UIScale.spacingXs
                     text: optBtn.modelData
                     color: Colors.text
                     font.pixelSize: UIScale.fontSmall
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
                 }
 
                 MouseArea {

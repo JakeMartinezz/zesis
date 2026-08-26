@@ -89,25 +89,79 @@ Item {
             }
         }
 
-        // Slide-collapse reveal, like AGS's Revealer(transition: "slide_right")
+        // Slide-collapse reveal, like AGS's Revealer(transition: "slide_right").
+        // One animated 0..1 factor drives the whole thing; width, label offset
+        // and opacity are all plain bindings derived from it. That is the
+        // reveal shape docs/qml-patterns.md prescribes: `reveal` is a value
+        // nothing else writes to, whereas a Behavior sitting directly on the
+        // width would be restarting against percentText's own implicitWidth
+        // every time the digit count changes.
         Item {
-            anchors.verticalCenter: parent.verticalCenter
-            clip: true
-            implicitWidth: root._showPercent ? percentText.implicitWidth : 0
-            implicitHeight: percentText.implicitHeight
+            id: percentReveal
 
-            // Same plain, no-overshoot curve MusicChip.qml already uses for its
-            // reveal - stop guessing at custom bezier curves that keep producing
-            // a jump/delay in one direction or the other.
-            Behavior on implicitWidth {
-                NumberAnimation {
-                    duration: Anim.medium
-                    easing.type: Easing.InOutCubic
+            // 0 = fully collapsed, 1 = fully revealed.
+            property real reveal: 0
+
+            // Each direction gets its own animation, declared whole, rather than
+            // one Behavior whose duration and curve are themselves bindings on
+            // _showPercent: those are re-evaluated in creation order alongside
+            // the binding that starts the animation, so the animation can begin
+            // before its own timing has caught up and run a collapse on the
+            // expand curve.
+            states: State {
+                name: "shown"
+                when: root._showPercent
+                PropertyChanges {
+                    percentReveal.reveal: 1
                 }
             }
 
+            transitions: [
+                // Expanding rides M3's emphasized deceleration - half the
+                // distance inside the first 12ms is what carries the speed.
+                Transition {
+                    to: "shown"
+                    NumberAnimation {
+                        target: percentReveal
+                        property: "reveal"
+                        duration: Anim.medium
+                        easing.type: Easing.BezierSpline
+                        easing.bezierCurve: Anim.emphasizedDecel
+                    }
+                },
+                // Collapsing leaves at once and eases down, instead of the
+                // accelerating half of that pair. Over 28px in 80ms an
+                // accelerating exit spends its first six frames covering five
+                // pixels and then drops the remaining twenty-three across
+                // three, which is felt as a hitch rather than as a fast exit.
+                Transition {
+                    from: "shown"
+                    NumberAnimation {
+                        target: percentReveal
+                        property: "reveal"
+                        duration: Anim.micro
+                        easing.type: Easing.OutCubic
+                    }
+                }
+            ]
+
+            anchors.verticalCenter: parent.verticalCenter
+            clip: true
+            implicitWidth: Math.round(percentText.implicitWidth * percentReveal.reveal)
+            implicitHeight: percentText.implicitHeight
+
             Text {
                 id: percentText
+
+                // Travels out from under the icon as a unit rather than being
+                // uncovered in place by the clip edge, so no frame of the
+                // reveal shows a half-drawn glyph.
+                x: Math.round(-percentText.implicitWidth * (1 - percentReveal.reveal))
+                // Reaches full contrast at the halfway point instead of trailing
+                // the slide all the way out - the label is already solid while
+                // the last of the movement plays.
+                opacity: Math.min(1, percentReveal.reveal * 2)
+
                 text: BatteryService.percent + "%"
                 font.pixelSize: UIScale.fontSmall
                 color: Colors.text
