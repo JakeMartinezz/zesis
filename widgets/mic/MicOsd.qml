@@ -4,7 +4,7 @@ import "../shared"
 VolumeStyleOsd {
     vol: MicService.vol
     muted: MicService.muted
-    audioTarget: MicService.source?.audio
+    audioTarget: MicService.source?.audio ?? null
     mutedTextKey: "mic.muted"
     iconFor: function (v, m) {
         return m || v === 0 ? "󰍭" : "󰍬";

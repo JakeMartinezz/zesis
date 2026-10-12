@@ -197,11 +197,8 @@ Item {
                     return 0.18;
                 return root._colonOn ? 0.85 : 0.18;
             }
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Anim.fast
-                }
-            }
+            // No fade on the blink: every animated frame redraws the whole window, and a
+            // 150ms fade once a second kept the bar rendering ~12 fps around the clock.
         }
     }
 }
