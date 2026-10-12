@@ -67,6 +67,20 @@ in {
         The python3 build to put on the service's PATH.
         Calendar (icalendar/recurring-ical-events), AirPods battery and the
         3D globe's starfield generation script all need python3.
+       
+      '';
+    };
+
+    aircon.envFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/etc/secrets/zesis-aircon.env";
+      description = ''
+        Env file with CL_USER=/CL_PASS= for the aircon widget, used when the keyring
+        has no credentials (default: ~/.config/zesis/aircon.env). Give it as a string,
+        never a Nix path, and keep it outside your flake: anything a flake can see is
+        copied into the world-readable /nix/store. It must be owned by the user running
+        zesis with mode 600, or the widget refuses it.
       '';
     };
 
@@ -99,6 +113,8 @@ in {
           gawk
           brightnessctl
           slurp
+          libsecret
+          openssl
         ];
         description = "Packages put on the service's PATH when batteriesIncluded.enable is true.";
       };
@@ -165,6 +181,9 @@ in {
             ++ lib.optionals cfg.batteriesIncluded.enable (map (p: "${p}/bin") cfg.batteriesIncluded.packages)
             ++ lib.optionals cfg.inheritPath ["/run/current-system/sw/bin" "/etc/profiles/per-user/%u/bin" "%h/.nix-profile/bin"]
           );
+        }
+        // lib.optionalAttrs (cfg.aircon.envFile != null) {
+          ZESIS_AIRCON_ENV = cfg.aircon.envFile;
         }
         // lib.optionalAttrs cfg.congeries.enable {
           QML_IMPORT_PATH = lib.concatStringsSep ":" [

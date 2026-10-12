@@ -11,6 +11,8 @@
   "globe2dDescription": "A rotating 2D map of friends sharing their location",
   "vendingLabel": "Vending Machine",
   "vendingDescription": "A little animated vending machine for your desktop",
+  "airconLabel": "Air conditioner",
+  "airconDescription": "Control your ConnectLife (Hisense) air conditioner",
   "chooseBackgroundImageDialogTitle": "Choose background image",
   "chooseMaskImageDialogTitle": "Choose mask image",
   "size": "Size",

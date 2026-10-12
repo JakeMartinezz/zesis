@@ -39,6 +39,15 @@ Singleton {
             src: "../airpods/AirPods.qml"
         },
         {
+            id: "aircon",
+            label: I18n.t("bar.itemAircon"),
+            src: "../aircon/AirconItem.qml",
+            defaultEnabled: false,
+            // Rendered inside SystemIndicators, not as its own slot; the entry keeps
+            // the settings toggle.
+            host: "system"
+        },
+        {
             id: "weather",
             label: I18n.t("bar.itemWeather"),
             src: "../weather/WeatherItem.qml"
@@ -98,7 +107,7 @@ Singleton {
     property var _state: {
         const s = {};
         for (const item of items)
-            s[item.id] = true;
+            s[item.id] = item.defaultEnabled !== false;
         return s;
     }
 
@@ -178,7 +187,7 @@ Singleton {
         let dirty = false;
         for (const item of items) {
             if (!(item.id in s)) {
-                s[item.id] = true;
+                s[item.id] = item.defaultEnabled !== false;
                 dirty = true;
             }
         }

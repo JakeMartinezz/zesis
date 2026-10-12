@@ -65,6 +65,7 @@ Nothing below is required to get a working bar, each of these lights up one extr
 | [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) (python3 packages) | Calendar widget (`.ics` files, including recurring events) |
 | `magick` | Wallpaper thumbnail previews |
 | QtQuick3D + QtDeclarative (Qt 6.6+) + [Congeries](https://github.com/zesis-shell/congeries) | 3D geodesic rod globe (Home panel) ([see below](#3d-globe-congeries)) |
+| `openssl` + `secret-tool` (libsecret) | Air conditioner widget for ConnectLife/Hisense units (talks to the cloud directly; `openssl` signs each request). The NixOS module ships both in `batteriesIncluded`; credentials are stored in your Secret Service keyring, or in `~/.config/zesis/aircon.env` (`CL_USER=`, `CL_PASS=`, `chmod 600`) as a fallback; the NixOS option `services.zesis.aircon.envFile` points it elsewhere (keep it outside your flake). |
 
 ## Setup
 

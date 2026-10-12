@@ -50,7 +50,7 @@ Rectangle {
         var catalog = BarItemsService.orderedItems;
         for (var i = 0; i < catalog.length; i++) {
             var it = catalog[i];
-            if (BarItemsService.isEnabled(it.id) && root._isAvailable(it.id))
+            if (!it.host && BarItemsService.isEnabled(it.id) && root._isAvailable(it.id))
                 result.push(it.id);
         }
         return result;
@@ -308,7 +308,7 @@ Rectangle {
 
             Loader {
                 id: content
-                active: BarItemsService.isEnabled(slot.itemData.id)
+                active: !slot.itemData.host && BarItemsService.isEnabled(slot.itemData.id)
                 visible: active && (item == null || item.available !== false)
                 opacity: slot._isDragging ? 0.3 : 1
 

@@ -4,8 +4,9 @@ import "../bluetooth"
 import "../wifi"
 import "../sound"
 import "../mic"
+import "../aircon"
 
-// Bundles bluetooth/wifi/sound/mic into one shared panel-button box, matching
+// Bundles bluetooth/wifi/sound/mic (+ aircon when enabled) into one shared panel-button box, matching
 // AGS's SystemIndicators.ts (several plain icons inside a single PanelButton).
 // Each icon keeps its own click-to-open popup - AGS routes all of these into
 // one shared quicksettings window, but quickshell doesn't have an equivalent
@@ -38,6 +39,16 @@ Item {
         anchors.centerIn: parent
         spacing: 0
 
+        // Lives here instead of as its own bar slot (its BarItemsService entry has
+        // host: "system"); the bar settings toggle still turns it on and off. A Loader
+        // so AirconService (and its startup fetch) only exists when it's enabled.
+        Loader {
+            active: BarItemsService.isEnabled("aircon")
+            visible: active && item !== null && item.available
+            sourceComponent: AirconItem {
+                bare: true
+            }
+        }
         BluetoothItem {
             bare: true
         }

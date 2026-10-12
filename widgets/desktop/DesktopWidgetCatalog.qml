@@ -8,6 +8,7 @@ import "../weather"
 import "../sysmon"
 import "../globe2d"
 import "../power"
+import "../aircon"
 import "../../"
 
 Singleton {
@@ -49,6 +50,12 @@ Singleton {
             label: I18n.t("desktop.vendingLabel"),
             description: I18n.t("desktop.vendingDescription"),
             component: _vendingComp
+        },
+        {
+            key: "aircon",
+            label: I18n.t("desktop.airconLabel"),
+            description: I18n.t("desktop.airconDescription"),
+            component: _airconComp
         }
     ]
 
@@ -83,5 +90,10 @@ Singleton {
     Component {
         id: _vendingComp
         VendingMachine {}
+    }
+
+    Component {
+        id: _airconComp
+        AirconDesktop {}
     }
 }

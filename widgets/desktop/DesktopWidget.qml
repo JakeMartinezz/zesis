@@ -63,9 +63,12 @@ PanelWindow {
 
     // Widget-specific opt-in for pointer input, gated on storeKey like the
     // per-widget settings rows in DesktopConfigOverlay. The Globe in
-    // manual-rotate mode and the Vending Machine (keypad, glass taps, flap,
-    // item press) both need real clicks.
-    readonly property bool _wantsInput: (root.storeKey === "globe2d" && Globe2DSettings.rotateMode === "manual") || root.storeKey === "vending"
+    // manual-rotate mode, the Vending Machine (keypad, glass taps, flap,
+    // item press) and the aircon card all need real clicks.
+    readonly property bool _wantsInput: (root.storeKey === "globe2d" && Globe2DSettings.rotateMode === "manual") || root.storeKey === "vending" || root.storeKey === "aircon"
+
+    // The aircon login form needs typing; OnDemand only takes focus on click.
+    WlrLayershell.keyboardFocus: root.storeKey === "aircon" ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     Region {
         id: clickThrough
@@ -93,6 +96,11 @@ PanelWindow {
         sourceComponent: root.content
         width: root._overrideW ? root._size.w : (item?.implicitWidth ?? 0)
         height: root._overrideH ? root._size.h : (item?.implicitHeight ?? 0)
+        // Widgets that care which screen they're on (aircon) expose `hostScreen`.
+        onLoaded: {
+            if (item && "hostScreen" in item)
+                item.hostScreen = Qt.binding(() => root.screen);
+        }
     }
 
     // Re-read position from store when config mode exits (overlay may have moved us).
