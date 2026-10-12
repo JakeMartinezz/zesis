@@ -4,3 +4,4 @@ CLAUDE.md
 .direnv
 _refs/
 __pycache__
+perf-lab/
