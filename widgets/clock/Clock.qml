@@ -20,6 +20,26 @@ Item {
     // "fixed" | "fluid"
     property string widthMode: ClockSettings.widthMode
     property bool _colonOn: true
+    // Shown opacity of the blinking colon, stepped toward 0.85/0.18 by _colonFade.
+    property real _colonLevel: 0.85
+    on_ColonOnChanged: _colonFade.restart()
+
+    // The blink fades in 4 steps 50ms apart. A NumberAnimation would run at the
+    // monitor refresh rate and redraw the whole bar ~20 times per blink (144 Hz);
+    // stepped, it costs 4 frames and doesn't keep the animation driver awake.
+    Timer {
+        id: _colonFade
+        interval: 50
+        repeat: true
+        onTriggered: {
+            var target = root._colonOn ? 0.85 : 0.18;
+            var step = (0.85 - 0.18) / 4;
+            var next = target > root._colonLevel ? Math.min(target, root._colonLevel + step) : Math.max(target, root._colonLevel - step);
+            root._colonLevel = next;
+            if (next === target)
+                stop();
+        }
+    }
 
     property var _date: new Date()
     property bool _altLatch: false
@@ -195,10 +215,8 @@ Item {
                     return 0.85;
                 if (root.colonMode === "off")
                     return 0.18;
-                return root._colonOn ? 0.85 : 0.18;
+                return root._colonLevel;
             }
-            // No fade on the blink: every animated frame redraws the whole window, and a
-            // 150ms fade once a second kept the bar rendering ~12 fps around the clock.
         }
     }
 }
