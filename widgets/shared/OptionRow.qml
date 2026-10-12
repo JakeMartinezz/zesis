@@ -24,6 +24,10 @@ Item {
                 required property int index
 
                 Layout.fillWidth: true
+                // Cells stay equal while they fit; when the row is narrow a longer label
+                // keeps its own width instead of eliding.
+                Layout.preferredWidth: (root.width - UIScale.spacingSm * (root.model.length - 1)) / root.model.length
+                Layout.minimumWidth: optText.implicitWidth + UIScale.spacingXs * 2
                 implicitHeight: Math.round(32 * UIScale.value)
                 radius: UIScale.radiusSm
                 color: root.currentIndex === optBtn.index ? Colors.withAlpha(root.accentColor, 0.15) : Colors.surfaceHigh
@@ -31,6 +35,7 @@ Item {
                 border.width: 1
 
                 Text {
+                    id: optText
                     anchors.fill: parent
                     anchors.leftMargin: UIScale.spacingXs
                     anchors.rightMargin: UIScale.spacingXs
