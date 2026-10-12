@@ -38,12 +38,21 @@ Item {
         scale: toggleMa.pressed ? 0.85 : 1.0
         color: root.knobColor
 
+        // Centered on the glyph's own ink box, not the font's line box: icon-font glyphs
+        // sit off-center in their advance/ascent, which shows at this size.
+        TextMetrics {
+            id: iconMetrics
+            font: iconText.font
+            text: root.icon
+        }
         Text {
-            anchors.centerIn: parent
+            id: iconText
             visible: root.icon.length > 0
             text: root.icon
             color: root.checked ? root.accentColor : Colors.muted
             font.pixelSize: Math.round(parent.height * 0.55)
+            x: (parent.width - iconMetrics.tightBoundingRect.width) / 2 - iconMetrics.tightBoundingRect.x
+            y: (parent.height - iconMetrics.tightBoundingRect.height) / 2 - iconMetrics.tightBoundingRect.y - baselineOffset
         }
         Behavior on x {
             NumberAnimation {

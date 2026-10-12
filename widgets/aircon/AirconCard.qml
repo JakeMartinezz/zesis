@@ -387,66 +387,103 @@ Item {
             id: more
             property bool open: false
 
-            RowLayout {
+            // One column with no spacing, so the extras' gap can live inside the animated
+            // height instead of popping in/out with the wrapper's visibility.
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: UIScale.spacingSm
-                Text {
-                    text: String.fromCodePoint(0xF0493) // md-cog
-                    color: Colors.textDim
-                    font.pixelSize: Math.round(18 * UIScale.value)
-                }
-                Column {
+                spacing: 0
+
+                RowLayout {
                     Layout.fillWidth: true
-                    spacing: 1
+                    spacing: UIScale.spacingSm
                     Text {
-                        text: I18n.t("aircon.moreTitle")
-                        color: Colors.text
-                        font.pixelSize: UIScale.fontBody
-                        font.weight: Font.DemiBold
-                    }
-                    Text {
-                        visible: !root.compact
-                        text: I18n.t("aircon.moreHint")
+                        text: String.fromCodePoint(0xF0493) // md-cog
                         color: Colors.textDim
-                        font.pixelSize: UIScale.fontCaption
+                        font.pixelSize: Math.round(18 * UIScale.value)
                     }
-                }
-                Text {
-                    text: String.fromCodePoint(0xF0142) // md-chevron_right
-                    color: moreHover.hovered ? Colors.accent : Colors.textDim
-                    font.pixelSize: Math.round(18 * UIScale.value)
-                    rotation: more.open ? 90 : 0
-                    Behavior on rotation {
-                        NumberAnimation {
-                            duration: Anim.fast
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Anim.standard
+                    Column {
+                        Layout.fillWidth: true
+                        spacing: 1
+                        Text {
+                            text: I18n.t("aircon.moreTitle")
+                            color: Colors.text
+                            font.pixelSize: UIScale.fontBody
+                            font.weight: Font.DemiBold
+                        }
+                        Text {
+                            visible: !root.compact
+                            text: I18n.t("aircon.moreHint")
+                            color: Colors.textDim
+                            font.pixelSize: UIScale.fontCaption
                         }
                     }
+                    Text {
+                        text: String.fromCodePoint(0xF0142) // md-chevron_right
+                        color: moreHover.hovered ? Colors.accent : Colors.textDim
+                        font.pixelSize: Math.round(18 * UIScale.value)
+                        rotation: more.open ? 90 : 0
+                        Behavior on rotation {
+                            NumberAnimation {
+                                duration: Anim.fast
+                                easing.type: Easing.BezierSpline
+                                easing.bezierCurve: Anim.standard
+                            }
+                        }
+                    }
+                    HoverHandler {
+                        id: moreHover
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                    TapHandler {
+                        // Curve picked before toggling: a binding on `more.open` would be read
+                    // stale in the same update that starts the height animation.
+                    onTapped: {
+                        moreAnim.easing.bezierCurve = more.open ? Anim.emphasizedAccel : Anim.emphasizedDecel;
+                        moreAnim.duration = more.open ? Anim.medium : Anim.morph; // closing reads better quick
+                        more.open = !more.open;
+                    }
+                    }
                 }
-                HoverHandler {
-                    id: moreHover
-                    cursorShape: Qt.PointingHandCursor
-                }
-                TapHandler {
-                    onTapped: more.open = !more.open
-                }
-            }
 
-            Flow {
-                Layout.fillWidth: true
-                visible: more.open
-                spacing: Math.round(6 * UIScale.value)
-                Repeater {
-                    model: root.svc.extras
-                    delegate: Chip {
-                        id: extra
-                        required property var modelData
-                        tint: root.tint
-                        selected: root.svc.view[modelData.prop] === 1
-                        icon: modelData.icon
-                        label: I18n.t("aircon." + modelData.key)
-                        onClicked: root.svc.toggle(extra.modelData.prop)
+                // Collapse wrapper as in Globe3DPanel, but with Anim's expand/collapse pair
+                // (no overshoot: spatial dips below 0 on close).
+                Item {
+                    id: moreWrapper
+                    Layout.fillWidth: true
+                    implicitHeight: more.open ? UIScale.spacingSm + extrasFlow.implicitHeight : 0
+                    clip: true
+                    Behavior on implicitHeight {
+                        NumberAnimation {
+                            id: moreAnim
+                            duration: Anim.morph
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Anim.emphasizedDecel
+                        }
+                    }
+
+                    Flow {
+                        id: extrasFlow
+                        y: UIScale.spacingSm
+                        width: moreWrapper.width
+                        opacity: more.open ? 1 : 0
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Anim.medium
+                            }
+                        }
+                        spacing: Math.round(6 * UIScale.value)
+                        Repeater {
+                            model: root.svc.extras
+                            delegate: Chip {
+                                id: extra
+                                required property var modelData
+                                tint: root.tint
+                                selected: root.svc.view[modelData.prop] === 1
+                                icon: modelData.icon
+                                label: I18n.t("aircon." + modelData.key)
+                                onClicked: root.svc.toggle(extra.modelData.prop)
+                            }
+                        }
                     }
                 }
             }

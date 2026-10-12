@@ -10,8 +10,14 @@ PopupWindow {
     property Component content
     property bool hasBackground: true
     signal opened
-    // The loaded content, so a popup can size itself to it (null while closed).
-    readonly property Item item: contentLoader.item
+    // For content whose height changes while open: the surface keeps implicitHeight
+    // (pass the most room the content can need) and only the visible frame follows the
+    // content's implicitHeight. Resizing the surface itself instead re-lays the content
+    // out against a stale size on every change, which reads as a jolt. The frame is not
+    // animated here: the content animates its own height and the frame just tracks it
+    // (see docs/qml-patterns.md, never a Behavior on an already-animated value).
+    property bool fitContent: false
+    readonly property real _frameH: root.fitContent && contentLoader.item ? Math.min(root.height, contentLoader.item.implicitHeight) : root.height
 
     anchor.item: anchorItem
     anchor.rect.x: anchorItem.width / 2 - root.implicitWidth / 2
@@ -66,9 +72,22 @@ PopupWindow {
         }
     }
 
+    // Clicks in the unused (transparent) part of a fitContent surface go through.
+    // Explicit rect, not `item: frame`: the frame starts at scale 0 for the open
+    // animation, and a region derived from the item stayed empty, so clicks fell through
+    // and the compositor closed the popup.
+    mask: Region {
+        x: 0
+        y: frame.y
+        width: root.width
+        height: frame.height
+    }
+
     Item {
         id: frame
-        anchors.fill: parent
+        width: parent.width
+        height: root._frameH
+        y: BarConfig.side === "bottom" ? parent.height - height : 0
         scale: 0
         opacity: 0
         transformOrigin: BarConfig.side === "bottom" ? Item.Bottom : Item.Top

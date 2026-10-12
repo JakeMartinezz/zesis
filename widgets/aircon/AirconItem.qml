@@ -108,7 +108,8 @@ Item {
         id: popup
         anchorItem: root
         implicitWidth: Math.round(340 * UIScale.value)
-        implicitHeight: popup.item ? popup.item.implicitHeight : Math.round(600 * UIScale.value)
+        implicitHeight: Math.round(780 * UIScale.value) // room for the card with "more options" open
+        fitContent: true
         content: Component {
             AirconCard {}
         }
