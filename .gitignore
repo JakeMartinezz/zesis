@@ -3,7 +3,4 @@ CLAUDE.md
 .vscode/
 .direnv
 _refs/
-*.qsb
 __pycache__
-hygdata_v*.csv
-/widgets/globe3d/RealStarField.js

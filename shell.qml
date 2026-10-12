@@ -18,7 +18,6 @@ import "widgets/widgethome"
 import "widgets/polkit"
 import "widgets/display"
 import "widgets/calendar"
-import "widgets/diaspora"
 import "widgets/home"
 import "widgets/settings"
 import "widgets/sound"
@@ -37,7 +36,6 @@ Scope {
     // Singletons instantiated at startup for startup-apply logic
     property string _displayInit: DisplayService.monitorName
     property var _calInit: CalendarService.events
-    property bool _locationSharingInit: LocationSharingService.ready
 
     Variants {
         // Empty BarConfig.enabledMonitors = show on every monitor (default).

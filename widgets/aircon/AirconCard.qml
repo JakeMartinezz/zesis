@@ -502,7 +502,7 @@ Item {
                     }
                 }
 
-                // Collapse wrapper as in Globe3DPanel, but with Anim's expand/collapse pair
+                // Collapse wrapper with Anim's expand/collapse pair
                 // (no overshoot: spatial dips below 0 on close).
                 Item {
                     id: moreWrapper

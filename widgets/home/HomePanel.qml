@@ -5,7 +5,6 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../calendar"
-import "../globe3d"
 import "../notifications"
 import "../sysmon"
 import "../user"
@@ -340,7 +339,7 @@ Item {
                             leftPadding: UIScale.spacingSm
                             Layout.topMargin: UIScale.radiusMd
                             Layout.bottomMargin: UIScale.spacingXs
-                            visible: root._devMode && (root.matchesSearch(navResponsiveTestItem.navLabel) || root.matchesSearch(navAssemblyTestItem.navLabel))
+                            visible: root._devMode && root.matchesSearch(navResponsiveTestItem.navLabel)
                         }
 
                         NavItem {
@@ -349,16 +348,6 @@ Item {
                             navLabel: I18n.t("home.navResponsiveTest")
                             navIcon: "󰙨"
                             isNavSelected: root.section === "responsivetest"
-                            visible: root._devMode && root.matchesSearch(navLabel)
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: Math.round(2 * UIScale.value)
-                        }
-                        NavItem {
-                            id: navAssemblyTestItem
-                            navId: "assemblytest"
-                            navLabel: I18n.t("home.navAssemblyTest")
-                            navIcon: "󰙨"
-                            isNavSelected: root.section === "assemblytest"
                             visible: root._devMode && root.matchesSearch(navLabel)
                             Layout.fillWidth: true
                             Layout.bottomMargin: Math.round(2 * UIScale.value)
@@ -431,8 +420,6 @@ Item {
                         return calendarPanelComp;
                     if (root.section === "responsivetest")
                         return responsiveTestComp;
-                    if (root.section === "assemblytest")
-                        return assemblyTestComp;
                     return placeholderComp;
                 }
             }
@@ -456,12 +443,6 @@ Item {
             Component {
                 id: responsiveTestComp
                 ResponsiveTestPanel {}
-            }
-            Component {
-                id: assemblyTestComp
-                Globe3DGate {
-                    panelSource: "AssemblyTest.qml"
-                }
             }
 
             Component {

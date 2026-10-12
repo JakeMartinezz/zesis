@@ -7,8 +7,6 @@
   "weatherDescription": "Current conditions and forecast for your location",
   "sysmonLabel": "System Monitor",
   "sysmonDescription": "Live CPU, memory, and network usage",
-  "globe2dLabel": "Globe",
-  "globe2dDescription": "A rotating 2D map of friends sharing their location",
   "vendingLabel": "Vending Machine",
   "vendingDescription": "A little animated vending machine for your desktop",
   "airconLabel": "Air conditioner",
@@ -24,8 +22,6 @@
   "clear": "Clear",
   "overlay": "Overlay",
   "mask": "Mask",
-  "rotation": "Rotation",
-  "manual": "Manual",
   "widgetConfigMode": "Widget config mode",
   "snap": "Snap",
   "done": "Done"

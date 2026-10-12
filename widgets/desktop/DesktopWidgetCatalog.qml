@@ -6,7 +6,6 @@ import Quickshell
 import "../clock"
 import "../weather"
 import "../sysmon"
-import "../globe2d"
 import "../power"
 import "../aircon"
 import "../../"
@@ -38,12 +37,6 @@ Singleton {
             label: I18n.t("desktop.sysmonLabel"),
             description: I18n.t("desktop.sysmonDescription"),
             component: _sysmonComp
-        },
-        {
-            key: "globe2d",
-            label: I18n.t("desktop.globe2dLabel"),
-            description: I18n.t("desktop.globe2dDescription"),
-            component: _globe2dComp
         },
         {
             key: "vending",
@@ -82,10 +75,6 @@ Singleton {
     Component {
         id: _sysmonComp
         SysMonDesktopWidget {}
-    }
-    Component {
-        id: _globe2dComp
-        Globe2DDesktopWidget {}
     }
     Component {
         id: _vendingComp

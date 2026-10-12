@@ -1,7 +1,6 @@
 {
   self,
   athroisma,
-  congeries,
 }: {
   config,
   lib,
@@ -29,7 +28,7 @@ in {
       type = lib.types.package;
       default = self.packages.${system}.config;
       description = ''
-        The zesis QML source (merged with its compiled shaders) to deploy
+        The zesis QML source to deploy
         as the `zesis` named Quickshell config.
       '';
     };
@@ -47,27 +46,12 @@ in {
       };
     };
 
-    congeries = {
-      enable = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = "Put congeries on QML_IMPORT_PATH, for the 3D globe widget.";
-      };
-      package = lib.mkOption {
-        type = lib.types.package;
-        default = congeries.packages.${system}.default;
-        description = "The congeries package to use.";
-      };
-    };
-
     python = lib.mkOption {
       type = lib.types.package;
       default = pkgs.python3.withPackages (ps: with ps; [icalendar recurring-ical-events]);
       description = ''
         The python3 build to put on the service's PATH.
-        Calendar (icalendar/recurring-ical-events), AirPods battery and the
-        3D globe's starfield generation script all need python3.
-       
+        Calendar (icalendar/recurring-ical-events) and AirPods battery need python3.
       '';
     };
 
@@ -158,14 +142,6 @@ in {
     # without it.
     security.pam.services.quickshell = {};
 
-    # The 3D globe's starfield data (see scripts/ensure_starfield.sh) is
-    # identical for every user, so it's cached once here.
-    # `configPackage` pre-declares widgets/globe3d/RealStarField.js
-    # as a symlink into this directory.
-    systemd.tmpfiles.rules = lib.mkIf cfg.congeries.enable [
-      "d /var/cache/zesis/starfield 1777 root root -"
-    ];
-
     systemd.user.services.zesis = lib.mkIf cfg.systemdService.enable {
       description = "Quickshell (zesis)";
       wantedBy = ["graphical-session.target"];
@@ -184,12 +160,6 @@ in {
         }
         // lib.optionalAttrs (cfg.aircon.envFile != null) {
           ZESIS_AIRCON_ENV = cfg.aircon.envFile;
-        }
-        // lib.optionalAttrs cfg.congeries.enable {
-          QML_IMPORT_PATH = lib.concatStringsSep ":" [
-            "${pkgs.qt6.qtquick3d}/lib/qt-6/qml"
-            "${cfg.congeries.package}/lib/qt-6/qml"
-          ];
         };
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/quickshell -c zesis";

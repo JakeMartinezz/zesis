@@ -4,12 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import "./"
-import "../globe2d"
 import "../../"
 
 // Small WlrLayer.Bottom surface positioned anywhere on screen. Click-through
-// by default, a widget that needs pointer input (currently only the Globe in
-// manual-rotate mode, see _wantsInput below) gets a full-size input region
+// by default, a widget that needs pointer input (see _wantsInput below) gets a full-size input region
 // instead. In config mode this surface hides, DesktopConfigOverlay renders a
 // draggable proxy instead, then writes the new position back to
 // DesktopWidgetStore on drag end.
@@ -62,10 +60,9 @@ PanelWindow {
     color: "transparent"
 
     // Widget-specific opt-in for pointer input, gated on storeKey like the
-    // per-widget settings rows in DesktopConfigOverlay. The Globe in
-    // manual-rotate mode, the Vending Machine (keypad, glass taps, flap,
-    // item press) and the aircon card all need real clicks.
-    readonly property bool _wantsInput: (root.storeKey === "globe2d" && Globe2DSettings.rotateMode === "manual") || root.storeKey === "vending" || root.storeKey === "aircon"
+    // per-widget settings rows in DesktopConfigOverlay. The Vending Machine
+    // (keypad, glass taps, flap, item press) and the aircon card need real clicks.
+    readonly property bool _wantsInput: root.storeKey === "vending" || root.storeKey === "aircon"
 
     // The aircon login form needs typing; OnDemand only takes focus on click.
     WlrLayershell.keyboardFocus: root.storeKey === "aircon" ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
