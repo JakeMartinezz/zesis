@@ -191,55 +191,38 @@ Item {
         enabled: root.svc.online && root.svc.hasState
         opacity: enabled ? 1 : 0.5
 
-        // header: title, offline badge, power
+        // header: title + status, power switch
         RowLayout {
             Layout.fillWidth: true
             spacing: UIScale.spacingSm
-            Text {
-                text: I18n.t("aircon.title")
-                color: Colors.text
-                font.pixelSize: root.compact ? UIScale.fontBody : UIScale.fontSubhead
-                font.weight: Font.DemiBold
-            }
-            Text {
-                visible: !root.svc.online
-                text: I18n.t("aircon.offline")
-                color: Colors.muted
-                font.pixelSize: UIScale.fontCaption
-            }
-            Item {
+            Column {
                 Layout.fillWidth: true
-            }
-            Rectangle {
-                id: powerBtn
-                implicitWidth: Math.round((root.compact ? 32 : 40) * UIScale.value)
-                implicitHeight: implicitWidth
-                radius: width / 2
-                color: root.svc.power ? root.tint : Colors.withAlpha(Colors.text, powerHover.hovered ? 0.12 : 0.06)
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Anim.slow
-                    }
+                spacing: 2
+                Text {
+                    text: I18n.t("aircon.title")
+                    color: Colors.text
+                    font.pixelSize: root.compact ? UIScale.fontSubhead : UIScale.fontTitle
+                    font.weight: Font.DemiBold
                 }
                 Text {
-                    anchors.centerIn: parent
-                    text: String.fromCodePoint(0xF0425) // md-power
-                    color: root.svc.power ? Colors.bg : Colors.text
-                    font.pixelSize: Math.round(parent.width * 0.5)
+                    text: !root.svc.online ? I18n.t("aircon.offline") : !root.svc.power ? I18n.t("aircon.off") : I18n.t("aircon.on") + " · " + I18n.t("aircon." + (root.svc.modeInfo(root.svc.mode)?.key ?? "modeAuto"))
+                    color: Colors.textDim
+                    font.pixelSize: UIScale.fontSmall
                 }
-                HoverHandler {
-                    id: powerHover
-                    cursorShape: Qt.PointingHandCursor
-                }
-                TapHandler {
-                    onTapped: root.svc.toggle("t_power")
-                }
+            }
+            ToggleSwitch {
+                implicitWidth: Math.round((root.compact ? 46 : 58) * UIScale.value)
+                implicitHeight: Math.round((root.compact ? 26 : 32) * UIScale.value)
+                checked: root.svc.power
+                accentColor: root.tint
+                icon: String.fromCodePoint(0xF0425) // md-power
+                onToggled: root.svc.toggle("t_power")
             }
         }
 
         TempDial {
             Layout.alignment: Qt.AlignHCenter
-            diameter: Math.round((root.compact ? 150 : 200) * UIScale.value)
+            diameter: Math.round((root.compact ? 150 : 210) * UIScale.value)
             value: root.svc.targetTemp
             roomTemp: root.svc.roomTemp
             minTemp: root.svc.minTemp
@@ -265,11 +248,17 @@ Item {
             }
         }
 
+        Divider {}
+
+        SectionLabel {
+            text: I18n.t("aircon.modeSection")
+        }
+
         // mode segmented control with a sliding indicator
         Item {
             id: modeRow
             Layout.fillWidth: true
-            implicitHeight: Math.round((root.compact ? 34 : 44) * UIScale.value)
+            implicitHeight: Math.round((root.compact ? 38 : 52) * UIScale.value)
             readonly property int _count: root.svc.modes.length
             readonly property real _cell: width / _count
             readonly property int _selected: {
@@ -282,7 +271,9 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 radius: UIScale.radiusMd
-                color: Colors.withAlpha(Colors.text, 0.05)
+                color: Colors.withAlpha(Colors.text, 0.03)
+                border.color: Colors.withAlpha(Colors.text, 0.06)
+                border.width: 1
             }
             // Animated position follows selection changes only, so open/resize don't slide.
             property real _pos: Math.max(0, _selected)
@@ -301,7 +292,9 @@ Item {
                 width: modeRow._cell - 4
                 height: modeRow.height - 4
                 radius: UIScale.radiusMd - 2
-                color: Colors.withAlpha(root.tint, 0.22)
+                color: Colors.withAlpha(root.tint, 0.18)
+                border.color: Colors.withAlpha(root.tint, 0.5)
+                border.width: 1
             }
             Row {
                 anchors.fill: parent
@@ -321,12 +314,12 @@ Item {
                         }
                         Column {
                             anchors.centerIn: parent
-                            spacing: 1
+                            spacing: 2
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: modeCell.modelData.icon
                                 color: modeCell.index === modeRow._selected ? root.tint : Colors.textDim
-                                font.pixelSize: Math.round((root.compact ? 15 : 18) * UIScale.value)
+                                font.pixelSize: Math.round((root.compact ? 15 : 19) * UIScale.value)
                             }
                             Text {
                                 anchors.horizontalCenter: parent.horizontalCenter
@@ -334,8 +327,8 @@ Item {
                                 width: Math.min(implicitWidth, modeCell.width - 4)
                                 elide: Text.ElideRight
                                 text: I18n.t("aircon." + modeCell.modelData.key)
-                                color: modeCell.index === modeRow._selected ? Colors.text : Colors.textDim
-                                font.pixelSize: UIScale.fontTiny
+                                color: modeCell.index === modeRow._selected ? root.tint : Colors.textDim
+                                font.pixelSize: UIScale.fontSmall
                             }
                         }
                         TapHandler {
@@ -350,69 +343,111 @@ Item {
             }
         }
 
-        // fan: auto chip + 5 rising bars
+        SectionLabel {
+            text: I18n.t("aircon.fanSection")
+        }
+
+        OptionRow {
+            Layout.fillWidth: true
+            readonly property var _values: [root.svc.fanAuto].concat(root.svc.fans.map(f => f.value))
+            model: [I18n.t("aircon.fanAuto")].concat(root.svc.fans.map((f, i) => String(i + 1)))
+            currentIndex: _values.indexOf(root.svc.fan)
+            accentColor: root.tint
+            onActivated: i => root.svc.set({ t_fan_speed: _values[i] })
+        }
+
+        // swing (t_up_down) gets its own row; the other extras live under "more options"
         RowLayout {
             Layout.fillWidth: true
             spacing: UIScale.spacingSm
-            Text {
-                visible: !root.compact
-                text: I18n.t("aircon.fanLabel")
-                color: Colors.textDim
-                font.pixelSize: UIScale.fontSmall
-            }
-            Chip {
-                tint: root.tint
-                selected: root.svc.fan === root.svc.fanAuto
-                label: I18n.t("aircon.fanAuto")
-                onClicked: root.svc.set({ t_fan_speed: root.svc.fanAuto })
-            }
-            Item {
+            Column {
                 Layout.fillWidth: true
-            }
-            Row {
-                spacing: Math.round(4 * UIScale.value)
-                Repeater {
-                    model: root.svc.fans
-                    delegate: Rectangle {
-                        id: bar
-                        required property var modelData
-                        required property int index
-                        readonly property bool lit: root.svc.fan !== root.svc.fanAuto && root.svc.fan >= modelData.value
-                        anchors.bottom: parent.bottom
-                        width: Math.round(8 * UIScale.value)
-                        height: Math.round((8 + index * 4) * UIScale.value)
-                        radius: Math.round(2 * UIScale.value)
-                        color: lit ? root.tint : Colors.withAlpha(Colors.text, 0.12)
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: Anim.fast
-                            }
-                        }
-                        HoverHandler {
-                            cursorShape: Qt.PointingHandCursor
-                        }
-                        TapHandler {
-                            onTapped: root.svc.set({ t_fan_speed: bar.modelData.value })
-                        }
-                    }
+                spacing: 1
+                Text {
+                    text: I18n.t("aircon.swingTitle")
+                    color: Colors.text
+                    font.pixelSize: UIScale.fontBody
+                    font.weight: Font.DemiBold
                 }
+                Text {
+                    visible: !root.compact
+                    text: I18n.t("aircon.swingHint")
+                    color: Colors.textDim
+                    font.pixelSize: UIScale.fontCaption
+                }
+            }
+            ToggleSwitch {
+                checked: root.svc.view.t_up_down === 1
+                accentColor: root.tint
+                onToggled: root.svc.toggle("t_up_down")
             }
         }
 
-        // extras chips
-        Flow {
-            Layout.fillWidth: true
-            spacing: Math.round(6 * UIScale.value)
-            Repeater {
-                model: root.svc.extras
-                delegate: Chip {
-                    id: extra
-                    required property var modelData
-                    tint: root.tint
-                    selected: root.svc.view[modelData.prop] === 1
-                    icon: modelData.icon
-                    label: root.compact ? "" : I18n.t("aircon." + modelData.key)
-                    onClicked: root.svc.toggle(extra.modelData.prop)
+        SettingCard {
+            id: more
+            property bool open: false
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: UIScale.spacingSm
+                Text {
+                    text: String.fromCodePoint(0xF0493) // md-cog
+                    color: Colors.textDim
+                    font.pixelSize: Math.round(18 * UIScale.value)
+                }
+                Column {
+                    Layout.fillWidth: true
+                    spacing: 1
+                    Text {
+                        text: I18n.t("aircon.moreTitle")
+                        color: Colors.text
+                        font.pixelSize: UIScale.fontBody
+                        font.weight: Font.DemiBold
+                    }
+                    Text {
+                        visible: !root.compact
+                        text: I18n.t("aircon.moreHint")
+                        color: Colors.textDim
+                        font.pixelSize: UIScale.fontCaption
+                    }
+                }
+                Text {
+                    text: String.fromCodePoint(0xF0142) // md-chevron_right
+                    color: moreHover.hovered ? Colors.accent : Colors.textDim
+                    font.pixelSize: Math.round(18 * UIScale.value)
+                    rotation: more.open ? 90 : 0
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: Anim.fast
+                            easing.type: Easing.BezierSpline
+                            easing.bezierCurve: Anim.standard
+                        }
+                    }
+                }
+                HoverHandler {
+                    id: moreHover
+                    cursorShape: Qt.PointingHandCursor
+                }
+                TapHandler {
+                    onTapped: more.open = !more.open
+                }
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                visible: more.open
+                spacing: Math.round(6 * UIScale.value)
+                Repeater {
+                    model: root.svc.extras
+                    delegate: Chip {
+                        id: extra
+                        required property var modelData
+                        tint: root.tint
+                        selected: root.svc.view[modelData.prop] === 1
+                        icon: modelData.icon
+                        label: I18n.t("aircon." + modelData.key)
+                        onClicked: root.svc.toggle(extra.modelData.prop)
+                    }
                 }
             }
         }

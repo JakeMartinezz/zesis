@@ -10,6 +10,8 @@ PopupWindow {
     property Component content
     property bool hasBackground: true
     signal opened
+    // The loaded content, so a popup can size itself to it (null while closed).
+    readonly property Item item: contentLoader.item
 
     anchor.item: anchorItem
     anchor.rect.x: anchorItem.width / 2 - root.implicitWidth / 2
@@ -85,6 +87,7 @@ PopupWindow {
         }
 
         Loader {
+            id: contentLoader
             anchors.fill: parent
             active: root.visible
             sourceComponent: root.content

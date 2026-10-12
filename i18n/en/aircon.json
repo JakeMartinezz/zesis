@@ -10,13 +10,11 @@
   "modeDry": "Dry",
   "modeFan": "Fan",
   "modeAuto": "Auto",
-  "fanLabel": "Fan",
   "fanAuto": "Auto",
   "extraEco": "Eco",
   "extraTurbo": "Turbo",
   "extraSleep": "Sleep",
   "extraQuiet": "Quiet",
-  "extraSwing": "Swing",
   "loginTitle": "Connect your ConnectLife account",
   "loginHint": "Stored in your system keyring, never on disk.",
   "email": "Email",
@@ -31,5 +29,13 @@
   "errAuth": "ConnectLife refused the login: %1. Check your password, or accept pending terms in the ConnectLife app.",
   "errNoDevice": "No air conditioner was found on this ConnectLife account.",
   "errCommand": "Command failed: %1",
-  "errStore": "Could not save to the keyring."
+  "errStore": "Could not save to the keyring.",
+  "on": "On",
+  "off": "Off",
+  "modeSection": "MODE",
+  "fanSection": "SPEED",
+  "swingTitle": "Swing",
+  "swingHint": "Louver movement",
+  "moreTitle": "More options",
+  "moreHint": "Eco, Turbo, Sleep and Quiet"
 }

@@ -5,6 +5,9 @@ Item {
     id: root
     property bool checked: false
     property color knobColor: Colors.bg
+    // Optional: track color when on, and a glyph drawn in the knob (e.g. a power icon).
+    property color accentColor: Colors.accent
+    property string icon: ""
     signal toggled
 
     implicitWidth: Math.round(42 * UIScale.value)
@@ -16,7 +19,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: root.checked ? Colors.accent : Colors.surfaceHigh
+        color: root.checked ? root.accentColor : Colors.surfaceHigh
         Behavior on color {
             ColorAnimation {
                 duration: Anim.fast
@@ -34,6 +37,14 @@ Item {
         x: root.checked ? root.width - width - root._margin : root._margin
         scale: toggleMa.pressed ? 0.85 : 1.0
         color: root.knobColor
+
+        Text {
+            anchors.centerIn: parent
+            visible: root.icon.length > 0
+            text: root.icon
+            color: root.checked ? root.accentColor : Colors.muted
+            font.pixelSize: Math.round(parent.height * 0.55)
+        }
         Behavior on x {
             NumberAnimation {
                 duration: Anim.fast

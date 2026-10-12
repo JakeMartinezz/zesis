@@ -36,8 +36,7 @@ Singleton {
         { prop: "t_eco", key: "extraEco", icon: String.fromCodePoint(0xF032A) },        // md-leaf
         { prop: "t_super", key: "extraTurbo", icon: String.fromCodePoint(0xF14DE) },    // md-rocket_launch
         { prop: "t_sleep", key: "extraSleep", icon: String.fromCodePoint(0xF04B2) },    // md-sleep
-        { prop: "t_fan_mute", key: "extraQuiet", icon: String.fromCodePoint(0xF0581) }, // md-volume_off
-        { prop: "t_up_down", key: "extraSwing", icon: String.fromCodePoint(0xF0E79) }   // md-arrow_up_down
+        { prop: "t_fan_mute", key: "extraQuiet", icon: String.fromCodePoint(0xF0581) }  // md-volume_off
     ]
 
     property var props: ({})

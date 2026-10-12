@@ -7,6 +7,7 @@ Item {
     id: root
     property var model: []
     property int currentIndex: -1
+    property color accentColor: Colors.accent // selected cell tint
     signal activated(int index)
 
     implicitHeight: Math.round(32 * UIScale.value)
@@ -25,8 +26,8 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: Math.round(32 * UIScale.value)
                 radius: UIScale.radiusSm
-                color: root.currentIndex === optBtn.index ? Colors.withAlpha(Colors.accent, 0.15) : Colors.surfaceHigh
-                border.color: root.currentIndex === optBtn.index ? Colors.accent : "transparent"
+                color: root.currentIndex === optBtn.index ? Colors.withAlpha(root.accentColor, 0.15) : Colors.surfaceHigh
+                border.color: root.currentIndex === optBtn.index ? root.accentColor : "transparent"
                 border.width: 1
 
                 Text {
