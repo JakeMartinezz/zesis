@@ -19,6 +19,10 @@ Singleton {
     readonly property string fallbackLanguage: "en"
 
     readonly property string _i18nDir: Quickshell.shellDir + "/i18n"
+    // Translation files only change while developing (ZESIS_DEV, set by the dev shell);
+    // deployed they live in the read-only /nix/store, and watching each one cost an
+    // inotify instance per domain per language track.
+    readonly property bool _watchStrings: !!Quickshell.env("ZESIS_DEV")
     readonly property string _configDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/zesis"
     readonly property string _configPath: _configDir + "/locale.json"
 
@@ -123,7 +127,7 @@ Singleton {
     FileView {
         id: manifestView
         path: root._i18nDir + "/manifest.json"
-        watchChanges: true
+        watchChanges: root._watchStrings
         onLoaded: {
             try {
                 root.manifest = JSON.parse(text());
@@ -158,7 +162,7 @@ Singleton {
             id: currentDomainView
             required property string modelData
             path: root._i18nDir + "/" + root.language + "/" + modelData + ".json"
-            watchChanges: true
+            watchChanges: root._watchStrings
             onLoaded: root._mergeCurrent(modelData, text())
             onFileChanged: reload()
         }
@@ -170,7 +174,7 @@ Singleton {
             id: fallbackDomainView
             required property string modelData
             path: root._i18nDir + "/" + root.fallbackLanguage + "/" + modelData + ".json"
-            watchChanges: true
+            watchChanges: root._watchStrings
             onLoaded: root._mergeFallback(modelData, text())
             onFileChanged: reload()
         }

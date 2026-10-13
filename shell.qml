@@ -33,6 +33,11 @@ import "widgets/battery"
 import "widgets/record"
 
 Scope {
+    // Hot reload is for development (ZESIS_DEV, set by the dev shell). The deployed
+    // config sits in the read-only /nix/store, where watching its ~200 directories
+    // only costs inotify watches.
+    Component.onCompleted: Quickshell.watchFiles = !!Quickshell.env("ZESIS_DEV")
+
     // Singletons instantiated at startup for startup-apply logic
     property string _displayInit: DisplayService.monitorName
     property var _calInit: CalendarService.events
