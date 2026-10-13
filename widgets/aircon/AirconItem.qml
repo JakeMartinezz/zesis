@@ -100,7 +100,8 @@ Item {
         }
     }
 
-    AirconHold {
+    ServiceHold {
+        service: AirconService
         active: popup.visible
     }
 

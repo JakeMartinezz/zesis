@@ -9,6 +9,13 @@ Item {
     implicitHeight: Math.round(40 * UIScale.value)
 
     readonly property bool active: popup.visible
+    // Set by SysTray: false while collapsed behind the chevron, so the CPU feed can stop.
+    property bool inRow: true
+
+    ServiceHold {
+        service: SysMonService
+        active: sysinfo.inRow
+    }
 
     MouseArea {
         id: mouseArea

@@ -12,6 +12,18 @@ Singleton {
     readonly property string _configPath: _configDir + "/sysmon.json"
 
     property bool desktopWidgetActive: false
+    // Bar items showing the CPU arc (see SysMonItem.inRow); acquire()/release() via ServiceHold.
+    property int consumers: 0
+    // athroisma only runs while something shows its numbers: a bar item in the row (not
+    // collapsed behind the chevron), the popup, the Home panel section or the desktop widget.
+    readonly property bool _needed: consumers > 0 || popupOpen || panelOpen || desktopWidgetActive
+
+    function acquire() {
+        root.consumers += 1;
+    }
+    function release() {
+        root.consumers = Math.max(0, root.consumers - 1);
+    }
     property bool popupOpen: false
     property bool panelOpen: false
     property int activeTab: 0  // 0=CPU, 1=Memory, 2=GPU, 3=Net, 4=Disk, 5=Settings
@@ -110,7 +122,8 @@ Singleton {
     onPanelOpenChanged: sendRequest()
     onActiveTabChanged: sendRequest()
     onPullRateMsChanged: {
-        proc.write("interval " + pullRateMs + "\n");
+        if (proc.running)
+            proc.write("interval " + pullRateMs + "\n");
         _save();
     }
     onProcLimitChanged: {
@@ -147,6 +160,8 @@ Singleton {
     }
 
     function sendRequest() {
+        if (!proc.running)
+            return;
         var wantMem = desktopWidgetActive;
         var wantGpu = desktopWidgetActive;
         var wantNet = desktopWidgetActive;
@@ -190,9 +205,14 @@ Singleton {
 
     Process {
         id: proc
-        running: true
+        running: root._needed
         stdinEnabled: true
         command: ["athroisma", "cpu"]
+        // A fresh daemon starts with its defaults: resend the rate and what we want.
+        onStarted: {
+            write("interval " + root.pullRateMs + "\n");
+            root.sendRequest();
+        }
         stdout: SplitParser {
             onRead: data => {
                 try {

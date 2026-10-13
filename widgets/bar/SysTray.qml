@@ -320,6 +320,9 @@ Rectangle {
                 }
 
                 onLoaded: {
+                    // Items that only need live data while actually shown expose `inRow`.
+                    if (content.item && "inRow" in content.item)
+                        content.item.inRow = Qt.binding(() => slot._rowVisible);
                     if (!slot.itemData.src) {
                         content.item.icon = slot.itemData.icon ?? "";
                         if (slot.itemData.id === "home") {

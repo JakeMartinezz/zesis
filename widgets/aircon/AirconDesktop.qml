@@ -1,5 +1,6 @@
 import QtQuick
 import "../desktop"
+import "../shared"
 
 // Desktop wrapper: holds the aircon service only while the desktop under it is visible.
 Item {
@@ -15,7 +16,8 @@ Item {
         screen: root.hostScreen
     }
 
-    AirconHold {
+    ServiceHold {
+        service: AirconService
         active: desktop.uncovered
     }
 
