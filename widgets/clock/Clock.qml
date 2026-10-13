@@ -24,16 +24,16 @@ Item {
     property real _colonLevel: 0.85
     on_ColonOnChanged: _colonFade.restart()
 
-    // The blink fades in 4 steps 50ms apart. A NumberAnimation would run at the
+    // The blink fades in 3 steps 50ms apart. A NumberAnimation would run at the
     // monitor refresh rate and redraw the whole bar ~20 times per blink (144 Hz);
-    // stepped, it costs 4 frames and doesn't keep the animation driver awake.
+    // stepped, it costs 3 frames and doesn't keep the animation driver awake.
     Timer {
         id: _colonFade
         interval: 50
         repeat: true
         onTriggered: {
             var target = root._colonOn ? 0.85 : 0.18;
-            var step = (0.85 - 0.18) / 4;
+            var step = (0.85 - 0.18) / 3;
             var next = target > root._colonLevel ? Math.min(target, root._colonLevel + step) : Math.max(target, root._colonLevel - step);
             root._colonLevel = next;
             if (next === target)
