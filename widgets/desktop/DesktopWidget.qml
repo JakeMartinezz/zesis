@@ -38,6 +38,11 @@ PanelWindow {
     readonly property bool _overrideW: _size.w > 0
     readonly property bool _overrideH: _size.h > 0
 
+    screen: {
+        var _ = DesktopWidgetStore._positions;
+        return DesktopWidgetStore.screenFor(DesktopWidgetStore.getScreen(root.storeKey));
+    }
+
     property real _marginLeft: _nx * Math.max(0, screen.width - implicitWidth)
     property real _marginTop: _ny * Math.max(0, screen.height - implicitHeight)
 
@@ -61,11 +66,13 @@ PanelWindow {
 
     // Widget-specific opt-in for pointer input, gated on storeKey like the
     // per-widget settings rows in DesktopConfigOverlay. The Vending Machine
-    // (keypad, glass taps, flap, item press) and the aircon card need real clicks.
-    readonly property bool _wantsInput: root.storeKey === "vending" || root.storeKey === "aircon"
+    // (keypad, glass taps, flap, item press) and the device cards need real clicks.
+    readonly property bool _isDevice: root.storeKey === "aircon" || root.storeKey === "tapo"
+    readonly property bool _wantsInput: root.storeKey === "vending" || root._isDevice
 
-    // The aircon login form needs typing; OnDemand only takes focus on click.
-    WlrLayershell.keyboardFocus: root.storeKey === "aircon" ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    // Device cards have text fields (aircon login, light hex colour); OnDemand only
+    // takes focus on click.
+    WlrLayershell.keyboardFocus: root._isDevice ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     Region {
         id: clickThrough
@@ -93,7 +100,7 @@ PanelWindow {
         sourceComponent: root.content
         width: root._overrideW ? root._size.w : (item?.implicitWidth ?? 0)
         height: root._overrideH ? root._size.h : (item?.implicitHeight ?? 0)
-        // Widgets that care which screen they're on (aircon) expose `hostScreen`.
+        // Widgets that care which screen they're on (device cards) expose `hostScreen`.
         onLoaded: {
             if (item && "hostScreen" in item)
                 item.hostScreen = Qt.binding(() => root.screen);

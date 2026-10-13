@@ -8,6 +8,7 @@ import "../weather"
 import "../sysmon"
 import "../power"
 import "../aircon"
+import "../tapo"
 import "../../"
 
 Singleton {
@@ -49,6 +50,12 @@ Singleton {
             label: I18n.t("desktop.airconLabel"),
             description: I18n.t("desktop.airconDescription"),
             component: _airconComp
+        },
+        {
+            key: "tapo",
+            label: I18n.t("desktop.tapoLabel"),
+            description: I18n.t("desktop.tapoDescription"),
+            component: _tapoComp
         }
     ]
 
@@ -83,6 +90,22 @@ Singleton {
 
     Component {
         id: _airconComp
-        AirconDesktop {}
+        DeviceDesktop {
+            service: AirconService
+            AirconCard {
+                anchors.fill: parent
+                compact: true
+            }
+        }
+    }
+    Component {
+        id: _tapoComp
+        DeviceDesktop {
+            service: TapoService
+            TapoCard {
+                anchors.fill: parent
+                compact: true
+            }
+        }
     }
 }

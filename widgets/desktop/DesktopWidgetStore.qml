@@ -4,6 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../bar"
 
 Singleton {
     id: root
@@ -35,6 +36,50 @@ Singleton {
     readonly property string _configDir: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/zesis"
     readonly property string _path: _configDir + "/desktop-widgets.json"
     readonly property string _bgCacheDir: _configDir + "/bg"
+
+    // Saved monitor name for a widget, "" = default.
+    function getScreen(key) {
+        return _positions[key]?.screen ?? "";
+    }
+
+    function setScreen(key, name) {
+        var copy = Object.assign({}, _positions);
+        copy[key] = Object.assign({}, copy[key] || {
+            nx: 0.5,
+            ny: 0.5
+        }, {
+            screen: name
+        });
+        _positions = copy;
+        _save();
+    }
+
+    // The connected screen with that name; otherwise the first bar monitor, then the
+    // first screen. A widget whose monitor is unplugged shows on the default one
+    // and goes back once it reconnects (its saved name is kept).
+    function screenFor(name) {
+        var all = Quickshell.screens;
+        return all.find(s => s.name === name) ?? all.find(s => BarConfig.enabledMonitors.includes(s.name)) ?? all[0] ?? null;
+    }
+
+    // Proxy being dragged in config mode, in global coordinates, so the overlay on a
+    // neighbouring monitor can draw it as it crosses over: {key, from, x, y, w, h} or null.
+    property var drag: null
+    // Proxy carried over to another monitor: the compositor ends a pointer drag when the
+    // pointer crosses to another output, and after that nothing (not even a Hyprland
+    // release bind) reports the button going up. So past the edge the widget follows the
+    // pointer on whichever overlay has it, and a click places it. {key, offX, offY, w, h} or null.
+    property var carry: null
+    onConfigModeChanged: {
+        carry = null;
+        drag = null;
+    }
+
+    // Whether the bar shows on this screen (same rule as the bar's Variants in shell.qml).
+    function hasBar(screen) {
+        var bars = BarConfig.enabledMonitors;
+        return bars.length === 0 || !Quickshell.screens.some(s => bars.includes(s.name)) || bars.includes(screen?.name);
+    }
 
     function getPos(key) {
         var p = _positions[key];

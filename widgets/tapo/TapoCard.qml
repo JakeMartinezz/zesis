@@ -4,18 +4,20 @@ import QtQuick.Layouts
 import "../shared"
 import "../../"
 
-// Tapo light controls for the bar popup, laid out like AirconCard: header + power
+// Tapo light controls for the bar popup (full) and the desktop widget (compact), laid out like AirconCard: header + power
 // switch, brightness dial, then white temperature or colour. Shows an error panel
 // instead of controls when the light can't be reached with the stored login.
 Item {
     id: root
 
+    property bool compact: false
+
     readonly property var svc: TapoService
     readonly property color tint: svc.power ? svc.lightColor : Colors.muted
     readonly property bool _hardError: svc._blocked
-    readonly property real _pad: UIScale.spacingLg
+    readonly property real _pad: compact ? UIScale.spacingSm : UIScale.spacingLg
 
-    implicitWidth: Math.round(320 * UIScale.value)
+    implicitWidth: Math.round((compact ? 250 : 320) * UIScale.value)
     implicitHeight: (_hardError ? errorCol.implicitHeight : controls.implicitHeight) + _pad * 2
 
     StatusPanel {
@@ -43,11 +45,12 @@ Item {
         visible: !root._hardError
         anchors.fill: parent
         anchors.margins: root._pad
-        spacing: UIScale.spacingMd
+        spacing: root.compact ? UIScale.spacingSm : UIScale.spacingMd
         enabled: root.svc.hasState
-        opacity: enabled ? 1 : 0.5
+        opacity: root.svc.hasState ? 1 : 0.5 // not `enabled`: the config overlay disables the whole card
 
         DeviceHeader {
+            compact: root.compact
             title: root.svc.nickname || I18n.t("tapo.title")
             status: !root.svc.hasState ? I18n.t("tapo.offline") : !root.svc.power ? I18n.t("tapo.off") : I18n.t("tapo.on") + " · " + I18n.t(root.svc.isWhite ? "tapo.white" : "tapo.color")
             checked: root.svc.power
@@ -57,7 +60,7 @@ Item {
 
         ArcDial {
             Layout.alignment: Qt.AlignHCenter
-            diameter: Math.round(210 * UIScale.value)
+            diameter: Math.round((root.compact ? 150 : 210) * UIScale.value)
             value: root.svc.brightness
             minValue: 1
             maxValue: 100

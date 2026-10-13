@@ -24,5 +24,8 @@
   "mask": "Máscara",
   "widgetConfigMode": "Modo de configuração de widgets",
   "snap": "Encaixar",
-  "done": "Concluído"
+  "done": "Concluído",
+  "tapoLabel": "Luz Tapo",
+  "tapoDescription": "Controle sua lâmpada TP-Link Tapo",
+  "clickToPlace": "clique para soltar"
 }

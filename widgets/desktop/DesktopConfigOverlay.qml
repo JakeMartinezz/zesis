@@ -5,14 +5,19 @@ import QtQuick.Dialogs
 import Quickshell
 import Quickshell.Wayland
 import "./"
+import "../wm"
 import "../../"
 
+// One per monitor (see shell.qml), each with the proxies of the widgets on it. Dropping a
+// proxy past the edge onto another monitor moves the widget there.
 PanelWindow {
     id: root
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "zesis:desktop:config"
-    WlrLayershell.keyboardFocus: root._fileDialogOpen ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
+    // Exclusive only on the focused monitor (Escape works right away there); the others
+    // take focus on click, for the size fields.
+    WlrLayershell.keyboardFocus: root._fileDialogOpen ? WlrKeyboardFocus.None : WmService.focusedMonitor?.name === root.screen?.name ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
     anchors {
         top: true
@@ -27,6 +32,28 @@ PanelWindow {
         if (!visible) {
             root.selectedKey = "";
             root._fileDialogOpen = false;
+        }
+    }
+
+    // Catalog, mode label and Snap/Done only where the bar is; the other monitors get
+    // just their widgets' proxies.
+    readonly property bool _chrome: DesktopWidgetStore.hasBar(root.screen)
+
+    // Widget key under a proxy (and under the carried ghost).
+    component KeyLabel: Text {
+        property bool highlighted: false
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.bottom
+        anchors.topMargin: UIScale.spacingXs
+        color: highlighted ? Colors.accent : Colors.textDim
+        font.pixelSize: UIScale.fontTiny
+        font.capitalization: Font.AllUppercase
+        font.letterSpacing: 1
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 100
+            }
         }
     }
 
@@ -49,6 +76,41 @@ PanelWindow {
     // undefined = hidden, a number = draw guide at that coordinate.
     property var _snapGuideX // vertical line (x snap)
     property var _snapGuideY // horizontal line (y snap)
+
+    // Proxy released with its centre past this monitor: move the widget to the monitor
+    // under that point, at the same spot relative to it. Returns true when moved.
+    function _dropOnOtherScreen(proxy) {
+        var gx = root.screen.x + proxy.x + proxy.width / 2;
+        var gy = root.screen.y + proxy.y + proxy.height / 2;
+        var target = Quickshell.screens.find(s => gx >= s.x && gx < s.x + s.width && gy >= s.y && gy < s.y + s.height);
+        if (!target || target === root.screen)
+            return false;
+        DesktopWidgetStore.setScreen(proxy.wKey, target.name);
+        DesktopWidgetStore.setPos(proxy.wKey, (gx - target.x - proxy.width / 2) / Math.max(1, target.width - proxy.width), (gy - target.y - proxy.height / 2) / Math.max(1, target.height - proxy.height));
+        return true;
+    }
+
+    // The other monitor right past this one's edge at scene point p, if p is on the edge.
+    function _neighbourAt(p) {
+        var edge = 3, out = 8;
+        var dx = p.x <= edge ? -out : p.x >= root.width - 1 - edge ? out : 0;
+        var dy = p.y <= edge ? -out : p.y >= root.height - 1 - edge ? out : 0;
+        if (dx === 0 && dy === 0)
+            return null;
+        var gx = root.screen.x + p.x + dx, gy = root.screen.y + p.y + dy;
+        return Quickshell.screens.find(s => s !== root.screen && gx >= s.x && gx < s.x + s.width && gy >= s.y && gy < s.y + s.height) ?? null;
+    }
+
+    // Places the carried widget where it's shown on this monitor.
+    function _dropCarry() {
+        var c = DesktopWidgetStore.carry, d = DesktopWidgetStore.drag;
+        if (!c || !d)
+            return;
+        DesktopWidgetStore.setScreen(c.key, root.screen.name);
+        DesktopWidgetStore.setPos(c.key, (d.x - root.screen.x) / Math.max(1, root.width - c.w), (d.y - root.screen.y) / Math.max(1, root.height - c.h));
+        DesktopWidgetStore.carry = null;
+        DesktopWidgetStore.drag = null;
+    }
 
     // Returns { x, y, guideX, guideY } where guide* may be undefined.
     function _computeSnap(activeProxy, rawX, rawY) {
@@ -87,7 +149,7 @@ PanelWindow {
 
         for (var i = 0; i < widgetRepeater.count; i++) {
             var o = widgetRepeater.itemAt(i);
-            if (o === null || o === activeProxy)
+            if (o === null || o === activeProxy || !o.visible)
                 continue;
             var oX = o.x, oY = o.y, oW = o.width, oH = o.height;
 
@@ -186,6 +248,17 @@ PanelWindow {
 
             readonly property string wKey: modelData.key
             readonly property bool _selected: root.selectedKey === proxy.wKey
+            readonly property bool _here: {
+                var _ = DesktopWidgetStore._positions;
+                return DesktopWidgetStore.screenFor(DesktopWidgetStore.getScreen(proxy.wKey)) === root.screen;
+            }
+            visible: _here && DesktopWidgetStore.carry?.key !== wKey
+            // Shown again after another overlay moved it or a carry ended: take the stored spot.
+            onVisibleChanged: if (visible) {
+                var pos = DesktopWidgetStore.getPos(wKey);
+                _nx = pos.nx;
+                _ny = pos.ny;
+            }
             property real _nx: DesktopWidgetStore.getPos(wKey).nx
             property real _ny: DesktopWidgetStore.getPos(wKey).ny
 
@@ -290,6 +363,10 @@ PanelWindow {
             Loader {
                 id: proxyContent
                 anchors.centerIn: parent
+                // A preview only: clicks select/drag the proxy instead of working the
+                // widget's own controls (device cards would send commands).
+                enabled: false
+                active: proxy._here // the other monitors' overlays don't build it
                 sourceComponent: proxy.modelData.component
                 width: proxy._overrideW ? proxy._size.w : (item?.implicitWidth ?? 0)
                 height: proxy._overrideH ? proxy._size.h : (item?.implicitHeight ?? 0)
@@ -302,19 +379,37 @@ PanelWindow {
 
                 property point _startScene: Qt.point(0, 0)
                 property point _startPos: Qt.point(0, 0)
+                property point _lastScene: Qt.point(0, 0)
 
                 onActiveChanged: {
                     if (active) {
                         dragger._startScene = dragger.centroid.scenePosition;
+                        dragger._lastScene = dragger._startScene;
                         dragger._startPos = Qt.point(proxy.x, proxy.y);
                     } else {
                         root._snapGuideX = undefined;
                         root._snapGuideY = undefined;
-                        var rW = Math.max(1, root.width - proxy.width);
-                        var rH = Math.max(1, root.height - proxy.height);
-                        proxy._nx = Math.max(0.0, Math.min(1.0, proxy.x / rW));
-                        proxy._ny = Math.max(0.0, Math.min(1.0, proxy.y / rH));
-                        DesktopWidgetStore.setPos(proxy.wKey, proxy._nx, proxy._ny);
+                        // Ended at the edge next to another monitor: the pointer crossed
+                        // over (the compositor ended the drag), so hand it to the carry.
+                        var p = dragger._lastScene;
+                        if (root._neighbourAt(p)) {
+                            DesktopWidgetStore.carry = {
+                                key: proxy.wKey,
+                                offX: p.x - proxy.x,
+                                offY: p.y - proxy.y,
+                                w: proxy.width,
+                                h: proxy.height
+                            };
+                        } else if (!root._dropOnOtherScreen(proxy)) {
+                            DesktopWidgetStore.drag = null;
+                            var rW = Math.max(1, root.width - proxy.width);
+                            var rH = Math.max(1, root.height - proxy.height);
+                            proxy._nx = Math.max(0.0, Math.min(1.0, proxy.x / rW));
+                            proxy._ny = Math.max(0.0, Math.min(1.0, proxy.y / rH));
+                            DesktopWidgetStore.setPos(proxy.wKey, proxy._nx, proxy._ny);
+                        } else {
+                            DesktopWidgetStore.drag = null;
+                        }
                         proxy.x = Qt.binding(() => proxy._nx * Math.max(1, root.width - proxy.width));
                         proxy.y = Qt.binding(() => proxy._ny * Math.max(1, root.height - proxy.height));
                     }
@@ -323,9 +418,13 @@ PanelWindow {
                 onCentroidChanged: {
                     if (!dragger.active)
                         return;
+                    dragger._lastScene = dragger.centroid.scenePosition;
                     var rawX = dragger._startPos.x + (dragger.centroid.scenePosition.x - dragger._startScene.x);
                     var rawY = dragger._startPos.y + (dragger.centroid.scenePosition.y - dragger._startScene.y);
-                    if (root.snapEnabled) {
+                    // No snapping once the centre leaves this monitor: it's heading elsewhere.
+                    var cx = rawX + proxy.width / 2, cy = rawY + proxy.height / 2;
+                    var inside = cx >= 0 && cx < root.width && cy >= 0 && cy < root.height;
+                    if (root.snapEnabled && inside) {
                         var s = root._computeSnap(proxy, rawX, rawY);
                         proxy.x = s.x;
                         proxy.y = s.y;
@@ -337,6 +436,14 @@ PanelWindow {
                         root._snapGuideX = undefined;
                         root._snapGuideY = undefined;
                     }
+                    DesktopWidgetStore.drag = {
+                        key: proxy.wKey,
+                        from: root.screen,
+                        x: root.screen.x + proxy.x,
+                        y: root.screen.y + proxy.y,
+                        w: proxy.width,
+                        h: proxy.height
+                    };
                 }
             }
 
@@ -362,21 +469,9 @@ PanelWindow {
                 }
             }
 
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.bottom
-                anchors.topMargin: UIScale.spacingXs
+            KeyLabel {
                 text: proxy.wKey
-                color: proxy._selected ? Colors.accent : Colors.textDim
-                font.pixelSize: UIScale.fontTiny
-                font.capitalization: Font.AllUppercase
-                font.letterSpacing: 1
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 100
-                    }
-                }
+                highlighted: proxy._selected
             }
 
             // Resize handles: 4 corner grabs (width + height) + 4 edge grabs
@@ -496,11 +591,13 @@ PanelWindow {
                 }
             }
 
-            // Per-widget settings card, appears below the proxy when selected.
+            // Per-widget settings card, appears below the proxy when selected; above it
+            // when it would run off the bottom, and kept inside the screen sideways.
             Loader {
                 active: proxy._selected
-                anchors.horizontalCenter: parent.horizontalCenter
-                y: proxy.height + Math.round(UIScale.spacingSm) + UIScale.fontTiny + UIScale.spacingXs
+                readonly property real _below: proxy.height + Math.round(UIScale.spacingSm) + UIScale.fontTiny + UIScale.spacingXs
+                x: Math.max(-proxy.x, Math.min(root.width - proxy.x - width, (proxy.width - width) / 2))
+                y: proxy.y + _below + height > root.height ? -height - Math.round(UIScale.spacingSm) : _below
 
                 sourceComponent: Rectangle {
                     radius: UIScale.radiusSm
@@ -1023,6 +1120,61 @@ PanelWindow {
         }
     }
 
+    // Carry: follows the pointer on this monitor; a click places it (see
+    // DesktopWidgetStore.carry for why not the release).
+    MouseArea {
+        anchors.fill: parent
+        z: 30
+        enabled: DesktopWidgetStore.carry !== null
+        hoverEnabled: true
+        onPositionChanged: mouse => {
+            var c = DesktopWidgetStore.carry;
+            if (!c)
+                return;
+            DesktopWidgetStore.drag = {
+                key: c.key,
+                from: null,
+                x: root.screen.x + mouse.x - c.offX,
+                y: root.screen.y + mouse.y - c.offY,
+                w: c.w,
+                h: c.h
+            };
+        }
+        onPressed: root._dropCarry()
+    }
+
+    // A proxy dragged in from another monitor's overlay: the widget drawn where the
+    // pointer has it, so the drag reads as one motion across the gap between surfaces.
+    Item {
+        id: ghost
+        readonly property var _d: DesktopWidgetStore.drag
+        readonly property bool _show: _d !== null && _d.from !== root.screen && _d.x < root.screen.x + root.width && _d.x + _d.w > root.screen.x && _d.y < root.screen.y + root.height && _d.y + _d.h > root.screen.y
+        visible: _show
+        x: _show ? _d.x - root.screen.x : 0
+        y: _show ? _d.y - root.screen.y : 0
+        width: _show ? _d.w : 0
+        height: _show ? _d.h : 0
+        z: 20
+
+        Loader {
+            anchors.centerIn: parent
+            enabled: false
+            active: ghost._show
+            sourceComponent: ghost._show ? DesktopWidgetCatalog.componentFor(ghost._d.key) : null
+        }
+        Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+            border.color: Colors.accent
+            border.width: Math.round(2 * UIScale.value)
+            radius: UIScale.radiusSm
+        }
+        KeyLabel {
+            text: !ghost._show ? "" : DesktopWidgetStore.carry ? ghost._d.key + " · " + I18n.t("desktop.clickToPlace") : ghost._d.key
+            highlighted: true
+        }
+    }
+
     // Alignment guides (drawn above proxies)
     Rectangle {
         visible: root._snapGuideX !== undefined
@@ -1046,6 +1198,7 @@ PanelWindow {
 
     // Widget catalog panel, left side
     Column {
+        visible: root._chrome
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.margins: Math.round(UIScale.spacingLg)
@@ -1059,7 +1212,14 @@ PanelWindow {
                 required property var modelData
                 required property int index
 
-                property bool _on: DesktopWidgetStore.isEnabled(catalogRow.modelData.key)
+                readonly property bool _enabled: DesktopWidgetStore.isEnabled(catalogRow.modelData.key)
+                // On another monitor: still on (x turns it off); the label names the monitor.
+                readonly property string _otherScreen: {
+                    var _ = DesktopWidgetStore._positions;
+                    var sc = DesktopWidgetStore.screenFor(DesktopWidgetStore.getScreen(catalogRow.modelData.key));
+                    return _enabled && sc && sc !== root.screen ? sc.name : "";
+                }
+                property bool _on: _enabled
 
                 implicitWidth: catalogRowContent.implicitWidth + Math.round(UIScale.spacingMd * 2)
                 implicitHeight: catalogRowContent.implicitHeight + Math.round(UIScale.spacingSm * 2)
@@ -1079,7 +1239,7 @@ PanelWindow {
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: catalogRow.modelData.label
+                        text: catalogRow.modelData.label + (catalogRow._otherScreen ? " · " + catalogRow._otherScreen : "")
                         color: catalogRow._on ? Colors.accent : Colors.textDim
                         font.pixelSize: UIScale.fontSmall
 
@@ -1108,10 +1268,15 @@ PanelWindow {
                 HoverHandler {}
                 TapHandler {
                     onTapped: {
-                        if (catalogRow._on)
-                            DesktopWidgetStore.disableWidget(catalogRow.modelData.key);
-                        else
-                            DesktopWidgetStore.enableWidget(catalogRow.modelData.key);
+                        var key = catalogRow.modelData.key;
+                        if (catalogRow._on) {
+                            DesktopWidgetStore.disableWidget(key);
+                            return;
+                        }
+                        // Set before enabling so the widget is created on this monitor (to move
+                        // one that's on, drag it).
+                        DesktopWidgetStore.setScreen(key, root.screen.name);
+                        DesktopWidgetStore.enableWidget(key);
                     }
                 }
             }
@@ -1120,6 +1285,7 @@ PanelWindow {
 
     // HUD mode label, top centre
     Rectangle {
+        visible: root._chrome
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: Math.round(UIScale.spacingLg)
@@ -1139,6 +1305,7 @@ PanelWindow {
 
     // Controls, top right
     Row {
+        visible: root._chrome
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: Math.round(UIScale.spacingLg)

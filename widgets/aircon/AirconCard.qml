@@ -102,7 +102,7 @@ Item {
         anchors.margins: root._pad
         spacing: root.compact ? UIScale.spacingSm : UIScale.spacingMd
         enabled: root.svc.online && root.svc.hasState
-        opacity: enabled ? 1 : 0.5
+        opacity: root.svc.online && root.svc.hasState ? 1 : 0.5 // not `enabled`: the config overlay disables the whole card
 
         DeviceHeader {
             compact: root.compact

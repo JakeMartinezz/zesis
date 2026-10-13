@@ -371,10 +371,18 @@ Scope {
         }
     }
 
-    DesktopConfigOverlay {}
+    Variants {
+        model: Quickshell.screens
+        delegate: DesktopConfigOverlay {
+            required property ShellScreen modelData
+            screen: modelData
+        }
+    }
 
     Instantiator {
-        model: DesktopWidgetStore.enabledKeys
+        // Waits for the bar config: a widget's default monitor is the first bar monitor,
+        // and creating it earlier maps it on another monitor first.
+        model: BarConfig.ready ? DesktopWidgetStore.enabledKeys : []
         delegate: DesktopWidget {
             required property string modelData
             storeKey: modelData

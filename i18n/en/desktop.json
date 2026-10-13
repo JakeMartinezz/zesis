@@ -24,5 +24,8 @@
   "mask": "Mask",
   "widgetConfigMode": "Widget config mode",
   "snap": "Snap",
-  "done": "Done"
+  "done": "Done",
+  "tapoLabel": "Tapo light",
+  "tapoDescription": "Control your TP-Link Tapo light",
+  "clickToPlace": "click to place"
 }
