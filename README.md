@@ -65,6 +65,7 @@ Nothing below is required to get a working bar, each of these lights up one extr
 | [`icalendar`](https://pypi.org/project/icalendar/) + [`recurring-ical-events`](https://pypi.org/project/recurring-ical-events/) (python3 packages) | Calendar widget (`.ics` files, including recurring events) |
 | `magick` | Wallpaper thumbnail previews |
 | `openssl` + `secret-tool` (libsecret) | Air conditioner widget for ConnectLife/Hisense units (talks to the cloud directly; `openssl` signs each request). The NixOS module ships both in `batteriesIncluded`; credentials are stored in your Secret Service keyring, or in `~/.config/zesis/aircon.env` (`CL_USER=`, `CL_PASS=`, `chmod 600`) as a fallback; the NixOS option `services.zesis.aircon.envFile` points it elsewhere (keep it outside your flake). |
+| `curl` + `openssl` | Tapo light widget (L530-style bulbs, talks to the bulb on your LAN over KLAP; turn on *Third-Party Compatibility* in the Tapo app). Put `TAPO_USER=`, `TAPO_PASS=` (your TP-Link account) and `TAPO_HOSTS=` (the bulb's IP) in `~/.config/zesis/tapo.env` (`chmod 600`), or point `services.zesis.tapo.envFile` at it. The keyring (`secret-tool store service tapo key user`/`key pass`) works too, for the login only. |
 
 ## Setup
 

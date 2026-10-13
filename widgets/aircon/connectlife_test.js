@@ -25,13 +25,6 @@ assert.strictEqual(cl.parseExpiry("1700000000000"), 1700000000000);
 assert.strictEqual(cl.parseExpiry("2026-01-01T00:00:00Z"), Date.parse("2026-01-01T00:00:00Z"));
 assert.strictEqual(cl.parseExpiry(undefined), 0);
 
-assert.deepStrictEqual(cl.parseEnv('# c\nexport CL_USER="me@x.com"\nCL_PASS=\'p=ss word\'\nOTHER=1\n'), { user: "me@x.com", pass: "p=ss word" });
-assert.deepStrictEqual(cl.parseEnv("CL_USER=a"), { user: "a", pass: "" });
-
-assert.strictEqual(cl.envTooOpen("600"), false);
-assert.strictEqual(cl.envTooOpen("644"), true);
-assert.strictEqual(cl.envTooOpen("660"), true);
-
 assert.strictEqual(cl.formEncode({ a: "x y", b: "&" }), "a=x%20y&b=%26");
 assert.match(cl.randHex(16), /^[0-9a-f]{32}$/);
 

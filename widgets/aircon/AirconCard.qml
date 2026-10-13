@@ -20,109 +20,22 @@ Item {
     implicitWidth: Math.round((compact ? 250 : 320) * UIScale.value)
     implicitHeight: (_needsLogin ? loginCol.implicitHeight : _hardError ? errorCol.implicitHeight : controls.implicitHeight) + _pad * 2
 
-    // Selectable pill shared by the fan "auto" button and the extras.
-    component Chip: Rectangle {
-        id: chip
-        property color tint: Colors.accent
-        property bool selected: false
-        property string icon: ""
-        property string label: ""
-        signal clicked
-
-        implicitWidth: chipRow.implicitWidth + UIScale.spacingMd
-        implicitHeight: Math.round(26 * UIScale.value)
-        radius: height / 2
-        color: selected ? Colors.withAlpha(tint, 0.22) : Colors.withAlpha(Colors.text, chipHover.hovered ? 0.08 : 0.05)
-        border.color: selected ? Colors.withAlpha(tint, 0.5) : "transparent"
-        border.width: 1
-        Behavior on color {
-            ColorAnimation {
-                duration: Anim.fast
-            }
-        }
-        Row {
-            id: chipRow
-            anchors.centerIn: parent
-            spacing: Math.round(4 * UIScale.value)
-            Text {
-                visible: chip.icon.length > 0
-                text: chip.icon
-                color: chip.selected ? chip.tint : Colors.textDim
-                font.pixelSize: UIScale.fontSmall
-            }
-            Text {
-                visible: chip.label.length > 0
-                text: chip.label
-                color: chip.selected ? Colors.text : Colors.textDim
-                font.pixelSize: UIScale.fontSmall
-            }
-        }
-        HoverHandler {
-            id: chipHover
-            cursorShape: Qt.PointingHandCursor
-        }
-        TapHandler {
-            onTapped: chip.clicked()
-        }
-    }
-
-    // unlock() is async: retry only once it has finished
-    property bool _awaitingUnlock: false
-    Connections {
-        target: KeychainService
-        function onUnlockingChanged() {
-            if (!KeychainService.unlocking && root._awaitingUnlock) {
-                root._awaitingUnlock = false;
-                root.svc.retry();
-            }
-        }
-    }
-
     // ---- error panel ----
-    ColumnLayout {
+    StatusPanel {
         id: errorCol
         visible: root._hardError
         anchors.fill: parent
         anchors.margins: root._pad
-        spacing: UIScale.spacingMd
-
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: AirconService.acIcon
-            color: Colors.muted
-            font.pixelSize: Math.round(36 * UIScale.value)
-        }
-        Text {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            horizontalAlignment: Text.AlignHCenter
-            color: Colors.text
-            font.pixelSize: UIScale.fontBody
-            text: ({
-                    no_openssl: I18n.t("aircon.errNoOpenssl"),
-                    no_keyring: I18n.t("aircon.errNoKeyring"),
-                    no_device: I18n.t("aircon.errNoDevice"),
-                    locked: I18n.t("aircon.errLocked"),
-                    env_perms: I18n.t("aircon.errEnvPerms", [root.svc.errorMessage])
-                })[root.svc.errorCode] ?? ""
-        }
-        RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: UIScale.spacingSm
-            ActionButton {
-                visible: root.svc.errorCode === "locked"
-                label: I18n.t("aircon.unlock")
-                onActivated: {
-                    root._awaitingUnlock = true;
-                    KeychainService.unlock();
-                }
-            }
-            ActionButton {
-                label: I18n.t("aircon.retry")
-                ghost: true
-                onActivated: root.svc.retry()
-            }
-        }
+        icon: AirconService.acIcon
+        message: ({
+                no_openssl: I18n.t("common.errNoOpenssl"),
+                no_keyring: I18n.t("aircon.errNoKeyring"),
+                no_device: I18n.t("aircon.errNoDevice"),
+                locked: I18n.t("common.errLocked"),
+                env_perms: I18n.t("common.errEnvPerms", [root.svc.errorMessage])
+            })[root.svc.errorCode] ?? ""
+        showUnlock: root.svc.errorCode === "locked"
+        onRetry: root.svc.retry()
     }
 
     // ---- login ----
@@ -191,42 +104,22 @@ Item {
         enabled: root.svc.online && root.svc.hasState
         opacity: enabled ? 1 : 0.5
 
-        // header: title + status, power switch
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: UIScale.spacingSm
-            Column {
-                Layout.fillWidth: true
-                spacing: 2
-                Text {
-                    text: I18n.t("aircon.title")
-                    color: Colors.text
-                    font.pixelSize: root.compact ? UIScale.fontSubhead : UIScale.fontTitle
-                    font.weight: Font.DemiBold
-                }
-                Text {
-                    text: !root.svc.online ? I18n.t("aircon.offline") : !root.svc.power ? I18n.t("aircon.off") : I18n.t("aircon.on") + " · " + I18n.t("aircon." + (root.svc.modeInfo(root.svc.mode)?.key ?? "modeAuto"))
-                    color: Colors.textDim
-                    font.pixelSize: UIScale.fontSmall
-                }
-            }
-            ToggleSwitch {
-                implicitWidth: Math.round((root.compact ? 46 : 58) * UIScale.value)
-                implicitHeight: Math.round((root.compact ? 26 : 32) * UIScale.value)
-                checked: root.svc.power
-                accentColor: root.tint
-                icon: String.fromCodePoint(0xF0425) // md-power
-                onToggled: root.svc.toggle("t_power")
-            }
+        DeviceHeader {
+            compact: root.compact
+            title: I18n.t("aircon.title")
+            status: !root.svc.online ? I18n.t("aircon.offline") : !root.svc.power ? I18n.t("aircon.off") : I18n.t("aircon.on") + " · " + I18n.t("aircon." + (root.svc.modeInfo(root.svc.mode)?.key ?? "modeAuto"))
+            checked: root.svc.power
+            accentColor: root.tint
+            onToggled: root.svc.toggle("t_power")
         }
 
-        TempDial {
+        ArcDial {
             Layout.alignment: Qt.AlignHCenter
             diameter: Math.round((root.compact ? 150 : 210) * UIScale.value)
             value: root.svc.targetTemp
-            roomTemp: root.svc.roomTemp
-            minTemp: root.svc.minTemp
-            maxTemp: root.svc.maxTemp
+            caption: root.svc.roomTemp > 0 ? I18n.t("aircon.room", [root.svc.roomTemp]) : ""
+            minValue: root.svc.minTemp
+            maxValue: root.svc.maxTemp
             accentColor: root.tint
             active: root.svc.power
             countdown: root.svc.countdown

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../shared"
 import "connectlife.js" as CL
 
 // Talks to the ConnectLife cloud directly (XMLHttpRequest) and emits the same messages
@@ -312,74 +313,38 @@ QtObject {
 
     // ---- credentials -----------------------------------------------------------------
 
-    // Keyring first, then the env file ($ZESIS_AIRCON_ENV or ~/.config/zesis/aircon.env).
+    property CredentialSource _creds: CredentialSource {
+        keyringService: "connectlife"
+        envPathVar: "ZESIS_AIRCON_ENV"
+        envFileName: "aircon.env"
+        userVar: "CL_USER"
+        passVar: "CL_PASS"
+    }
+
     function _credentials(gen, cb) {
         if (root._user !== "" && root._pass !== "")
             return cb();
-        var lookup = key => ["timeout", "30", "secret-tool", "lookup", "service", "connectlife", "key", key];
-        root._run(gen, lookup("user"), null, function (c1, user, e1) {
-            root._run(gen, lookup("pass"), null, function (c2, pass, e2) {
-                var keyringCode = "no_credentials";
-                if (c1 === 124 || c2 === 124)
-                    keyringCode = "locked";
-                else if (c1 === 127 || c2 === 127 || (c1 !== 0 && e1.trim() !== ""))
-                    keyringCode = "no_keyring"; // missing secret-tool, or no Secret Service
-                if (user.trim() !== "" && pass.trim() !== "") {
-                    root._user = user.trim();
-                    root._pass = pass.trim();
-                    return cb();
-                }
-                root._envFile(gen, keyringCode, cb);
-            });
-        });
-    }
-
-    function _envFile(gen, keyringCode, cb) {
-        var path = Quickshell.env("ZESIS_AIRCON_ENV") || ((Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/zesis/aircon.env");
-        root._run(gen, ["stat", "-c", "%a", "--", path], null, function (code, mode) {
-            if (code !== 0)
-                return root._fail(gen, keyringCode);
-            if (CL.envTooOpen(mode.trim()))
-                return root._fail(gen, "env_perms", path);
-            root._run(gen, ["cat", "--", path], null, function (c2, text) {
-                if (c2 !== 0)
-                    return root._fail(gen, "env_perms", path); // e.g. still owned by root
-                var creds = CL.parseEnv(text);
-                if (!creds.user || !creds.pass)
-                    return root._fail(gen, keyringCode);
-                root._user = creds.user;
-                root._pass = creds.pass;
-                cb();
-            });
+        root._creds.load(function (err, c) {
+            if (gen !== root._gen)
+                return;
+            if (err)
+                return root._fail(gen, err.code, err.message);
+            root._user = c.user;
+            root._pass = c.pass;
+            cb();
         });
     }
 
     // ---- plumbing --------------------------------------------------------------------
 
-    // Runs a short-lived command; stdin (if given) is written then closed, so secrets and
-    // tokens never show up in argv.
+    property ProcessRunner _runner: ProcessRunner {}
+
+    // Callbacks from a run that stop() has since ended are dropped.
     function _run(gen, command, stdinText, cb) {
-        var p = _procComp.createObject(root, { command: command, stdinEnabled: stdinText !== null });
-        p.started.connect(function () {
-            if (stdinText !== null) {
-                p.write(stdinText);
-                p.stdinEnabled = false;
-            }
-        });
-        p.exited.connect(function (code) {
-            var out = p.stdout.text, err = p.stderr.text;
-            p.destroy();
+        root._runner.run(command, stdinText, function (code, out, err) {
             if (gen === root._gen)
                 cb(code, out, err);
         });
-        p.running = true;
-    }
-
-    property Component _procComp: Component {
-        Process {
-            stdout: StdioCollector {}
-            stderr: StdioCollector {}
-        }
     }
 
     // opts: {form}, {json} or {query}. Calls back (err, parsedJson); err = {code, message}.

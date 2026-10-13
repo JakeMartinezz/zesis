@@ -3,15 +3,19 @@ import QtQuick
 import QtQuick.Shapes
 import "../../"
 
-// 270° temperature arc with a thin countdown ring around it. Never writes `value`
-// itself: dragging and the wheel show a local preview and emit `committed` once.
+// 270° value arc (temperature, brightness...) with an optional thin countdown ring
+// around it. Never writes `value` itself: dragging and the wheel show a local preview
+// and emit `committed` once.
 Item {
     id: root
 
     property int value: 24
-    property int roomTemp: 0
-    property int minTemp: 16
-    property int maxTemp: 32
+    property int minValue: 16
+    property int maxValue: 32
+    property int step: 1
+    property string unit: "°"
+    property string caption: "" // small line under the value, hidden when empty
+    property bool showRing: true
     property color accentColor: Colors.accent
     property bool active: true
     property real countdown: 0
@@ -34,7 +38,7 @@ Item {
         }
     }
     readonly property int _shown: _editing ? _preview : value
-    readonly property real _frac: (Math.max(minTemp, Math.min(maxTemp, _shown)) - minTemp) / (maxTemp - minTemp)
+    readonly property real _frac: (Math.max(minValue, Math.min(maxValue, _shown)) - minValue) / (maxValue - minValue)
 
     implicitWidth: diameter
     implicitHeight: diameter
@@ -44,7 +48,7 @@ Item {
         var rel = (deg - _start + 720) % 360;
         if (rel > _sweep)
             rel = rel > _sweep + (360 - _sweep) / 2 ? 0 : _sweep;
-        return Math.round(minTemp + rel / _sweep * (maxTemp - minTemp));
+        return Math.round(minValue + rel / _sweep * (maxValue - minValue));
     }
 
     Shape {
@@ -54,7 +58,7 @@ Item {
 
         // countdown ring: drains as the next refresh approaches
         ShapePath {
-            strokeColor: Colors.withAlpha(root.accentColor, root.active ? 0.35 : 0.12)
+            strokeColor: root.showRing ? Colors.withAlpha(root.accentColor, root.active ? 0.35 : 0.12) : "transparent"
             strokeWidth: Math.max(1, Math.round(2 * UIScale.value))
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap
@@ -119,7 +123,7 @@ Item {
         anchors.centerIn: parent
         spacing: UIScale.spacingXs
 
-        // Only the digits count for centering; the degree sign hangs off their right edge.
+        // Only the digits count for centering; the unit hangs off their right edge.
         Item {
             anchors.horizontalCenter: parent.horizontalCenter
             implicitWidth: tempText.implicitWidth
@@ -129,13 +133,14 @@ Item {
                 id: tempText
                 text: root._shown
                 color: root.active ? Colors.text : Colors.muted
-                font.pixelSize: Math.round(root.diameter * 0.24)
+                // three digits (100%) shrink so the hanging unit stays inside the arc
+                font.pixelSize: Math.round(root.diameter * (String(root._shown).length > 2 ? 0.19 : 0.24))
                 font.weight: Font.DemiBold
             }
             Text {
                 anchors.left: tempText.right
                 anchors.top: tempText.top
-                text: "°"
+                text: root.unit
                 color: tempText.color
                 font.pixelSize: Math.round(tempText.font.pixelSize * 0.6)
                 font.weight: Font.DemiBold
@@ -143,8 +148,8 @@ Item {
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: root.roomTemp > 0
-            text: I18n.t("aircon.room", [root.roomTemp])
+            visible: root.caption !== ""
+            text: root.caption
             color: Colors.textDim
             font.pixelSize: UIScale.fontSmall
         }
@@ -172,7 +177,7 @@ Item {
             if (wheel.angleDelta.y === 0)
                 return;
             var base = root._editing ? root._preview : root.value;
-            root._preview = Math.max(root.minTemp, Math.min(root.maxTemp, base + (wheel.angleDelta.y > 0 ? 1 : -1)));
+            root._preview = Math.max(root.minValue, Math.min(root.maxValue, base + (wheel.angleDelta.y > 0 ? root.step : -root.step)));
             root._editing = true;
             _wheelCommit.restart();
         }

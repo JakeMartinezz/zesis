@@ -5,8 +5,9 @@ import "../wifi"
 import "../sound"
 import "../mic"
 import "../aircon"
+import "../tapo"
 
-// Bundles bluetooth/wifi/sound/mic (+ aircon when enabled) into one shared panel-button box, matching
+// Bundles bluetooth/wifi/sound/mic (+ aircon/tapo when enabled) into one shared panel-button box, matching
 // AGS's SystemIndicators.ts (several plain icons inside a single PanelButton).
 // Each icon keeps its own click-to-open popup - AGS routes all of these into
 // one shared quicksettings window, but quickshell doesn't have an equivalent
@@ -46,6 +47,13 @@ Item {
             active: BarConfig.ready && BarItemsService.isEnabled("aircon") // see SysTray's slot Loader
             visible: active && item !== null && item.available
             sourceComponent: AirconItem {
+                bare: true
+            }
+        }
+        Loader {
+            active: BarConfig.ready && BarItemsService.isEnabled("tapo")
+            visible: active && item !== null && item.available
+            sourceComponent: TapoItem {
                 bare: true
             }
         }

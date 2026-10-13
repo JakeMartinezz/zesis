@@ -48,6 +48,13 @@ Singleton {
             host: "system"
         },
         {
+            id: "tapo",
+            label: I18n.t("bar.itemTapo"),
+            src: "../tapo/TapoItem.qml",
+            defaultEnabled: false,
+            host: "system" // same as aircon
+        },
+        {
             id: "weather",
             label: I18n.t("bar.itemWeather"),
             src: "../weather/WeatherItem.qml"

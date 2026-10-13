@@ -9,5 +9,10 @@
   "on": "On",
   "off": "Off",
   "loading": "Loading…",
-  "noneFound": "None found"
+  "noneFound": "None found",
+  "unlockKeyring": "Unlock keyring",
+  "retry": "Retry",
+  "errNoOpenssl": "openssl was not found. Install it (the zesis NixOS module's batteriesIncluded ships it).",
+  "errLocked": "Your keyring is locked.",
+  "errEnvPerms": "%1 must be owned by you and readable only by you (chmod 600)."
 }

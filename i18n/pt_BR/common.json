@@ -9,5 +9,10 @@
   "on": "Ligado",
   "off": "Desligado",
   "loading": "Carregando…",
-  "noneFound": "Nenhum encontrado"
+  "noneFound": "Nenhum encontrado",
+  "unlockKeyring": "Desbloquear keyring",
+  "retry": "Tentar de novo",
+  "errNoOpenssl": "openssl não foi encontrado. Instale-o (o batteriesIncluded do módulo NixOS do zesis já inclui).",
+  "errLocked": "Seu keyring está trancado.",
+  "errEnvPerms": "%1 precisa ser seu e legível só por você (chmod 600)."
 }

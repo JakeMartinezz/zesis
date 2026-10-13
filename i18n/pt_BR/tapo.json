@@ -1,0 +1,20 @@
+{
+  "title": "Luz",
+  "on": "Ligada",
+  "off": "Desligada",
+  "offline": "Inacessível",
+  "brightness": "Brilho",
+  "lightSection": "LUZ",
+  "white": "Branca",
+  "color": "Colorida",
+  "temperature": "Temperatura",
+  "warm": "Quente",
+  "cool": "Fria",
+  "errNoCurl": "curl não foi encontrado. Instale-o (o batteriesIncluded do módulo NixOS do zesis já inclui).",
+  "errNoCredentials": "Nenhum login Tapo encontrado. Coloque TAPO_USER=..., TAPO_PASS=... e TAPO_HOSTS=<IP da lâmpada> em ~/.config/zesis/tapo.env (chmod 600).",
+  "errNoKeyring": "Nenhum keyring disponível. Coloque TAPO_USER=... e TAPO_PASS=... em ~/.config/zesis/tapo.env (chmod 600).",
+  "errNoHost": "Adicione TAPO_HOSTS=<IP da lâmpada> em %1.",
+  "errAuth": "A lâmpada recusou o login. Confira TAPO_USER/TAPO_PASS e ative a Compatibilidade com terceiros no app Tapo.",
+  "errNetwork": "Sem resposta da lâmpada em %1, tentando de novo.",
+  "errCommand": "O comando falhou: %1"
+}

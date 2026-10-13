@@ -68,6 +68,18 @@ in {
       '';
     };
 
+    tapo.envFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/etc/secrets/zesis-tapo.env";
+      description = ''
+        Env file for the Tapo light widget (default: ~/.config/zesis/tapo.env):
+        TAPO_USER=/TAPO_PASS= (your TP-Link account, used when the keyring has no
+        "tapo" entry) and TAPO_HOSTS= (the bulb's LAN address). Same rules as
+        aircon.envFile: a string outside your flake, owned by you, mode 600.
+      '';
+    };
+
     batteriesIncluded = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -99,6 +111,7 @@ in {
           slurp
           libsecret
           openssl
+          curl
         ];
         description = "Packages put on the service's PATH when batteriesIncluded.enable is true.";
       };
@@ -160,6 +173,9 @@ in {
         }
         // lib.optionalAttrs (cfg.aircon.envFile != null) {
           ZESIS_AIRCON_ENV = cfg.aircon.envFile;
+        }
+        // lib.optionalAttrs (cfg.tapo.envFile != null) {
+          ZESIS_TAPO_ENV = cfg.tapo.envFile;
         };
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/quickshell -c zesis";

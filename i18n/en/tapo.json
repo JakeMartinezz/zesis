@@ -1,0 +1,20 @@
+{
+  "title": "Light",
+  "on": "On",
+  "off": "Off",
+  "offline": "Unreachable",
+  "brightness": "Brightness",
+  "lightSection": "LIGHT",
+  "white": "White",
+  "color": "Color",
+  "temperature": "Temperature",
+  "warm": "Warm",
+  "cool": "Cool",
+  "errNoCurl": "curl was not found. Install it (the zesis NixOS module's batteriesIncluded ships it).",
+  "errNoCredentials": "No Tapo login found. Put TAPO_USER=..., TAPO_PASS=... and TAPO_HOSTS=<bulb IP> in ~/.config/zesis/tapo.env (chmod 600).",
+  "errNoKeyring": "No keyring is available. Put TAPO_USER=... and TAPO_PASS=... in ~/.config/zesis/tapo.env (chmod 600).",
+  "errNoHost": "Add TAPO_HOSTS=<bulb IP> to %1.",
+  "errAuth": "The light refused the login. Check TAPO_USER/TAPO_PASS and turn on Third-Party Compatibility in the Tapo app.",
+  "errNetwork": "Can't reach the light at %1, retrying.",
+  "errCommand": "Command failed: %1"
+}
