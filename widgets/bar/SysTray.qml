@@ -308,7 +308,10 @@ Rectangle {
 
             Loader {
                 id: content
-                active: !slot.itemData.host && BarItemsService.isEnabled(slot.itemData.id)
+                // Wait for the saved bar config: until it loads every item reads as enabled,
+                // and loading a disabled item even briefly creates its service singleton
+                // (weather, git updates...), which then keeps polling for the whole session.
+                active: BarConfig.ready && !slot.itemData.host && BarItemsService.isEnabled(slot.itemData.id)
                 visible: active && (item == null || item.available !== false)
                 opacity: slot._isDragging ? 0.3 : 1
 

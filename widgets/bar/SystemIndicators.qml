@@ -43,7 +43,7 @@ Item {
         // host: "system"); the bar settings toggle still turns it on and off. A Loader
         // so AirconService (and its startup fetch) only exists when it's enabled.
         Loader {
-            active: BarItemsService.isEnabled("aircon")
+            active: BarConfig.ready && BarItemsService.isEnabled("aircon") // see SysTray's slot Loader
             visible: active && item !== null && item.available
             sourceComponent: AirconItem {
                 bare: true
