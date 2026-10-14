@@ -2,7 +2,10 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "../shared"
+import "../lockscreen"
+import "../../"
 
 // Tapo L530-style bulb on the LAN, driven by tapo-klap.sh (KLAP v2: curl + openssl for a
 // few ms per call). Reads the state once at startup and then only while something shows
@@ -131,6 +134,7 @@ Singleton {
                 root.errorCode = code;
                 root.errorMessage = msg.error ? root._login?.host ?? "" : String(msg.error_code);
                 root._pending = ({}); // the bulb didn't take it; show what it really has
+                root._lockPending = "";
                 if (code === "auth")
                     root._login = null;
                 return;
@@ -147,6 +151,7 @@ Singleton {
                     root._staged = ({}); // turned on elsewhere: staged edits no longer apply
                 root.errorCode = "";
                 root.errorMessage = "";
+                root._lockCheck(msg.result.device_on === true);
             }
         }
     }
@@ -182,8 +187,99 @@ Singleton {
         passVar: "TAPO_PASS"
     }
 
+    // ---- automations (user toggles, saved in ~/.cache/zesis/tapo.json) --------------
+
+    property bool followTheme: false
+    property bool offOnLock: false
+    // The theme primary is a pastel MD3 tone; below this the bulb reads as white.
+    readonly property int themeMinSat: 60
+
+    // Turning it on remembers the current white/colour; turning it off puts that back,
+    // unless keep is set (a manual pick in the card, which should win).
+    property var _beforeTheme: null
+    function setFollowTheme(on, keep) {
+        if (root.followTheme === on)
+            return;
+        root.followTheme = on;
+        if (on)
+            root._beforeTheme = root.isWhite ? { color_temp: root.colorTemp } : { color_temp: 0, hue: root.hue, saturation: root.saturation };
+        else if (!keep && root._beforeTheme)
+            root.set(root._beforeTheme);
+        if (!on)
+            root._beforeTheme = null;
+        root._saveSettings();
+        root._applyTheme();
+    }
+    function setOffOnLock(on) {
+        root.offOnLock = on;
+        root._saveSettings();
+    }
+
+    // While off, set() stages the colour for the next power-on, so this never turns it on.
+    function _applyTheme() {
+        if (!root.followTheme || !root.hasState)
+            return;
+        var c = Qt.color(Colors.accent);
+        root.set({ color_temp: 0, hue: Math.round(Math.max(0, c.hsvHue) * 360), saturation: Math.max(root.themeMinSat, Math.round(c.hsvSaturation * 100)) });
+    }
+    onHasStateChanged: _applyTheme() // first read; staging before it would be dropped
+    Connections {
+        target: Colors
+        function onAccentChanged() {
+            root._applyTheme();
+        }
+    }
+
+    // Lock turns the light off only if it is on, and unlock turns it back on only if the
+    // lock was what turned it off (and nobody turned it on meanwhile). Each side reads
+    // the real state first, since the app or Alexa may have changed it.
+    property bool _offByLock: false
+    property string _lockPending: "" // "lock" | "unlock" while waiting for that read
+    function _lockCheck(on) {
+        var pending = root._lockPending;
+        root._lockPending = "";
+        if (pending === "lock" && on) {
+            root._offByLock = true;
+            root.set({ device_on: false });
+        } else if (pending === "unlock") {
+            if (root._offByLock && !on)
+                root.set({ device_on: true });
+            root._offByLock = false;
+        }
+    }
+    Connections {
+        target: LockService
+        function onLockedChanged() {
+            root._lockPending = "";
+            if (LockService.locked && !root.offOnLock)
+                return;
+            if (!LockService.locked && !root._offByLock)
+                return;
+            root._lockPending = LockService.locked ? "lock" : "unlock";
+            root.refresh();
+        }
+    }
+
+    function _saveSettings() {
+        settingsFile.setText(JSON.stringify({ followTheme: root.followTheme, offOnLock: root.offOnLock, beforeTheme: root._beforeTheme }));
+    }
+    FileView {
+        id: settingsFile
+        path: (Quickshell.env("XDG_CACHE_HOME") || (Quickshell.env("HOME") + "/.cache")) + "/zesis/tapo.json"
+        blockLoading: true
+        printErrors: false
+    }
+
     // One read at startup so the bar icon shows the real state.
-    Component.onCompleted: root.refresh()
+    Component.onCompleted: {
+        try {
+            var saved = JSON.parse(settingsFile.text() || "{}");
+            root.followTheme = saved.followTheme === true;
+            root.offOnLock = saved.offOnLock === true;
+            root._beforeTheme = saved.beforeTheme ?? null;
+        } catch (_) {}
+        root.refresh();
+    }
 
     Timer {
         interval: root.pollMs

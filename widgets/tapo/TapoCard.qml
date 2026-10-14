@@ -94,7 +94,10 @@ Item {
             model: [I18n.t("tapo.white"), I18n.t("tapo.color")]
             currentIndex: root.svc.isWhite ? 0 : 1
             accentColor: root.tint
-            onActivated: i => root.svc.set(i === 0 ? { color_temp: root.svc.colorTemp } : { color_temp: 0, hue: root.svc.hue, saturation: root.svc.saturation })
+            onActivated: i => {
+                root.svc.setFollowTheme(false, true);
+                root.svc.set(i === 0 ? { color_temp: root.svc.colorTemp } : { color_temp: 0, hue: root.svc.hue, saturation: root.svc.saturation });
+            }
         }
 
         // White: colour temperature. Commits on release; the drag only previews.
@@ -162,6 +165,7 @@ Item {
             value: root.svc.lightColor.toString()
             property var _hs: null
             onPicked: hex => {
+                root.svc.setFollowTheme(false, true);
                 var c = Qt.color(hex);
                 _hs = { color_temp: 0, hue: Math.round(Math.max(0, c.hsvHue) * 360), saturation: Math.max(1, Math.round(c.hsvSaturation * 100)) };
                 pickCommit.restart();
@@ -170,6 +174,48 @@ Item {
                 id: pickCommit
                 interval: 300
                 onTriggered: root.svc.set(picker._hs)
+            }
+        }
+
+        MoreOptions {
+            compact: root.compact
+            title: I18n.t("tapo.moreTitle")
+            compactContent: [
+                Chip {
+                    tint: root.tint
+                    selected: root.svc.followTheme
+                    icon: String.fromCodePoint(0xF03D8) // md-palette
+                    onClicked: root.svc.setFollowTheme(!root.svc.followTheme)
+                },
+                Chip {
+                    tint: root.tint
+                    selected: root.svc.offOnLock
+                    icon: String.fromCodePoint(0xF033E) // md-lock
+                    onClicked: root.svc.setOffOnLock(!root.svc.offOnLock)
+                }
+            ]
+
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: Math.round(6 * UIScale.value)
+                rowSpacing: Math.round(6 * UIScale.value)
+                Chip {
+                    block: true
+                    tint: root.tint
+                    selected: root.svc.followTheme
+                    icon: String.fromCodePoint(0xF03D8) // md-palette
+                    label: I18n.t("tapo.followTheme")
+                    onClicked: root.svc.setFollowTheme(!root.svc.followTheme)
+                }
+                Chip {
+                    block: true
+                    tint: root.tint
+                    selected: root.svc.offOnLock
+                    icon: String.fromCodePoint(0xF033E) // md-lock
+                    label: I18n.t("tapo.offOnLock")
+                    onClicked: root.svc.setOffOnLock(!root.svc.offOnLock)
+                }
             }
         }
     }

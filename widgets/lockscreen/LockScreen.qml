@@ -9,6 +9,7 @@ Scope {
 
     WlSessionLock {
         id: sessionLock
+        onSecureChanged: LockService.locked = sessionLock.secure // `locked` only notifies on unlock
 
         LockSurface {
             lock: sessionLock

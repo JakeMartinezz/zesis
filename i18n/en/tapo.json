@@ -16,5 +16,8 @@
   "errNoHost": "Add TAPO_HOSTS=<bulb IP> to %1.",
   "errAuth": "The light refused the login. Check TAPO_USER/TAPO_PASS and turn on Third-Party Compatibility in the Tapo app.",
   "errNetwork": "Can't reach the light at %1, retrying.",
-  "errCommand": "Command failed: %1"
+  "errCommand": "Command failed: %1",
+  "followTheme": "Follow wallpaper",
+  "offOnLock": "Off when locked",
+  "moreTitle": "More options"
 }

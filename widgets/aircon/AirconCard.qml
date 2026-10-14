@@ -276,165 +276,39 @@ Item {
             }
         }
 
-        SettingCard {
-            id: more
-            property bool open: false
-
-            // One column with no spacing, so the extras' gap can live inside the animated
-            // height instead of popping in/out with the wrapper's visibility.
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                // The desktop widget is a layer surface sized to its content: growing it
-                // resizes and moves the window every frame. So in compact mode the extras
-                // swap in place of this row (same height) instead of expanding below it.
-                Item {
-                    Layout.fillWidth: true
-                    implicitHeight: Math.max(moreHeader.implicitHeight, compactExtras.implicitHeight)
-
-                    RowLayout {
-                        id: moreHeader
-                        anchors.fill: parent
-                        spacing: UIScale.spacingSm
-                        // compact: crossfades with the extras row instead of expanding
-                        opacity: root.compact && more.open ? 0 : 1
-                        enabled: opacity > 0.5
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: Anim.medium
-                            }
-                        }
-                        Text {
-                            text: String.fromCodePoint(0xF0493) // md-cog
-                            color: Colors.textDim
-                            font.pixelSize: Math.round(18 * UIScale.value)
-                        }
-                        Column {
-                            Layout.fillWidth: true
-                            spacing: 1
-                            Text {
-                                text: I18n.t("aircon.moreTitle")
-                                color: Colors.text
-                                font.pixelSize: UIScale.fontBody
-                                font.weight: Font.DemiBold
-                            }
-                            Text {
-                                visible: !root.compact
-                                text: I18n.t("aircon.moreHint")
-                                color: Colors.textDim
-                                font.pixelSize: UIScale.fontCaption
-                            }
-                        }
-                        Text {
-                            text: String.fromCodePoint(0xF0142) // md-chevron_right
-                            color: moreHover.hovered ? Colors.accent : Colors.textDim
-                            font.pixelSize: Math.round(18 * UIScale.value)
-                            rotation: more.open && !root.compact ? 90 : 0
-                            Behavior on rotation {
-                                NumberAnimation {
-                                    duration: Anim.fast
-                                    easing.type: Easing.BezierSpline
-                                    easing.bezierCurve: Anim.standard
-                                }
-                            }
-                        }
-                        HoverHandler {
-                            id: moreHover
-                            cursorShape: Qt.PointingHandCursor
-                        }
-                        TapHandler {
-                            // Curve picked before toggling: a binding on `more.open` would be
-                            // read stale in the same update that starts the height animation.
-                            onTapped: {
-                                moreAnim.easing.bezierCurve = more.open ? Anim.emphasizedAccel : Anim.emphasizedDecel;
-                                moreAnim.duration = more.open ? Anim.medium : Anim.morph; // closing reads better quick
-                                more.open = !more.open;
-                            }
-                        }
-                    }
-
-                    RowLayout {
-                        id: compactExtras
-                        anchors.fill: parent
-                        visible: root.compact
-                        spacing: Math.round(6 * UIScale.value)
-                        opacity: root.compact && more.open ? 1 : 0
-                        enabled: opacity > 0.5
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: Anim.medium
-                            }
-                        }
-                        Text {
-                            text: String.fromCodePoint(0xF0141) // md-chevron_left
-                            color: backHover.hovered ? Colors.accent : Colors.textDim
-                            font.pixelSize: Math.round(18 * UIScale.value)
-                            HoverHandler {
-                                id: backHover
-                                cursorShape: Qt.PointingHandCursor
-                            }
-                            TapHandler {
-                                onTapped: more.open = false
-                            }
-                        }
-                        Item {
-                            Layout.fillWidth: true
-                        }
-                        Repeater {
-                            model: root.svc.extras
-                            delegate: Chip {
-                                id: compactExtra
-                                required property var modelData
-                                tint: root.tint
-                                selected: root.svc.view[modelData.prop] === 1
-                                icon: modelData.icon
-                                onClicked: root.svc.toggle(compactExtra.modelData.prop)
-                            }
-                        }
-                    }
+        MoreOptions {
+            compact: root.compact
+            title: I18n.t("aircon.moreTitle")
+            hint: I18n.t("aircon.moreHint")
+            compactContent: Repeater {
+                model: root.svc.extras
+                delegate: Chip {
+                    id: compactExtra
+                    required property var modelData
+                    tint: root.tint
+                    selected: root.svc.view[modelData.prop] === 1
+                    icon: modelData.icon
+                    onClicked: root.svc.toggle(compactExtra.modelData.prop)
                 }
+            }
 
-                // Collapse wrapper with Anim's expand/collapse pair
-                // (no overshoot: spatial dips below 0 on close).
-                Item {
-                    id: moreWrapper
-                    Layout.fillWidth: true
-                    visible: !root.compact
-                    implicitHeight: more.open && !root.compact ? UIScale.spacingSm + extrasFlow.implicitHeight : 0
-                    clip: true
-                    Behavior on implicitHeight {
-                        NumberAnimation {
-                            id: moreAnim
-                            duration: Anim.morph
-                            easing.type: Easing.BezierSpline
-                            easing.bezierCurve: Anim.emphasizedDecel
-                        }
-                    }
-
-                    Flow {
-                        id: extrasFlow
-                        y: UIScale.spacingSm
-                        width: moreWrapper.width
-                        opacity: more.open ? 1 : 0
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: Anim.medium
-                            }
-                        }
-                        spacing: Math.round(6 * UIScale.value)
-                        Repeater {
-                            model: root.svc.extras
-                            delegate: Chip {
-                                id: extra
-                                required property var modelData
-                                tint: root.tint
-                                selected: root.svc.view[modelData.prop] === 1
-                                icon: modelData.icon
-                                label: I18n.t("aircon." + modelData.key)
-                                onClicked: root.svc.toggle(extra.modelData.prop)
-                            }
-                        }
+            // Two per row as wide blocks: a Flow of pills wrapped one stray chip alone.
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: Math.round(6 * UIScale.value)
+                rowSpacing: Math.round(6 * UIScale.value)
+                Repeater {
+                    model: root.svc.extras
+                    delegate: Chip {
+                        id: extra
+                        required property var modelData
+                        block: true
+                        tint: root.tint
+                        selected: root.svc.view[modelData.prop] === 1
+                        icon: modelData.icon
+                        label: I18n.t("aircon." + modelData.key)
+                        onClicked: root.svc.toggle(extra.modelData.prop)
                     }
                 }
             }

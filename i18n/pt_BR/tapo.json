@@ -16,5 +16,8 @@
   "errNoHost": "Adicione TAPO_HOSTS=<IP da lâmpada> em %1.",
   "errAuth": "A lâmpada recusou o login. Confira TAPO_USER/TAPO_PASS e ative a Compatibilidade com terceiros no app Tapo.",
   "errNetwork": "Sem resposta da lâmpada em %1, tentando de novo.",
-  "errCommand": "O comando falhou: %1"
+  "errCommand": "O comando falhou: %1",
+  "followTheme": "Seguir o wallpaper",
+  "offOnLock": "Apagar ao bloquear",
+  "moreTitle": "Mais opções"
 }
