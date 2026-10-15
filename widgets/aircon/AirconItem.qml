@@ -17,6 +17,7 @@ DeviceBarItem {
     card: Component {
         AirconCard {}
     }
+    onSecondaryClicked: if (root.svc.hasState) root.svc.toggle("t_power")
 
     Text {
         id: icon

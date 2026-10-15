@@ -13,6 +13,7 @@ DeviceBarItem {
     card: Component {
         TapoCard {}
     }
+    onSecondaryClicked: if (root.svc.hasState) root.svc.toggle()
 
     Text {
         anchors.verticalCenter: parent.verticalCenter

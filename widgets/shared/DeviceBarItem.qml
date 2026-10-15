@@ -3,7 +3,8 @@ import "../../"
 
 // Bar item for a smart-home device (aircon, Tapo light...): the panel-button box, a
 // click-to-toggle popup holding `card`, and a ServiceHold that keeps `service` polling
-// only while that popup is open. Children go into the centered row.
+// only while that popup is open. Children go into the centered row. Right click emits
+// secondaryClicked (power toggle) without opening the popup.
 Item {
     id: root
 
@@ -16,6 +17,7 @@ Item {
     property alias rowOpacity: barRow.opacity
     readonly property bool hot: mouseArea.containsMouse || popup.visible
     default property alias content: barRow.data
+    signal secondaryClicked
 
     visible: root.available
     implicitWidth: barRow.implicitWidth + Math.round((bare ? 10 : 14) * UIScale.value)
@@ -38,7 +40,13 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: popup.visible ? popup.close() : popup.open()
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: mouse => {
+            if (mouse.button === Qt.RightButton)
+                root.secondaryClicked();
+            else
+                popup.visible ? popup.close() : popup.open();
+        }
     }
 
     Row {
